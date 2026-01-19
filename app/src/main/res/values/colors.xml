@@ -1,0 +1,21 @@
+<resources>
+    <!-- Base -->
+    <color name="gray_background">#F4F4F5</color>
+    <color name="gray_surface">#FFFFFF</color>
+    <color name="gray_text_primary">#1F2937</color>
+    <color name="gray_text_secondary">#6B7280</color>
+
+    <!-- Accent (naranja estilo Claude) -->
+    <color name="orange_primary">#F97316</color>
+    <color name="orange_dark">#EA580C</color>
+
+    <!-- Estados -->
+    <color name="success_green">#16A34A</color>
+    <color name="error_red">#DC2626</color>
+    <!-- Compat: colores que aún son referenciados por values-night-v8 / themes viejos -->
+    <color name="purple_200">#BB86FC</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="black">#000000</color>
+
+</resources>

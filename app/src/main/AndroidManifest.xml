@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Permisos base -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Storage (Android 5.1.1) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- Features (opcionales, no bloquear instalación) -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
+
+    <!-- Permisos específicos Newland (mantener si el firmware los usa) -->
+    <uses-permission android:name="android.permission.MANAGE_NEWLAND" />
+    <uses-permission android:name="android.permission.MANAGE_NEWLANDUART3" />
+    <uses-permission android:name="android.permission.MANAGE_NEWLAND_CASHBOX" />
+    <uses-permission android:name="android.permission.MANAGE_NEWLANDMODEM" />
+    <uses-permission android:name="android.permission.MANAGE_ANALOG_SERIAL" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Tecnicos_app"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="34">
+        <activity
+            android:name=".ui.TerminalDetailsActivity" />
+
+        <!-- Pantalla secundaria -->
+        <activity
+            android:name=".ui.WorkActivity"
+            android:exported="false" />
+
+        <!-- Escaneo (ZXing) -->
+        <activity
+            android:name=".sdk.ScanActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity android:name=".ui.SettingsActivity" />
+        <activity android:name=".ui.HistoryActivity" />
+
+        <!-- Pantalla inicial -->
+        <activity
+            android:name=".ui.LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>
