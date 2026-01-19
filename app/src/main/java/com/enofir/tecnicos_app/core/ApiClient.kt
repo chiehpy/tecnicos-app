@@ -1,5 +1,7 @@
 package com.enofir.tecnicos_app.core
 
+import com.enofir.tecnicos_app.model.LoginRequest
+import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.TerminalEventRequest
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.model.TerminalLookupResponse
@@ -19,7 +21,8 @@ object ApiClient {
         "Limpieza",
         "QA",
         "Revisión inicial",
-        "Programador (carga de firmwares)"
+        "Programador (carga de firmwares)",
+        "Reparación"
     )
 
     @Volatile
@@ -60,6 +63,21 @@ object ApiClient {
 
     private fun requireValidRole(role: String) {
         require(allowedRoles.contains(role)) { "INVALID_ROLE (client): '$role' no está en allowedRoles" }
+    }
+
+    fun login(username: String, pin: String): Call<LoginResponse> {
+        val u = username.trim()
+        val p = pin.trim()
+
+        require(u.isNotEmpty()) { "username vacío" }
+        require(p.isNotEmpty()) { "pin vacío" }
+
+        val payload = LoginRequest(
+            username = u,
+            pin = p
+        )
+
+        return api().login(payload)
     }
 
     fun assign(serial: String, role: String, technicianName: String): Call<TerminalEventResponse> {

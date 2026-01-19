@@ -19,8 +19,9 @@
 
     <EditText
         android:id="@+id/etPass"
-        android:hint="Contraseña"
-        android:inputType="textPassword"
+        android:hint="PIN (4 dígitos)"
+        android:inputType="numberPassword"
+        android:maxLength="4"
         android:layout_marginTop="12dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

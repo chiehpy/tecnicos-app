@@ -7,7 +7,12 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.enofir.tecnicos_app.R
+import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.SessionManager
+import com.enofir.tecnicos_app.model.LoginResponse
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
 
@@ -28,37 +33,60 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
-        // Pre-cargado (MVP)
-        etUser.setText("wramos")
-        etPass.setText("1234")
-
         btnLogin.setOnClickListener {
             tvMsg.text = ""
 
-            val user = etUser.text.toString().trim()
-            val pass = etPass.text.toString()
+            val user = etUser.text.toString().trim().lowercase()
+            val pin = etPass.text.toString().trim()
 
-            if (user.isEmpty() || pass.isEmpty()) {
-                tvMsg.text = "Completá usuario y contraseña."
+            if (user.isEmpty()) {
+                tvMsg.text = "Ingresá tu usuario."
                 return@setOnClickListener
             }
 
-            // MVP: auth local
-            if (user != "wramos" || pass != "1234") {
-                tvMsg.text = "Credenciales inválidas."
+            if (pin.isEmpty()) {
+                tvMsg.text = "Ingresá tu PIN."
                 return@setOnClickListener
             }
 
-            // Guardar sesión
-            session.saveSession(
-                token = "local",
-                username = "wramos",
-                role = "Limpieza",
-                technicianName = "Walter Ramos"
-            )
+            if (pin.length != 4) {
+                tvMsg.text = "El PIN debe ser de 4 dígitos."
+                return@setOnClickListener
+            }
 
+            // Deshabilitar botón mientras procesa
+            btnLogin.isEnabled = false
+            tvMsg.text = "Verificando..."
 
-            goToWork()
+            ApiClient.login(user, pin).enqueue(object : Callback<LoginResponse> {
+
+                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                    btnLogin.isEnabled = true
+
+                    val body = response.body()
+
+                    if (!response.isSuccessful || body == null) {
+                        val raw = response.errorBody()?.string()?.trim().orEmpty()
+                        tvMsg.text = if (raw.isNotEmpty()) raw else "Error de conexión (HTTP ${response.code()})"
+                        return
+                    }
+
+                    if (!body.ok || body.token == null || body.user == null) {
+                        tvMsg.text = body.message ?: "Credenciales inválidas."
+                        return
+                    }
+
+                    // Login exitoso: guardar sesión
+                    session.saveSession(body.token, body.user)
+
+                    goToWork()
+                }
+
+                override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                    btnLogin.isEnabled = true
+                    tvMsg.text = "Error de conexión: ${t.message}"
+                }
+            })
         }
     }
 

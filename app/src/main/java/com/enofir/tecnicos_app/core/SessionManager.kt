@@ -1,34 +1,31 @@
 package com.enofir.tecnicos_app.core
 
 import android.content.Context
+import com.enofir.tecnicos_app.model.LoginUser
 
 class SessionManager(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     /**
-     * Guarda la sesión completa del técnico.
-     * technicianName es el nombre real que espera Salesforce / MDW.
+     * Guarda la sesión desde la respuesta de login del MDW.
      */
-    fun saveSession(
-        token: String?,
-        username: String?,
-        role: String?,
-        technicianName: String?
-    ) {
+    fun saveSession(token: String, user: LoginUser) {
         prefs.edit()
             .putString(KEY_TOKEN, token)
-            .putString(KEY_USER, username)
-            .putString(KEY_ROLE, role)
-            .putString(KEY_TECHNICIAN_NAME, technicianName)
+            .putString(KEY_USER, user.username)
+            .putString(KEY_TECHNICIAN_NAME, user.technicianName)
+            .putString(KEY_ALLOWED_ROLES, user.allowedRoles.joinToString(ROLE_SEPARATOR))
+            .remove(KEY_ROLE) // Se selecciona después en Settings
             .apply()
     }
+
     fun setRole(role: String?) {
         prefs.edit().putString(KEY_ROLE, role).apply()
     }
 
     fun isLoggedIn(): Boolean {
-        return !getUser().isNullOrBlank()
+        return !getToken().isNullOrBlank() && !getUser().isNullOrBlank()
     }
 
     fun getToken(): String? =
@@ -47,8 +44,26 @@ class SessionManager(context: Context) {
     fun getTechnicianName(): String? =
         prefs.getString(KEY_TECHNICIAN_NAME, null)
 
+    /**
+     * Rol activo seleccionado por el técnico
+     */
     fun getRole(): String? =
         prefs.getString(KEY_ROLE, null)
+
+    /**
+     * Roles permitidos para este técnico (devueltos por MDW en login)
+     */
+    fun getAllowedRoles(): List<String> {
+        val raw = prefs.getString(KEY_ALLOWED_ROLES, null) ?: return emptyList()
+        return raw.split(ROLE_SEPARATOR).filter { it.isNotBlank() }
+    }
+
+    /**
+     * Verifica si el técnico tiene permiso para usar un rol específico
+     */
+    fun isRoleAllowed(role: String): Boolean {
+        return getAllowedRoles().contains(role)
+    }
 
     fun clear() {
         prefs.edit().clear().apply()
@@ -60,5 +75,7 @@ class SessionManager(context: Context) {
         private const val KEY_USER = "user"
         private const val KEY_ROLE = "role"
         private const val KEY_TECHNICIAN_NAME = "technician_name"
+        private const val KEY_ALLOWED_ROLES = "allowed_roles"
+        private const val ROLE_SEPARATOR = "|||"
     }
 }

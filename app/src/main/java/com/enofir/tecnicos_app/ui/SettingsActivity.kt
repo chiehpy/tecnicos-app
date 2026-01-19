@@ -8,7 +8,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.enofir.tecnicos_app.R
-import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.SessionManager
 
 class SettingsActivity : AppCompatActivity() {
@@ -30,8 +29,14 @@ class SettingsActivity : AppCompatActivity() {
         val btnSave = findViewById<Button>(R.id.btnSave)
         val tvCurrent = findViewById<TextView>(R.id.tvCurrentRole)
 
-        // Roles exactos MDW
-        val roles: List<String> = ApiClient.allowedRoles.toList()
+        // Roles permitidos para este usuario (desde MDW login)
+        val roles: List<String> = session.getAllowedRoles()
+
+        if (roles.isEmpty()) {
+            Toast.makeText(this, "No tenés roles asignados. Contactá al administrador.", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
 
         val adapter: ArrayAdapter<String> = ArrayAdapter(
             this,
