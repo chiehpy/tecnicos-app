@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.Menu
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
@@ -19,7 +18,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class WorkActivity : AppCompatActivity() {
+class WorkActivity : BaseActivity() {
 
     private lateinit var etSerial: EditText
     private lateinit var session: SessionManager
@@ -207,12 +206,5 @@ class WorkActivity : AppCompatActivity() {
     private fun logout() {
         session.clear()
         goToLogin()
-    }
-
-    private fun goToLogin() {
-        val intent = Intent(this, LoginActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
     }
 }

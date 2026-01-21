@@ -6,11 +6,10 @@ import android.widget.Button
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.SessionManager
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : BaseActivity() {
 
     private lateinit var session: SessionManager
 

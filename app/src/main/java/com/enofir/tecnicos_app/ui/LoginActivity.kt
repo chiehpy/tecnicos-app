@@ -71,13 +71,13 @@ class LoginActivity : AppCompatActivity() {
                         return
                     }
 
-                    if (!body.ok || body.token == null || body.user == null) {
+                    if (!body.ok || body.token == null || body.refreshToken == null || body.user == null) {
                         tvMsg.text = body.message ?: "Credenciales inválidas."
                         return
                     }
 
-                    // Login exitoso: guardar sesión
-                    session.saveSession(body.token, body.user)
+                    // Login exitoso: guardar sesión con ambos tokens
+                    session.saveSession(body.token, body.refreshToken, body.user)
 
                     goToWork()
                 }

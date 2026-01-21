@@ -3,7 +3,7 @@ package com.enofir.tecnicos_app.model
 object StatusCatalog {
 
     val OPTIONS: List<String> = listOf(
-        "Revisión Inicial",
+        "Revision Inicial",
         "Reparación Técnica",
         "Limpieza",
         "Testeo",

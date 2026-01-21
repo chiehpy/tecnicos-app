@@ -7,7 +7,6 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.HistoryStore
@@ -22,7 +21,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class TerminalDetailsActivity : AppCompatActivity() {
+class TerminalDetailsActivity : BaseActivity() {
 
     companion object {
         const val EXTRA_SERIAL = "extra_serial"
@@ -161,7 +160,7 @@ class TerminalDetailsActivity : AppCompatActivity() {
         val btnComplete = findViewById<Button>(R.id.btnComplete)
         val btnChangeState = findViewById<Button>(R.id.btnChangeState)
 
-        // Selector (solo Revisión inicial)
+        // Selector (solo Revision inicial)
         val failureObsContainer = findViewById<View>(R.id.failureObsContainer)
         val btnFailureObs = findViewById<Button>(R.id.btnFailureObs)
         val tvFailureObs = findViewById<TextView>(R.id.tvFailureObs)
@@ -186,7 +185,7 @@ class TerminalDetailsActivity : AppCompatActivity() {
         StatusChip.apply(chip, ChipState.OK, "LISTO")
         tvResult.text = ""
 
-        // Selector multi-choice SOLO para Revisión inicial (input para COMPLETE)
+        // Selector multi-choice SOLO para Revision inicial (input para COMPLETE)
         if (isRevisionInicial) {
             failureObsContainer.visibility = View.VISIBLE
             btnComplete.text = "Finalizar revisión"

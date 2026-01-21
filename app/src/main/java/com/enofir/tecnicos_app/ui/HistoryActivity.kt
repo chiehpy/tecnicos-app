@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.HistoryStore
 import com.enofir.tecnicos_app.model.HistoryEntry
@@ -12,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class HistoryActivity : AppCompatActivity() {
+class HistoryActivity : BaseActivity() {
 
     private lateinit var tvTitle: TextView
     private lateinit var container: LinearLayout

@@ -10,13 +10,23 @@ class SessionManager(context: Context) {
     /**
      * Guarda la sesión desde la respuesta de login del MDW.
      */
-    fun saveSession(token: String, user: LoginUser) {
+    fun saveSession(token: String, refreshToken: String, user: LoginUser) {
         prefs.edit()
             .putString(KEY_TOKEN, token)
+            .putString(KEY_REFRESH_TOKEN, refreshToken)
             .putString(KEY_USER, user.username)
             .putString(KEY_TECHNICIAN_NAME, user.technicianName)
             .putString(KEY_ALLOWED_ROLES, user.allowedRoles.joinToString(ROLE_SEPARATOR))
             .remove(KEY_ROLE) // Se selecciona después en Settings
+            .apply()
+    }
+
+    /**
+     * Actualiza solo el access token (después de un refresh exitoso)
+     */
+    fun updateToken(token: String) {
+        prefs.edit()
+            .putString(KEY_TOKEN, token)
             .apply()
     }
 
@@ -30,6 +40,9 @@ class SessionManager(context: Context) {
 
     fun getToken(): String? =
         prefs.getString(KEY_TOKEN, null)
+
+    fun getRefreshToken(): String? =
+        prefs.getString(KEY_REFRESH_TOKEN, null)
 
     /**
      * Username técnico (ej: wramos)
@@ -72,6 +85,7 @@ class SessionManager(context: Context) {
     companion object {
         private const val PREFS = "tecnicos_app_session"
         private const val KEY_TOKEN = "token"
+        private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_USER = "user"
         private const val KEY_ROLE = "role"
         private const val KEY_TECHNICIAN_NAME = "technician_name"

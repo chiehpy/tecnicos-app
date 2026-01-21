@@ -1,5 +1,9 @@
 package com.enofir.tecnicos_app.core
 
+import android.content.Context
+import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.TerminalEventRequest
@@ -17,16 +21,64 @@ object ApiClient {
     var baseUrl: String = "http://167.234.226.219:8000/"
     var enableHttpLog: Boolean = true
 
-    val allowedRoles: Set<String> = setOf(
-        "Limpieza",
-        "QA",
-        "Revisión inicial",
-        "Programador (carga de firmwares)",
-        "Reparación"
-    )
+    /**
+     * Listener para notificar cuando la autenticación falla y se debe
+     * redirigir al usuario al login.
+     */
+    interface AuthFailedListener {
+        fun onAuthFailed()
+    }
 
     @Volatile
     private var retrofitInstance: Retrofit? = null
+
+    @Volatile
+    private var sessionManager: SessionManager? = null
+
+    @Volatile
+    private var appContext: Context? = null
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private val authFailedListeners = mutableSetOf<AuthFailedListener>()
+
+    /**
+     * Inicializa el ApiClient con el contexto de la aplicación.
+     * DEBE llamarse en Application.onCreate() o antes de usar la API.
+     */
+    fun init(context: Context) {
+        appContext = context.applicationContext
+        sessionManager = SessionManager(context.applicationContext)
+    }
+
+    fun addAuthFailedListener(listener: AuthFailedListener) {
+        synchronized(authFailedListeners) {
+            authFailedListeners.add(listener)
+        }
+    }
+
+    fun removeAuthFailedListener(listener: AuthFailedListener) {
+        synchronized(authFailedListeners) {
+            authFailedListeners.remove(listener)
+        }
+    }
+
+    private fun notifyAuthFailed() {
+        mainHandler.post {
+            val session = sessionManager
+            session?.clear()
+
+            synchronized(authFailedListeners) {
+                authFailedListeners.toList().forEach { it.onAuthFailed() }
+            }
+
+            // Broadcast para que cualquier Activity pueda escuchar
+            appContext?.let { ctx ->
+                val intent = Intent(ACTION_AUTH_FAILED)
+                ctx.sendBroadcast(intent)
+            }
+        }
+    }
 
     private fun retrofit(): Retrofit {
         val existing = retrofitInstance
@@ -36,12 +88,28 @@ object ApiClient {
             val existing2 = retrofitInstance
             if (existing2 != null) return existing2
 
+            val session = sessionManager
+                ?: throw IllegalStateException("ApiClient no inicializado. Llama a ApiClient.init(context) primero.")
+
             val logger = HttpLoggingInterceptor().apply {
                 level = if (enableHttpLog) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
             }
 
+            val authInterceptor = AuthInterceptor(
+                tokenProvider = { session.getToken() }
+            )
+
+            val tokenAuthenticator = TokenAuthenticator(
+                baseUrl = baseUrl,
+                refreshTokenProvider = { session.getRefreshToken() },
+                onTokenRefreshed = { newToken -> session.updateToken(newToken) },
+                onAuthFailed = { notifyAuthFailed() }
+            )
+
             val client = OkHttpClient.Builder()
+                .addInterceptor(authInterceptor)
                 .addInterceptor(logger)
+                .authenticator(tokenAuthenticator)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
@@ -61,9 +129,7 @@ object ApiClient {
     private fun api(): SalesforceApi =
         retrofit().create(SalesforceApi::class.java)
 
-    private fun requireValidRole(role: String) {
-        require(allowedRoles.contains(role)) { "INVALID_ROLE (client): '$role' no está en allowedRoles" }
-    }
+    const val ACTION_AUTH_FAILED = "com.enofir.tecnicos_app.AUTH_FAILED"
 
     fun login(username: String, pin: String): Call<LoginResponse> {
         val u = username.trim()
@@ -86,8 +152,8 @@ object ApiClient {
         val t = technicianName.trim()
 
         require(s.isNotEmpty()) { "serial vacío" }
+        require(r.isNotEmpty()) { "role vacío" }
         require(t.isNotEmpty()) { "technicianName vacío" }
-        requireValidRole(r)
 
         val payload = TerminalEventRequest(
             action = "ASSIGN",
@@ -104,7 +170,7 @@ object ApiClient {
         val r = role.trim()
 
         require(s.isNotEmpty()) { "serial vacío" }
-        requireValidRole(r)
+        require(r.isNotEmpty()) { "role vacío" }
 
         val payload = TerminalEventRequest(
             action = "COMPLETE",
