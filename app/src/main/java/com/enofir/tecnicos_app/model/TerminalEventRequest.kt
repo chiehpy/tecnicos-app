@@ -16,6 +16,9 @@ import com.google.gson.annotations.SerializedName
  * - action, serial, targetStatus
  * - targetSubstatus: opcional (ej. "Carga de firmware + Inyección")
  *
+ * REJECT:
+ * - action, serial, role="QA", qaObservations
+ *
  * Nota: campos null no se serializan (Gson por defecto no incluye nulls
  * salvo que se configure serializeNulls()).
  */
@@ -40,5 +43,9 @@ data class TerminalEventRequest(
     val targetStatus: String? = null,
 
     @SerializedName("targetSubstatus")
-    val targetSubstatus: String? = null
+    val targetSubstatus: String? = null,
+
+    // ===== NUEVO: solo REJECT (QA) =====
+    @SerializedName("qaObservations")
+    val qaObservations: String? = null
 )

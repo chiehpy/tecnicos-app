@@ -18,7 +18,11 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
+    @Volatile
     var baseUrl: String = "http://167.234.226.219:8000/"
+        private set
+
+    @Volatile
     var enableHttpLog: Boolean = true
 
     /**
@@ -42,6 +46,8 @@ object ApiClient {
 
     private val authFailedListeners = mutableSetOf<AuthFailedListener>()
 
+    const val ACTION_AUTH_FAILED = "com.enofir.tecnicos_app.AUTH_FAILED"
+
     /**
      * Inicializa el ApiClient con el contexto de la aplicación.
      * DEBE llamarse en Application.onCreate() o antes de usar la API.
@@ -49,6 +55,23 @@ object ApiClient {
     fun init(context: Context) {
         appContext = context.applicationContext
         sessionManager = SessionManager(context.applicationContext)
+    }
+
+    /**
+     * Si cambiás la URL (Settings), hay que recrear Retrofit.
+     */
+    fun setBaseUrl(newBaseUrl: String) {
+        val v = newBaseUrl.trim()
+        require(v.isNotEmpty()) { "baseUrl vacía" }
+
+        // Asegurar barra al final, Retrofit la requiere para rutas relativas.
+        val normalized = if (v.endsWith("/")) v else "$v/"
+
+        // Si cambia, invalida retrofit
+        if (normalized != baseUrl) {
+            baseUrl = normalized
+            retrofitInstance = null
+        }
     }
 
     fun addAuthFailedListener(listener: AuthFailedListener) {
@@ -65,8 +88,7 @@ object ApiClient {
 
     private fun notifyAuthFailed() {
         mainHandler.post {
-            val session = sessionManager
-            session?.clear()
+            sessionManager?.clear()
 
             synchronized(authFailedListeners) {
                 authFailedListeners.toList().forEach { it.onAuthFailed() }
@@ -129,8 +151,6 @@ object ApiClient {
     private fun api(): SalesforceApi =
         retrofit().create(SalesforceApi::class.java)
 
-    const val ACTION_AUTH_FAILED = "com.enofir.tecnicos_app.AUTH_FAILED"
-
     fun login(username: String, pin: String): Call<LoginResponse> {
         val u = username.trim()
         val p = pin.trim()
@@ -177,7 +197,7 @@ object ApiClient {
             serial = s,
             role = r,
             technicianName = null,
-            failureObservations = failureObservations
+            failureObservations = failureObservations?.takeIf { it.isNotEmpty() }
         )
 
         return api().terminalEvent(payload)
@@ -213,7 +233,48 @@ object ApiClient {
         return api().terminalEvent(payload)
     }
 
-    fun reset() {
+    /**
+     * REJECT (QA): guarda observaciones QA (QAObservations__c) vía MDW.
+     * Payload esperado:
+     * {
+     *   "action":"REJECT",
+     *   "serial":"...",
+     *   "role":"QA",
+     *   "qaObservations":"A;B;C"
+     * }
+     */
+    fun reject(
+        serial: String,
+        role: String,
+        qaObservations: String
+    ): Call<TerminalEventResponse> {
+        val s = serial.trim()
+        val r = role.trim()
+        val qa = qaObservations.trim()
+
+        require(s.isNotEmpty()) { "serial vacío" }
+        require(r.isNotEmpty()) { "role vacío" }
+        require(qa.isNotEmpty()) { "qaObservations vacío" }
+
+        val payload = TerminalEventRequest(
+            action = "REJECT",
+            serial = s,
+            role = r,
+            qaObservations = qa
+        )
+
+        return api().terminalEvent(payload)
+    }
+
+    /**
+     * Resetea Retrofit (por ejemplo luego de cambiar baseUrl o togglear logs).
+     * Si querés reset total, pasá clearInit=true (requiere init() de nuevo).
+     */
+    fun reset(clearInit: Boolean = false) {
         retrofitInstance = null
+        if (clearInit) {
+            sessionManager = null
+            appContext = null
+        }
     }
 }

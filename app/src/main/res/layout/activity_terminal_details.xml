@@ -1,3 +1,4 @@
+<!-- res/layout/activity_terminal_details.xml -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -13,155 +14,178 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-        <TextView
-            android:text="Detalle de terminal"
-            android:textSize="20sp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/statusChip"
-            android:text="DESCONECTADO"
-            android:padding="10dp"
-            android:layout_marginTop="12dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <!-- SERIAL -->
-        <TextView
-            android:text="Número de serie"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/tvSerialValue"
-            android:text="-"
-            android:layout_marginTop="4dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <!-- IMEI (siempre visible) -->
-        <TextView
-            android:text="IMEI"
-            android:textStyle="bold"
-            android:layout_marginTop="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/tvImeiValue"
-            android:text="-"
-            android:layout_marginTop="4dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <!-- IMEI2 (solo si hay valor) -->
-        <LinearLayout
-            android:id="@+id/imei2Row"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="12dp"
-            android:visibility="gone">
-
             <TextView
-                android:text="IMEI2"
-                android:textStyle="bold"
+                android:text="Detalle de terminal"
+                android:textSize="20sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
             <TextView
-                android:id="@+id/tvImei2Value"
+                android:id="@+id/statusChip"
+                android:text="DESCONECTADO"
+                android:padding="10dp"
+                android:layout_marginTop="12dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <!-- SERIAL -->
+            <TextView
+                android:text="Número de serie"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tvSerialValue"
                 android:text="-"
                 android:layout_marginTop="4dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
-        </LinearLayout>
 
-        <!-- MODELO -->
-        <TextView
-            android:text="Modelo"
-            android:textStyle="bold"
-            android:layout_marginTop="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/tvModelValue"
-            android:text="-"
-            android:layout_marginTop="4dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <!-- ESTADO -->
-        <TextView
-            android:text="Estado"
-            android:textStyle="bold"
-            android:layout_marginTop="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/tvStatusValue"
-            android:text="-"
-            android:layout_marginTop="4dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <!-- FALLAS OBSERVADAS (solo lectura desde SF via MDW) -->
-        <TextView
-            android:text="Fallas observadas"
-            android:textStyle="bold"
-            android:layout_marginTop="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/tvObservedFailuresValue"
-            android:text="-"
-            android:layout_marginTop="4dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <!-- Selector de observaciones (solo Revisión inicial, input para COMPLETE) -->
-        <LinearLayout
-            android:id="@+id/failureObsContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <Button
-                android:id="@+id/btnFailureObs"
+            <!-- IMEI (siempre visible) -->
+            <TextView
+                android:text="IMEI"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Seleccionar observaciones" />
+                android:layout_height="wrap_content" />
 
             <TextView
-                android:id="@+id/tvFailureObs"
+                android:id="@+id/tvImeiValue"
+                android:text="-"
+                android:layout_marginTop="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- IMEI2 (solo si hay valor) -->
+            <LinearLayout
+                android:id="@+id/imei2Row"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Observaciones: (sin seleccionar)" />
-        </LinearLayout>
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
 
-        <Button
-            android:id="@+id/btnComplete"
-            android:text="Finalizar proceso"
-            android:layout_marginTop="18dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+                <TextView
+                    android:text="IMEI2"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
-        <Button
-            android:id="@+id/btnChangeState"
-            android:text="Cambiar estado"
-            android:layout_marginTop="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/tvImei2Value"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- MODELO -->
+            <TextView
+                android:text="Modelo"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tvModelValue"
+                android:text="-"
+                android:layout_marginTop="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- ESTADO -->
+            <TextView
+                android:text="Estado"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tvStatusValue"
+                android:text="-"
+                android:layout_marginTop="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- FALLAS OBSERVADAS (solo lectura desde SF via MDW) -->
+            <TextView
+                android:text="Fallas observadas"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tvObservedFailuresValue"
+                android:text="-"
+                android:layout_marginTop="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- OBSERVACIONES QA (solo si hay valor) -->
+            <LinearLayout
+                android:id="@+id/qaObsRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Observaciones QA"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvQaObservationsValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- Selector de observaciones (solo Revisión inicial, input para COMPLETE) -->
+            <LinearLayout
+                android:id="@+id/failureObsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/btnFailureObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Seleccionar observaciones" />
+
+                <TextView
+                    android:id="@+id/tvFailureObs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Observaciones: (sin seleccionar)" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnComplete"
+                android:text="Finalizar proceso"
+                android:layout_marginTop="18dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/btnChangeState"
+                android:text="Cambiar estado"
+                android:layout_marginTop="12dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
             <TextView
                 android:id="@+id/tvResult"
@@ -170,19 +194,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <TextView
+                android:id="@+id/tvVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|left"
+                android:layout_margin="12dp"
+                android:alpha="0.6"
+                android:text="v1.0"
+                android:textColor="@color/gray_text_secondary"
+                android:textSize="10sp" />
+
         </LinearLayout>
 
     </ScrollView>
-
-    <TextView
-        android:id="@+id/tvVersion"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="12dp"
-        android:text="v1.0"
-        android:textSize="10sp"
-        android:textColor="@color/gray_text_secondary"
-        android:alpha="0.6" />
 
 </FrameLayout>

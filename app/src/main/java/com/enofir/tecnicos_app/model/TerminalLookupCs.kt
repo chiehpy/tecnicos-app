@@ -4,10 +4,14 @@ import com.google.gson.annotations.SerializedName
 
 data class TerminalLookupCs(
 
-    // En tu log: cs.failureObservations = null
-    // Si SF lo devuelve como string, queda OK. Si lo devuelve como lista, lo ajustamos luego.
     @SerializedName("failureObservations")
     val failureObservations: String? = null,
+
+    @SerializedName("qaObservations")
+    val qaObservations: String? = null,
+
+    @SerializedName("substatus")
+    val substatus: String? = null,
 
     @SerializedName("status")
     val status: String? = null,

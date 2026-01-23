@@ -87,11 +87,11 @@
         android:id="@+id/tvVersion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_gravity="bottom|left"
         android:layout_margin="12dp"
+        android:alpha="0.6"
         android:text="v1.0"
-        android:textSize="10sp"
         android:textColor="@color/gray_text_secondary"
-        android:alpha="0.6" />
+        android:textSize="10sp" />
 
 </FrameLayout>

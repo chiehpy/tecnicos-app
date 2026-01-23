@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./gradlew compileDebugKotlin:*)"
+      "Bash(./gradlew compileDebugKotlin:*)",
+      "Bash(where:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\Ayrton\\\\AndroidStudioProjects\\\\tecnicos_app\\\\resize_icon.ps1\")",
+      "Bash(del \"C:\\\\Users\\\\Ayrton\\\\AndroidStudioProjects\\\\tecnicos_app\\\\app\\\\src\\\\main\\\\res\\\\mipmap-anydpi-v26\\\\ic_launcher.xml\")",
+      "Bash(del \"C:\\\\Users\\\\Ayrton\\\\AndroidStudioProjects\\\\tecnicos_app\\\\app\\\\src\\\\main\\\\res\\\\mipmap-anydpi-v26\\\\ic_launcher_round.xml\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: Enable BuildConfig generation for version display\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)"
     ]
   }
 }
