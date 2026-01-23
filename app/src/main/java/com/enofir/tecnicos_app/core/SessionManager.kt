@@ -82,6 +82,17 @@ class SessionManager(context: Context) {
         prefs.edit().clear().apply()
     }
 
+    /**
+     * Orientación del escáner: "PORTRAIT" (vertical) o "LANDSCAPE" (horizontal)
+     */
+    fun setScannerOrientation(orientation: String) {
+        prefs.edit().putString(KEY_SCANNER_ORIENTATION, orientation).apply()
+    }
+
+    fun getScannerOrientation(): String {
+        return prefs.getString(KEY_SCANNER_ORIENTATION, SCANNER_LANDSCAPE) ?: SCANNER_LANDSCAPE
+    }
+
     companion object {
         private const val PREFS = "tecnicos_app_session"
         private const val KEY_TOKEN = "token"
@@ -90,6 +101,10 @@ class SessionManager(context: Context) {
         private const val KEY_ROLE = "role"
         private const val KEY_TECHNICIAN_NAME = "technician_name"
         private const val KEY_ALLOWED_ROLES = "allowed_roles"
+        private const val KEY_SCANNER_ORIENTATION = "scanner_orientation"
         private const val ROLE_SEPARATOR = "|||"
+
+        const val SCANNER_PORTRAIT = "PORTRAIT"
+        const val SCANNER_LANDSCAPE = "LANDSCAPE"
     }
 }

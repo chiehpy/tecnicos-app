@@ -14,6 +14,8 @@ import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.DecoratedBarcodeView;
 import com.journeyapps.barcodescanner.DefaultDecoderFactory;
 
+import com.enofir.tecnicos_app.core.SessionManager;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,8 +29,13 @@ public class ScanActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Forzar landscape lo más temprano posible (API 22 lo respeta)
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        // Configurar orientación según preferencia del usuario
+        SessionManager session = new SessionManager(this);
+        String orientation = session.getScannerOrientation();
+        int requestedOrientation = orientation.equals(SessionManager.SCANNER_LANDSCAPE)
+                ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+        setRequestedOrientation(requestedOrientation);
 
         super.onCreate(savedInstanceState);
         setContentView(com.enofir.tecnicos_app.R.layout.activity_scan);

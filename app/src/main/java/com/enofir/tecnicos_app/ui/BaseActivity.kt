@@ -6,8 +6,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.enofir.tecnicos_app.BuildConfig
+import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
 
 /**
@@ -27,6 +30,15 @@ abstract class BaseActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerAuthReceiver()
+    }
+
+    override fun setContentView(layoutResID: Int) {
+        super.setContentView(layoutResID)
+        updateVersionText()
+    }
+
+    private fun updateVersionText() {
+        findViewById<TextView>(R.id.tvVersion)?.text = "v${BuildConfig.VERSION_NAME}"
     }
 
     override fun onDestroy() {

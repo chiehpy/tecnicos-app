@@ -31,6 +31,7 @@ object FailureObservationsCatalog {
         "Lectora chip IC sucio",
         "Lectora chip IC dañada",
         "No comunica",
+        "No bootea",
         "Tamper"
     )
 }

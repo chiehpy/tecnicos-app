@@ -481,64 +481,79 @@ class TerminalDetailsActivity : BaseActivity() {
                 return@setOnClickListener
             }
 
-            btnComplete.isEnabled = false
-
             val observations = if (isRevisionInicial) getSelectedValues() else null
             if (isRevisionInicial && observations.isNullOrEmpty()) {
                 StatusChip.apply(chip, ChipState.ERROR, "ERROR")
                 tvResult.text = "Seleccioná al menos una observación (o 'Sin falla')."
-                btnComplete.isEnabled = true
                 return@setOnClickListener
             }
 
-            StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
-            tvResult.text = "Enviando COMPLETE..."
+            // Función interna para ejecutar el envío
+            fun executeComplete() {
+                btnComplete.isEnabled = false
+                StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
+                tvResult.text = "Enviando COMPLETE..."
 
-            ApiClient.complete(serial, role, observations).enqueue(object : Callback<TerminalEventResponse> {
+                ApiClient.complete(serial, role, observations).enqueue(object : Callback<TerminalEventResponse> {
 
-                override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
-                    val body = response.body()
+                    override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
+                        val body = response.body()
 
-                    if (!response.isSuccessful || body == null) {
-                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                        val raw = response.errorBody()?.string()?.trim().orEmpty()
-                        val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
-                        tvResult.text = "HTTP ${response.code()} - $msg"
-                        btnComplete.isEnabled = true
-                        return
-                    }
+                        if (!response.isSuccessful || body == null) {
+                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                            val raw = response.errorBody()?.string()?.trim().orEmpty()
+                            val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
+                            tvResult.text = "HTTP ${response.code()} - $msg"
+                            btnComplete.isEnabled = true
+                            return
+                        }
 
-                    if (body.ok) {
-                        StatusChip.apply(chip, ChipState.OK, "OK")
-                        tvResult.text = "Datos enviados correctamente. ${body.message}"
+                        if (body.ok) {
+                            StatusChip.apply(chip, ChipState.OK, "OK")
+                            tvResult.text = "Datos enviados correctamente. ${body.message}"
 
-                        HistoryStore.add(
-                            this@TerminalDetailsActivity,
-                            HistoryEntry(
-                                ts = System.currentTimeMillis(),
-                                serial = serial,
-                                role = role,
-                                action = "COMPLETE",
-                                ok = true,
-                                message = body.message
+                            HistoryStore.add(
+                                this@TerminalDetailsActivity,
+                                HistoryEntry(
+                                    ts = System.currentTimeMillis(),
+                                    serial = serial,
+                                    role = role,
+                                    action = "COMPLETE",
+                                    ok = true,
+                                    message = body.message
+                                )
                             )
-                        )
 
-                        setResult(Activity.RESULT_OK)
-                        finish()
-                    } else {
+                            setResult(Activity.RESULT_OK)
+                            finish()
+                        } else {
+                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                            tvResult.text = body.message ?: "Error"
+                            btnComplete.isEnabled = true
+                        }
+                    }
+
+                    override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
                         StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                        tvResult.text = body.message ?: "Error"
+                        tvResult.text = "Falla de conexión: ${t.message}"
                         btnComplete.isEnabled = true
                     }
-                }
+                })
+            }
 
-                override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    tvResult.text = "Falla de conexión: ${t.message}"
-                    btnComplete.isEnabled = true
-                }
-            })
+            // Validación: si las fallas indican que podría ser irreparable, advertir al usuario
+            if (isRevisionInicial && IrreparableChecker.isIrreparable(observations)) {
+                AlertDialog.Builder(this)
+                    .setTitle("Advertencia: Terminal potencialmente irreparable")
+                    .setMessage("Las fallas seleccionadas indican que este terminal podría ser irreparable:\n\n${observations?.joinToString(", ")}\n\n¿Estás seguro que querés enviarlo a reparación técnica en lugar de marcarlo como Irreparable?")
+                    .setPositiveButton("Sí, enviar a reparación") { _, _ ->
+                        executeComplete()
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            } else {
+                executeComplete()
+            }
         }
     }
 }
