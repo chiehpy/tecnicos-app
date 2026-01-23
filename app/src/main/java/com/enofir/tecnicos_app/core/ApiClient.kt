@@ -189,7 +189,12 @@ object ApiClient {
         return api().terminalLookup(s)
     }
 
-    fun modify(serial: String, targetStatus: String, targetSubstatus: String? = null): Call<TerminalEventResponse> {
+    fun modify(
+        serial: String,
+        targetStatus: String,
+        targetSubstatus: String? = null,
+        failureObservations: List<String>? = null
+    ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val ts = targetStatus.trim()
         val tss = targetSubstatus?.trim()?.takeIf { it.isNotEmpty() }
@@ -201,7 +206,8 @@ object ApiClient {
             action = "MODIFY",
             serial = s,
             targetStatus = ts,
-            targetSubstatus = tss
+            targetSubstatus = tss,
+            failureObservations = failureObservations?.takeIf { it.isNotEmpty() }
         )
 
         return api().terminalEvent(payload)

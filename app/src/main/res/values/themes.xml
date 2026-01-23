@@ -3,15 +3,15 @@
     <style name="Theme.Tecnicos_app"
         parent="Theme.MaterialComponents.DayNight.NoActionBar">
 
-        <!-- Primary (naranja) -->
-        <item name="colorPrimary">@color/orange_primary</item>
-        <item name="colorPrimaryVariant">@color/orange_dark</item>
+        <!-- Primary (azul Enofir oscuro) -->
+        <item name="colorPrimary">@color/enofir_primary</item>
+        <item name="colorPrimaryVariant">@color/enofir_primary_dark</item>
         <item name="colorOnPrimary">@android:color/white</item>
 
-        <!-- Secondary -->
-        <item name="colorSecondary">@color/orange_primary</item>
-        <item name="colorSecondaryVariant">@color/orange_dark</item>
-        <item name="colorOnSecondary">@android:color/white</item>
+        <!-- Secondary (azul Enofir claro) -->
+        <item name="colorSecondary">@color/enofir_secondary</item>
+        <item name="colorSecondaryVariant">@color/enofir_primary</item>
+        <item name="colorOnSecondary">@color/enofir_primary</item>
 
         <!-- Fondo y texto -->
         <item name="android:windowBackground">@color/gray_background</item>
@@ -19,7 +19,7 @@
         <item name="android:textColorSecondary">@color/gray_text_secondary</item>
 
         <!-- Status bar -->
-        <item name="android:statusBarColor">@color/orange_dark</item>
+        <item name="android:statusBarColor">@color/enofir_primary_dark</item>
     </style>
 
 </resources>

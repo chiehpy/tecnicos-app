@@ -2,7 +2,6 @@ package com.enofir.tecnicos_app.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,7 +27,6 @@ class WorkActivity : BaseActivity() {
     private lateinit var btnProcess: Button
     private lateinit var btnScan: Button
     private lateinit var tvResult: TextView
-    private lateinit var tvPayload: TextView
     private lateinit var chip: TextView
 
     private val scanLauncher =
@@ -46,8 +44,7 @@ class WorkActivity : BaseActivity() {
                 etSerial.setText("")
                 etSerial.requestFocus()
                 tvResult.text = ""
-                tvPayload.text = ""
-                StatusChip.apply(chip, ChipState.ERROR, "LISTO")
+                StatusChip.apply(chip, ChipState.OK, "LISTO")
             }
         }
 
@@ -68,7 +65,6 @@ class WorkActivity : BaseActivity() {
         btnProcess = findViewById(R.id.btnProcess)
         btnScan = findViewById(R.id.btnScan)
         tvResult = findViewById(R.id.tvResult)
-        tvPayload = findViewById(R.id.tvPayload)
 
         // Evita crash si no existe en el XML
         tvActiveRole = findViewById<TextView?>(R.id.tvActiveRole)
@@ -106,19 +102,13 @@ class WorkActivity : BaseActivity() {
 
             // Limpia estado visual previo
             tvResult.text = ""
-            tvPayload.text = ""
-
-            val payloadDebug =
-                """{"action":"ASSIGN","serial":"$serial","role":"$activeRole","technicianName":"$technicianName"}"""
-            tvPayload.text = payloadDebug
 
             // Evitar doble toque mientras procesa
             btnProcess.isEnabled = false
             btnScan.isEnabled = false
 
             StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
-            tvResult.text = "Enviando ASSIGN..."
-            Log.i("TECNICOS_APP", "ASSIGN payload: $payloadDebug")
+            tvResult.text = "Procesando terminal"
 
             ApiClient.assign(serial, activeRole, technicianName)
                 .enqueue(object : Callback<TerminalEventResponse> {

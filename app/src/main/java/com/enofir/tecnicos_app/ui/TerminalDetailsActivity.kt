@@ -16,6 +16,7 @@ import com.enofir.tecnicos_app.model.StatusCatalog
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.model.TerminalLookupResponse
 import com.enofir.tecnicos_app.utils.ChipState
+import com.enofir.tecnicos_app.utils.IrreparableChecker
 import com.enofir.tecnicos_app.utils.StatusChip
 import retrofit2.Call
 import retrofit2.Callback
@@ -27,6 +28,7 @@ class TerminalDetailsActivity : BaseActivity() {
         const val EXTRA_SERIAL = "extra_serial"
         const val EXTRA_ROLE = "extra_role"
         private const val ROLE_REVISION_INICIAL = "Revisión inicial"
+        private const val STATUS_IRREPARABLE = "Irreparable"
     }
 
     private val options: List<String> = FailureObservationsCatalog.OPTIONS
@@ -57,16 +59,83 @@ class TerminalDetailsActivity : BaseActivity() {
         }
     }
 
-    private fun renderFailureObsText(tvFailureObs: TextView) {
+    private fun renderFailureObsText(tvFailureObs: TextView, btnIrreparable: Button? = null) {
         val vals = getSelectedValues()
         tvFailureObs.text = if (vals.isEmpty()) {
             "Observaciones: (sin seleccionar)"
         } else {
             "Observaciones: ${vals.joinToString(", ")}"
         }
+
+        // Actualizar estado del botón Irreparable según las fallas seleccionadas
+        btnIrreparable?.let { btn ->
+            val canBeIrreparable = IrreparableChecker.isIrreparable(vals)
+            btn.isEnabled = canBeIrreparable
+            btn.alpha = if (canBeIrreparable) 1.0f else 0.5f
+        }
     }
 
     private fun present(s: String?): Boolean = !s.isNullOrBlank() && s.trim() != "-"
+
+    /**
+     * Muestra el diálogo de observaciones de falla para validar si puede ser Irreparable.
+     * Usado por roles que no son Revisión inicial cuando seleccionan "Irreparable".
+     */
+    private fun showFailureObsDialogForIrreparable(
+        serial: String,
+        chip: TextView,
+        tvResult: TextView,
+        tvStatusValue: TextView,
+        btnChangeState: Button
+    ) {
+        val noneIndex = options.indexOf(FailureObservationsCatalog.NONE)
+        val items: Array<CharSequence> = options.toTypedArray()
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Seleccionar observaciones de falla")
+            .setMultiChoiceItems(items, selected) { dialogInterface: DialogInterface, which: Int, checked: Boolean ->
+                selected[which] = checked
+
+                if (noneIndex >= 0) {
+                    if (which == noneIndex && checked) {
+                        setOnlyNoneSelected()
+                    } else if (which != noneIndex && checked) {
+                        selected[noneIndex] = false
+                    }
+                }
+
+                val alert = dialogInterface as? AlertDialog
+                if (alert != null) setDialogChecksFromModel(alert)
+            }
+            .setPositiveButton("Confirmar Irreparable") { d, _ ->
+                d.dismiss()
+                val selectedFallas = getSelectedValues()
+
+                if (!IrreparableChecker.isIrreparable(selectedFallas)) {
+                    tvResult.text = "Las fallas seleccionadas no cumplen los criterios para marcar como Irreparable."
+                    return@setPositiveButton
+                }
+
+                // Mostrar confirmación final con las fallas
+                AlertDialog.Builder(this)
+                    .setTitle("Confirmar cambio a Irreparable")
+                    .setMessage("Razón: ${selectedFallas.joinToString(", ")}\n\n¿Estás seguro que querés marcar este terminal como Irreparable?")
+                    .setPositiveButton("Aceptar") { _, _ ->
+                        executeChangeStatus(
+                            serial, STATUS_IRREPARABLE, chip, tvResult, tvStatusValue, btnChangeState,
+                            finishOnSuccess = true,
+                            failureObservations = selectedFallas
+                        )
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            }
+            .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
+            .create()
+
+        dialog.show()
+        setDialogChecksFromModel(dialog)
+    }
 
     private fun showChangeStatusConfirmation(
         serial: String,
@@ -75,13 +144,48 @@ class TerminalDetailsActivity : BaseActivity() {
         chip: TextView,
         tvResult: TextView,
         tvStatusValue: TextView,
-        btnChangeState: Button
+        btnChangeState: Button,
+        substatus: String? = null
     ) {
+        val message = if (substatus != null) {
+            "¿Estás seguro que vas a cambiar este terminal de estado \"$fromStatus\" a \"$newStatus\" ($substatus)?"
+        } else {
+            "¿Estás seguro que vas a cambiar este terminal de estado \"$fromStatus\" a \"$newStatus\"?"
+        }
+
         AlertDialog.Builder(this)
             .setTitle("Confirmar cambio de estado")
-            .setMessage("¿Estás seguro que vas a cambiar este terminal de estado \"$fromStatus\" a \"$newStatus\"?")
+            .setMessage(message)
             .setPositiveButton("Aceptar") { _, _ ->
-                executeChangeStatus(serial, newStatus, chip, tvResult, tvStatusValue, btnChangeState)
+                executeChangeStatus(serial, newStatus, chip, tvResult, tvStatusValue, btnChangeState, substatus = substatus)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    /**
+     * Muestra selector de substatus para "Reparación Técnica" y luego confirmación.
+     */
+    private fun showSubstatusDialogForReparacion(
+        serial: String,
+        fromStatus: String,
+        chip: TextView,
+        tvResult: TextView,
+        tvStatusValue: TextView,
+        btnChangeState: Button
+    ) {
+        val substatusOptions = StatusCatalog.SUBSTATUS_REPARACION
+        val items: Array<CharSequence> = substatusOptions.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("Seleccionar tipo de reparación")
+            .setItems(items) { _, which ->
+                val selectedSubstatus = substatusOptions[which]
+                showChangeStatusConfirmation(
+                    serial, fromStatus, StatusCatalog.REPARACION_TECNICA,
+                    chip, tvResult, tvStatusValue, btnChangeState,
+                    substatus = selectedSubstatus
+                )
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -93,13 +197,16 @@ class TerminalDetailsActivity : BaseActivity() {
         chip: TextView,
         tvResult: TextView,
         tvStatusValue: TextView,
-        btnChangeState: Button
+        btnChangeState: Button,
+        finishOnSuccess: Boolean = false,
+        substatus: String? = null,
+        failureObservations: List<String>? = null
     ) {
         btnChangeState.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
         tvResult.text = "Cambiando estado..."
 
-        ApiClient.modify(serial, newStatus).enqueue(object : Callback<TerminalEventResponse> {
+        ApiClient.modify(serial, newStatus, substatus, failureObservations).enqueue(object : Callback<TerminalEventResponse> {
 
             override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                 val body = response.body()
@@ -118,7 +225,13 @@ class TerminalDetailsActivity : BaseActivity() {
                     tvResult.text = body.message ?: "Estado cambiado correctamente."
                     tvStatusValue.text = newStatus
                     currentStatus = newStatus
-                    btnChangeState.isEnabled = true
+
+                    if (finishOnSuccess) {
+                        setResult(Activity.RESULT_OK)
+                        finish()
+                    } else {
+                        btnChangeState.isEnabled = true
+                    }
                 } else {
                     StatusChip.apply(chip, ChipState.ERROR, "ERROR")
                     tvResult.text = body.message ?: "Error al cambiar estado."
@@ -185,13 +298,18 @@ class TerminalDetailsActivity : BaseActivity() {
         StatusChip.apply(chip, ChipState.OK, "LISTO")
         tvResult.text = ""
 
-        // Selector multi-choice SOLO para Revision inicial (input para COMPLETE)
+        // Configuración específica para Revisión inicial
         if (isRevisionInicial) {
             failureObsContainer.visibility = View.VISIBLE
-            btnComplete.text = "Finalizar revisión"
+            btnComplete.text = "Enviar a reparación técnica"
+            btnChangeState.text = "Irreparable"
+
+            // Botón Irreparable empieza deshabilitado hasta que se seleccionen fallas que lo permitan
+            btnChangeState.isEnabled = false
+            btnChangeState.alpha = 0.5f
 
             btnFailureObs.isEnabled = true
-            renderFailureObsText(tvFailureObs)
+            renderFailureObsText(tvFailureObs, btnChangeState)
 
             btnFailureObs.setOnClickListener {
                 val noneIndex = options.indexOf(FailureObservationsCatalog.NONE)
@@ -214,7 +332,7 @@ class TerminalDetailsActivity : BaseActivity() {
                         if (alert != null) setDialogChecksFromModel(alert)
                     }
                     .setPositiveButton("Aceptar") { d, _ ->
-                        renderFailureObsText(tvFailureObs)
+                        renderFailureObsText(tvFailureObs, btnChangeState)
                         d.dismiss()
                     }
                     .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
@@ -306,22 +424,53 @@ class TerminalDetailsActivity : BaseActivity() {
                 return@setOnClickListener
             }
 
-            val statusOptions = StatusCatalog.OPTIONS.filter { it != fromStatus }
-            if (statusOptions.isEmpty()) {
-                tvResult.text = "No hay estados disponibles para cambiar."
-                return@setOnClickListener
-            }
-
-            val items: Array<CharSequence> = statusOptions.toTypedArray()
-
-            AlertDialog.Builder(this)
-                .setTitle("Seleccionar nuevo estado")
-                .setItems(items) { _, which ->
-                    val newStatus = statusOptions[which]
-                    showChangeStatusConfirmation(serial, fromStatus, newStatus, chip, tvResult, tvStatusValue, btnChangeState)
+            if (isRevisionInicial) {
+                // Para Revisión inicial: ir directo a confirmar Irreparable con las fallas seleccionadas
+                val selectedFallas = getSelectedValues()
+                AlertDialog.Builder(this)
+                    .setTitle("Confirmar cambio a Irreparable")
+                    .setMessage("Razón: ${selectedFallas.joinToString(", ")}\n\n¿Estás seguro que querés marcar este terminal como Irreparable?")
+                    .setPositiveButton("Aceptar") { _, _ ->
+                        executeChangeStatus(
+                            serial, STATUS_IRREPARABLE, chip, tvResult, tvStatusValue, btnChangeState,
+                            finishOnSuccess = true,
+                            failureObservations = selectedFallas
+                        )
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            } else {
+                // Para otros roles: mostrar picklist de estados
+                val statusOptions = StatusCatalog.OPTIONS.filter { it != fromStatus }
+                if (statusOptions.isEmpty()) {
+                    tvResult.text = "No hay estados disponibles para cambiar."
+                    return@setOnClickListener
                 }
-                .setNegativeButton("Cancelar", null)
-                .show()
+
+                val items: Array<CharSequence> = statusOptions.toTypedArray()
+
+                AlertDialog.Builder(this)
+                    .setTitle("Seleccionar nuevo estado")
+                    .setItems(items) { _, which ->
+                        val newStatus = statusOptions[which]
+                        when (newStatus) {
+                            STATUS_IRREPARABLE -> {
+                                // Para Irreparable: mostrar selector de observaciones primero
+                                showFailureObsDialogForIrreparable(serial, chip, tvResult, tvStatusValue, btnChangeState)
+                            }
+                            StatusCatalog.REPARACION_TECNICA -> {
+                                // Para Reparación Técnica: pedir substatus
+                                showSubstatusDialogForReparacion(serial, fromStatus, chip, tvResult, tvStatusValue, btnChangeState)
+                            }
+                            else -> {
+                                // Para otros estados: confirmación directa
+                                showChangeStatusConfirmation(serial, fromStatus, newStatus, chip, tvResult, tvStatusValue, btnChangeState)
+                            }
+                        }
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            }
         }
         // ===== FIN CAMBIAR ESTADO =====
 

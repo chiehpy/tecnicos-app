@@ -1,13 +1,18 @@
 <resources>
+    <!-- Enofir Brand -->
+    <color name="enofir_primary">#0F3D5C</color>
+    <color name="enofir_secondary">#9CAFC4</color>
+    <color name="enofir_primary_dark">#0A2A40</color>
+
     <!-- Base -->
     <color name="gray_background">#F4F4F5</color>
     <color name="gray_surface">#FFFFFF</color>
     <color name="gray_text_primary">#1F2937</color>
     <color name="gray_text_secondary">#6B7280</color>
 
-    <!-- Accent (naranja estilo Claude) -->
-    <color name="orange_primary">#F97316</color>
-    <color name="orange_dark">#EA580C</color>
+    <!-- Accent (usando colores Enofir) -->
+    <color name="orange_primary">@color/enofir_primary</color>
+    <color name="orange_dark">@color/enofir_primary_dark</color>
 
     <!-- Estados -->
     <color name="success_green">#16A34A</color>
