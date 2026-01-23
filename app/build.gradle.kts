@@ -51,6 +51,10 @@ android {
         jvmTarget = "11"
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     sourceSets {
         getByName("main") {
             jniLibs.srcDirs("src/main/jniLibs")
