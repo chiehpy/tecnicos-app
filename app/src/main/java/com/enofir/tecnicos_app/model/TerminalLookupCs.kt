@@ -17,5 +17,8 @@ data class TerminalLookupCs(
     val status: String? = null,
 
     @SerializedName("id")
-    val id: String? = null
+    val id: String? = null,
+
+    @SerializedName("qaRejectCount")
+    val qaRejectCount: Int? = null
 )

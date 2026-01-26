@@ -352,6 +352,9 @@ class TerminalDetailsActivity : BaseActivity() {
         val qaObsRow = findViewById<View>(R.id.qaObsRow)
         val tvQaObservationsValue = findViewById<TextView>(R.id.tvQaObservationsValue)
 
+        val qaRejectCountRow = findViewById<View>(R.id.qaRejectCountRow)
+        val tvQaRejectCountValue = findViewById<TextView>(R.id.tvQaRejectCountValue)
+
         val btnComplete = findViewById<Button>(R.id.btnComplete)
         val btnChangeState = findViewById<Button>(R.id.btnChangeState)
 
@@ -377,6 +380,9 @@ class TerminalDetailsActivity : BaseActivity() {
         qaObsRow.visibility = View.GONE
         tvQaObservationsValue.text = "-"
 
+        qaRejectCountRow.visibility = View.GONE
+        tvQaRejectCountValue.text = "-"
+
         btnChangeState.isEnabled = false
         btnChangeState.text = "Cambiar estado"
 
@@ -399,7 +405,7 @@ class TerminalDetailsActivity : BaseActivity() {
                 val items: Array<CharSequence> = failureOptions.toTypedArray()
 
                 val dialog = AlertDialog.Builder(this)
-                    .setTitle("Observaciones de falla")
+                    .setTitle("Fallas encontradas")
                     .setMultiChoiceItems(items, failureSelected) { dialogInterface: DialogInterface, which: Int, checked: Boolean ->
                         failureSelected[which] = checked
 
@@ -424,8 +430,16 @@ class TerminalDetailsActivity : BaseActivity() {
                 dialog.show()
                 setDialogChecksFromModel(dialog, failureSelected)
             }
-        } else {
+        } else if (isQa) {
+            // QA: aprobar terminal o rebotar (MODIFY → REJECT con observaciones QA)
             failureObsContainer.visibility = View.GONE
+            btnComplete.text = "APROBAR TERMINAL"
+            btnChangeState.text = "RECHAZAR TERMINAL"
+        } else {
+            // Limpieza u otros roles: wording estándar
+            failureObsContainer.visibility = View.GONE
+            btnComplete.text = "FINALIZAR PROCESO"
+            btnChangeState.text = "CAMBIAR ESTADO"
         }
 
         // ===== LOOKUP =====
@@ -489,6 +503,16 @@ class TerminalDetailsActivity : BaseActivity() {
                     } else {
                         qaObsRow.visibility = View.GONE
                         tvQaObservationsValue.text = "-"
+                    }
+
+                    // Cantidad de rechazos QA (mostrar si viene y es > 0)
+                    val qaRejectCount = cs?.qaRejectCount
+                    if (qaRejectCount != null && qaRejectCount > 0) {
+                        qaRejectCountRow.visibility = View.VISIBLE
+                        tvQaRejectCountValue.text = qaRejectCount.toString()
+                    } else {
+                        qaRejectCountRow.visibility = View.GONE
+                        tvQaRejectCountValue.text = "-"
                     }
 
                     tvResult.text = ""

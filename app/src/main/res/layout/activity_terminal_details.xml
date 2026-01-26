@@ -149,6 +149,29 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
+            <!-- CANTIDAD DE RECHAZOS QA -->
+            <LinearLayout
+                android:id="@+id/qaRejectCountRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Cantidad de rechazos QA"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvQaRejectCountValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
             <!-- Selector de observaciones (solo Revisión inicial, input para COMPLETE) -->
             <LinearLayout
                 android:id="@+id/failureObsContainer"
