@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
+import com.enofir.tecnicos_app.model.RecoveryPatchRequest
 import com.enofir.tecnicos_app.model.TerminalEventRequest
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.model.TerminalLookupResponse
@@ -264,6 +265,21 @@ object ApiClient {
         )
 
         return api().terminalEvent(payload)
+    }
+
+    /**
+     * Actualiza los repuestos recuperados de un terminal (Recovery).
+     * PATCH /recovery/{id}
+     */
+    fun updateRecovery(recordId: String, recoveredParts: String): Call<TerminalEventResponse> {
+        val id = recordId.trim()
+        val parts = recoveredParts.trim()
+
+        require(id.isNotEmpty()) { "recordId vacío" }
+        require(parts.isNotEmpty()) { "recoveredParts vacío" }
+
+        val payload = RecoveryPatchRequest(recoveredParts = parts)
+        return api().updateRecovery(id, payload)
     }
 
     /**

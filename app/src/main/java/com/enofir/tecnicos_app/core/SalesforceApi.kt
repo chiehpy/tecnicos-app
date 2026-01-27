@@ -2,6 +2,7 @@ package com.enofir.tecnicos_app.core
 
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
+import com.enofir.tecnicos_app.model.RecoveryPatchRequest
 import com.enofir.tecnicos_app.model.RefreshRequest
 import com.enofir.tecnicos_app.model.RefreshResponse
 import com.enofir.tecnicos_app.model.TerminalEventRequest
@@ -11,7 +12,9 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface SalesforceApi {
@@ -30,4 +33,11 @@ interface SalesforceApi {
 
     @GET("terminal/lookup")
     fun terminalLookup(@Query("serial") serial: String): Call<TerminalLookupResponse>
+
+    @Headers("Content-Type: application/json")
+    @PATCH("recovery/{id}")
+    fun updateRecovery(
+        @Path("id") id: String,
+        @Body body: RecoveryPatchRequest
+    ): Call<TerminalEventResponse>
 }

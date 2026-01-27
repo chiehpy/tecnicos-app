@@ -52,7 +52,8 @@ class SettingsActivity : BaseActivity() {
 
         // Seleccionar rol actual si existe
         val currentRole = session.getRole()?.trim().orEmpty()
-        tvCurrent.text = "Rol actual: ${if (currentRole.isEmpty()) "(no configurado)" else currentRole}"
+        val displayRole = if (currentRole == "Recovery") "Parts Recovery" else currentRole
+        tvCurrent.text = "Rol actual: ${if (currentRole.isEmpty()) "(no configurado)" else displayRole}"
 
         if (currentRole.isNotEmpty()) {
             val idx = roles.indexOf(currentRole)

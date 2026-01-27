@@ -5,7 +5,9 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
@@ -29,9 +31,11 @@ class TerminalDetailsActivity : BaseActivity() {
         const val EXTRA_ROLE = "extra_role"
         private const val ROLE_REVISION_INICIAL = "Revisión inicial"
         private const val ROLE_QA = "QA"
+        private const val ROLE_RECOVERY = "Recovery"
 
         private const val STATUS_IRREPARABLE = "Irreparable"
         private const val STATUS_REPARACION_TECNICA = "Reparación Técnica"
+        private const val STATUS_PENDIENTE_FACTURACION = "Pendiente de facturación"
     }
 
     // Failure observations (Revisión inicial)
@@ -63,6 +67,25 @@ class TerminalDetailsActivity : BaseActivity() {
     // IMPORTANTE: una sola declaración
     private val qaSelected: BooleanArray = BooleanArray(qaOptions.size) { false }
 
+    // Catálogo de repuestos recuperados (Recovery)
+    private val recoveredPartsOptions: List<String> = listOf(
+        "Carcasa frontal",
+        "Carcasa posterior",
+        "Bateria",
+        "Tapa bateria",
+        "Tapa impresora",
+        "Rodillo",
+        "Display",
+        "Impresora",
+        "Pila",
+        "Pila IO",
+        "Placa IO",
+        "Camara delantera",
+        "Camara trasera",
+        "Lectora magnetica"
+    )
+    private val recoveredPartsSelected: BooleanArray = BooleanArray(recoveredPartsOptions.size) { false }
+
     // Substatus UI -> valor real MDW
     private data class SubOpt(val label: String, val mdwValue: String)
 
@@ -72,6 +95,7 @@ class TerminalDetailsActivity : BaseActivity() {
     )
 
     private var currentStatus: String? = null
+    private var csId: String? = null
 
     private fun present(s: String?): Boolean =
         !s.isNullOrBlank() && s.trim() != "-" && s.trim().lowercase() != "null"
@@ -117,6 +141,21 @@ class TerminalDetailsActivity : BaseActivity() {
             val canBeIrreparable = IrreparableChecker.isIrreparable(vals)
             btn.isEnabled = canBeIrreparable
             btn.alpha = if (canBeIrreparable) 1.0f else 0.5f
+        }
+    }
+
+    private fun getSelectedRecoveredParts(): List<String> {
+        val out = mutableListOf<String>()
+        for (i in recoveredPartsOptions.indices) if (recoveredPartsSelected[i]) out.add(recoveredPartsOptions[i])
+        return out
+    }
+
+    private fun renderRecoveredPartsText(tvRecoveredParts: TextView) {
+        val vals = getSelectedRecoveredParts()
+        tvRecoveredParts.text = if (vals.isEmpty()) {
+            "Repuestos: (sin seleccionar)"
+        } else {
+            "Repuestos: ${vals.joinToString(", ")}"
         }
     }
 
@@ -366,6 +405,12 @@ class TerminalDetailsActivity : BaseActivity() {
         val role = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty()
         val isRevisionInicial = role == ROLE_REVISION_INICIAL
         val isQa = role == ROLE_QA
+        val isRecovery = role == ROLE_RECOVERY
+
+        // Recovery views
+        val recoveryContainer = findViewById<View>(R.id.recoveryContainer)
+        val btnSelectRecoveredParts = findViewById<Button>(R.id.btnSelectRecoveredParts)
+        val tvRecoveredParts = findViewById<TextView>(R.id.tvRecoveredParts)
 
         tvSerial.text = serial
 
@@ -433,11 +478,92 @@ class TerminalDetailsActivity : BaseActivity() {
         } else if (isQa) {
             // QA: aprobar terminal o rebotar (MODIFY → REJECT con observaciones QA)
             failureObsContainer.visibility = View.GONE
+            recoveryContainer.visibility = View.GONE
             btnComplete.text = "APROBAR TERMINAL"
             btnChangeState.text = "RECHAZAR TERMINAL"
+        } else if (isRecovery) {
+            // Recovery: procesar recovery y guardar repuestos recuperados
+            failureObsContainer.visibility = View.GONE
+            recoveryContainer.visibility = View.VISIBLE
+            btnComplete.text = "PROCESAR TERMINAL"
+            btnChangeState.text = "REVERTIR ESTADO"
+
+            // Diálogo para seleccionar y guardar repuestos recuperados
+            btnSelectRecoveredParts.setOnClickListener {
+                val recordId = csId
+                if (recordId.isNullOrEmpty()) {
+                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                    tvResult.text = "No se puede cargar: ID de registro no disponible."
+                    return@setOnClickListener
+                }
+
+                val items: Array<CharSequence> = recoveredPartsOptions.toTypedArray()
+
+                val dialog = AlertDialog.Builder(this)
+                    .setTitle("Seleccionar repuestos recuperados")
+                    .setMultiChoiceItems(items, recoveredPartsSelected) { dialogInterface: DialogInterface, which: Int, checked: Boolean ->
+                        recoveredPartsSelected[which] = checked
+                        val alert = dialogInterface as? AlertDialog
+                        if (alert != null) setDialogChecksFromModel(alert, recoveredPartsSelected)
+                    }
+                    .setPositiveButton("Guardar") { d, _ ->
+                        d.dismiss()
+                        val selectedParts = getSelectedRecoveredParts()
+                        if (selectedParts.isEmpty()) {
+                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                            tvResult.text = "Seleccioná al menos un repuesto recuperado."
+                            return@setPositiveButton
+                        }
+
+                        val recoveredParts = selectedParts.joinToString("; ")
+                        renderRecoveredPartsText(tvRecoveredParts)
+
+                        btnSelectRecoveredParts.isEnabled = false
+                        StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
+                        tvResult.text = "Guardando repuestos..."
+
+                        ApiClient.updateRecovery(recordId, recoveredParts).enqueue(object : Callback<TerminalEventResponse> {
+
+                            override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
+                                val body = response.body()
+
+                                if (!response.isSuccessful || body == null) {
+                                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                                    val raw = response.errorBody()?.string()?.trim().orEmpty()
+                                    val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
+                                    tvResult.text = "HTTP ${response.code()} - $msg"
+                                    btnSelectRecoveredParts.isEnabled = true
+                                    return
+                                }
+
+                                if (body.ok) {
+                                    StatusChip.apply(chip, ChipState.OK, "OK")
+                                    tvResult.text = body.message ?: "Repuestos guardados correctamente."
+                                    Toast.makeText(this@TerminalDetailsActivity, "Repuestos guardados", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                                    tvResult.text = body.message ?: "Error al guardar repuestos."
+                                }
+                                btnSelectRecoveredParts.isEnabled = true
+                            }
+
+                            override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
+                                StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                                tvResult.text = "Falla de conexión: ${t.message}"
+                                btnSelectRecoveredParts.isEnabled = true
+                            }
+                        })
+                    }
+                    .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
+                    .create()
+
+                dialog.show()
+                setDialogChecksFromModel(dialog, recoveredPartsSelected)
+            }
         } else {
             // Limpieza u otros roles: wording estándar
             failureObsContainer.visibility = View.GONE
+            recoveryContainer.visibility = View.GONE
             btnComplete.text = "FINALIZAR PROCESO"
             btnChangeState.text = "CAMBIAR ESTADO"
         }
@@ -514,6 +640,9 @@ class TerminalDetailsActivity : BaseActivity() {
                         qaRejectCountRow.visibility = View.GONE
                         tvQaRejectCountValue.text = "-"
                     }
+
+                    // Guardar csId para Recovery PATCH
+                    csId = cs?.id
 
                     tvResult.text = ""
                     if (status != null) btnChangeState.isEnabled = true
@@ -678,6 +807,22 @@ class TerminalDetailsActivity : BaseActivity() {
             if (serial.isEmpty() || role.isEmpty()) {
                 StatusChip.apply(chip, ChipState.ERROR, "ERROR")
                 tvResult.text = "Faltan datos (serial/role)."
+                return@setOnClickListener
+            }
+
+            // Recovery: MODIFY a "Pendiente de facturación"
+            if (isRecovery) {
+                executeChangeStatus(
+                    serial = serial,
+                    newStatus = STATUS_PENDIENTE_FACTURACION,
+                    chip = chip,
+                    tvResult = tvResult,
+                    tvStatusValue = tvStatusValue,
+                    btnChangeState = btnChangeState,
+                    finishOnSuccess = true,
+                    substatus = null,
+                    failureObservations = null
+                )
                 return@setOnClickListener
             }
 

@@ -196,6 +196,30 @@
                     android:text="Observaciones: (sin seleccionar)" />
             </LinearLayout>
 
+            <!-- Recovery: selector de repuestos recuperados -->
+            <LinearLayout
+                android:id="@+id/recoveryContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/btnSelectRecoveredParts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="CARGAR REPUESTOS" />
+
+                <TextView
+                    android:id="@+id/tvRecoveredParts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Repuestos: (sin seleccionar)" />
+            </LinearLayout>
+
             <Button
                 android:id="@+id/btnComplete"
                 android:text="Finalizar proceso"

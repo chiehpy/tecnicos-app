@@ -160,7 +160,8 @@ class WorkActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         val role = session.getRole()?.trim().orEmpty()
-        tvActiveRole?.text = "Rol activo: ${if (role.isEmpty()) "(no configurado)" else role}"
+        val displayRole = if (role == "Recovery") "Parts Recovery" else role
+        tvActiveRole?.text = "Rol activo: ${if (role.isEmpty()) "(no configurado)" else displayRole}"
     }
 
     private fun showMenu(anchor: ImageButton) {
