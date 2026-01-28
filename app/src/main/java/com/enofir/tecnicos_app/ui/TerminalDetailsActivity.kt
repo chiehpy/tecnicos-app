@@ -611,8 +611,7 @@ class TerminalDetailsActivity : BaseActivity() {
             recoveryContainer.visibility = View.GONE
             btnComplete.text = "APROBAR TERMINAL"
             btnChangeState.text = "RECHAZAR TERMINAL"
-            btnPrintLabel.visibility = View.VISIBLE
-            btnPrintConfig.visibility = View.VISIBLE
+            // Botones de impresión se muestran solo para N910 (ver lookup)
 
             // Imprimir etiqueta ZPL
             btnPrintLabel.setOnClickListener {
@@ -738,6 +737,12 @@ class TerminalDetailsActivity : BaseActivity() {
 
                     val modelRaw = asset?.productName?.trim().takeIf { present(it) } ?: "-"
                     tvModel.text = computeModelLabel(modelRaw, imei2)
+
+                    // Mostrar botones de impresión solo para N910 en rol QA
+                    if (isQa && modelRaw.contains("N910", ignoreCase = true)) {
+                        btnPrintLabel.visibility = View.VISIBLE
+                        btnPrintConfig.visibility = View.VISIBLE
+                    }
 
                     val status = cs?.status?.trim().takeIf { present(it) }
                     tvStatusValue.text = status ?: "-"
