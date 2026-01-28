@@ -9,8 +9,11 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.enofir.tecnicos_app.R
+import android.widget.LinearLayout
+import android.widget.SeekBar
 import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.HistoryStore
+import com.enofir.tecnicos_app.core.PrintConfigStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.model.FailureObservationsCatalog
 import com.enofir.tecnicos_app.model.HistoryEntry
@@ -227,6 +230,58 @@ class TerminalDetailsActivity : BaseActivity() {
                 try { socket?.close() } catch (_: Exception) {}
             }
         }
+    }
+
+    private fun showPrintConfigDialog() {
+        val currentLsMm = PrintConfigStore.getLsMm(this)
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 16)
+        }
+
+        val tvShiftLabel = TextView(this).apply {
+            val suffix = if (currentLsMm == PrintConfigStore.DEFAULT_LS_MM) " (predeterminado)" else ""
+            text = "Mover imagen: ${PrintConfigStore.formatLsMmForDisplay(currentLsMm)}$suffix"
+            textSize = 16f
+        }
+        layout.addView(tvShiftLabel)
+
+        val maxShift = PrintConfigStore.MAX_SHIFT_MM
+        val seekShift = SeekBar(this).apply {
+            max = maxShift * 2
+            progress = currentLsMm + maxShift
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    val value = progress - maxShift
+                    val suffix = if (value == PrintConfigStore.DEFAULT_LS_MM) " (predeterminado)" else ""
+                    tvShiftLabel.text = "Mover imagen: ${PrintConfigStore.formatLsMmForDisplay(value)}$suffix"
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
+        }
+        layout.addView(seekShift)
+
+        val tvNote = TextView(this).apply {
+            text = "Izquierda / Derecha: desplaza la etiqueta horizontalmente"
+            textSize = 12f
+            setPadding(0, 16, 0, 0)
+        }
+        layout.addView(tvNote)
+
+        AlertDialog.Builder(this)
+            .setTitle("Configurar impresión")
+            .setView(layout)
+            .setPositiveButton("Guardar") { _, _ ->
+                val newLsMm = seekShift.progress - maxShift
+                PrintConfigStore.setLsMm(this, newLsMm)
+            }
+            .setNeutralButton("Restablecer") { _, _ ->
+                PrintConfigStore.resetToDefaults(this)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun showSubstatusDialogForReparacionTecnica(onSelected: (mdwSubstatus: String, uiLabel: String) -> Unit) {
@@ -471,6 +526,7 @@ class TerminalDetailsActivity : BaseActivity() {
         val btnComplete = findViewById<Button>(R.id.btnComplete)
         val btnChangeState = findViewById<Button>(R.id.btnChangeState)
         val btnPrintLabel = findViewById<Button>(R.id.btnPrintLabel)
+        val btnPrintConfig = findViewById<Button>(R.id.btnPrintConfig)
 
         val failureObsContainer = findViewById<View>(R.id.failureObsContainer)
         val btnFailureObs = findViewById<Button>(R.id.btnFailureObs)
@@ -556,6 +612,7 @@ class TerminalDetailsActivity : BaseActivity() {
             btnComplete.text = "APROBAR TERMINAL"
             btnChangeState.text = "RECHAZAR TERMINAL"
             btnPrintLabel.visibility = View.VISIBLE
+            btnPrintConfig.visibility = View.VISIBLE
 
             // Imprimir etiqueta ZPL
             btnPrintLabel.setOnClickListener {
@@ -563,7 +620,9 @@ class TerminalDetailsActivity : BaseActivity() {
                 StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
                 tvResult.text = "Obteniendo etiqueta..."
 
-                ApiClient.printLabel(serial).enqueue(object : Callback<PrintLabelResponse> {
+                val lsMm = PrintConfigStore.getLsMmForApi(this)
+
+                ApiClient.printLabel(serial, lsMm = lsMm).enqueue(object : Callback<PrintLabelResponse> {
 
                     override fun onResponse(call: Call<PrintLabelResponse>, response: Response<PrintLabelResponse>) {
                         val body = response.body()
@@ -594,6 +653,11 @@ class TerminalDetailsActivity : BaseActivity() {
                         btnPrintLabel.isEnabled = true
                     }
                 })
+            }
+
+            // Configurar impresión
+            btnPrintConfig.setOnClickListener {
+                showPrintConfigDialog()
             }
         } else if (isRecovery) {
             failureObsContainer.visibility = View.GONE

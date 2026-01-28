@@ -23,7 +23,7 @@
 
         <!-- Título -->
         <TextView
-            android:text="Técnicos App"
+            android:text="TechFlow App"
             android:textSize="24sp"
             android:textColor="@color/enofir_primary"
             android:textStyle="bold"

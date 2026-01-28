@@ -3,6 +3,54 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+// Función para obtener versión desde git tags + commits
+fun getVersionFromGit(): String {
+    return try {
+        val process = ProcessBuilder("git", "describe", "--tags", "--always")
+            .directory(projectDir)
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().readText().trim()
+        process.waitFor()
+
+        // Formato esperado: v1.3.0-5-g1234abc (tag-commits-hash)
+        // Si no hay commits después del tag: v1.3.0
+        val regex = Regex("""v?(\d+)\.(\d+)\.(\d+)(?:-(\d+)-g[a-f0-9]+)?""")
+        val match = regex.find(output)
+
+        if (match != null) {
+            val major = match.groupValues[1]
+            val minor = match.groupValues[2]
+            val patch = match.groupValues[3]
+            val commits = match.groupValues.getOrNull(4)?.takeIf { it.isNotEmpty() } ?: "0"
+
+            if (commits == "0") {
+                "$major.$minor.$patch"
+            } else {
+                "$major.$minor.$commits"
+            }
+        } else {
+            "1.3.0"
+        }
+    } catch (e: Exception) {
+        "1.3.0"
+    }
+}
+
+fun getVersionCodeFromGit(): Int {
+    return try {
+        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
+            .directory(projectDir)
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().readText().trim()
+        process.waitFor()
+        output.toIntOrNull() ?: 1
+    } catch (e: Exception) {
+        1
+    }
+}
+
 android {
     namespace = "com.enofir.tecnicos_app"
     compileSdk = 34
@@ -14,8 +62,8 @@ android {
         minSdk = 22
         targetSdk = 34
 
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = getVersionCodeFromGit()
+        versionName = getVersionFromGit()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

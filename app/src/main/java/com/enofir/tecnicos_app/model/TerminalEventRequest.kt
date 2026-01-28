@@ -15,6 +15,7 @@ import com.google.gson.annotations.SerializedName
  * MODIFY:
  * - action, serial, targetStatus
  * - targetSubstatus: opcional (ej. "Carga de firmware + Inyección")
+ * - recoveredParts: opcional (Recovery) (máx 500 chars)
  *
  * REJECT:
  * - action, serial, role="QA", qaObservations
@@ -45,7 +46,12 @@ data class TerminalEventRequest(
     @SerializedName("targetSubstatus")
     val targetSubstatus: String? = null,
 
-    // ===== NUEVO: solo REJECT (QA) =====
+    // ===== REJECT (QA) =====
     @SerializedName("qaObservations")
-    val qaObservations: String? = null
+    val qaObservations: String? = null,
+
+    // ===== MODIFY (Recovery) =====
+    // Repuestos recuperados (máx 500 chars)
+    @SerializedName("recoveredParts")
+    val recoveredParts: String? = null
 )
