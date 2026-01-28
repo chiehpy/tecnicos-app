@@ -3,23 +3,28 @@ package com.enofir.tecnicos_app.ui
 import android.app.Activity
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Base64
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.HistoryStore
+import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.model.FailureObservationsCatalog
 import com.enofir.tecnicos_app.model.HistoryEntry
+import com.enofir.tecnicos_app.model.PrintLabelResponse
 import com.enofir.tecnicos_app.model.StatusCatalog
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.model.TerminalLookupResponse
+import java.io.OutputStream
+import java.net.Socket
+import kotlin.concurrent.thread
 import com.enofir.tecnicos_app.utils.ChipState
 import com.enofir.tecnicos_app.utils.IrreparableChecker
 import com.enofir.tecnicos_app.utils.StatusChip
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -36,6 +41,10 @@ class TerminalDetailsActivity : BaseActivity() {
         private const val STATUS_IRREPARABLE = "Irreparable"
         private const val STATUS_REPARACION_TECNICA = "Reparación Técnica"
         private const val STATUS_PENDIENTE_FACTURACION = "Pendiente de facturación"
+
+        // Impresora Zebra
+        private const val PRINTER_IP = "192.168.0.10"
+        private const val PRINTER_PORT = 9100
     }
 
     // Failure observations (Revisión inicial)
@@ -64,7 +73,6 @@ class TerminalDetailsActivity : BaseActivity() {
         "Sin audio"
     )
 
-    // IMPORTANTE: una sola declaración
     private val qaSelected: BooleanArray = BooleanArray(qaOptions.size) { false }
 
     // Catálogo de repuestos recuperados (Recovery)
@@ -106,6 +114,32 @@ class TerminalDetailsActivity : BaseActivity() {
             return if (present(imei2Raw)) "N910 Plus" else "N910 A5"
         }
         return if (m.isNotEmpty()) m else "-"
+    }
+
+    // ===== technicianName desde JWT (OBLIGATORIO para Recovery/MODIFY) =====
+
+    private fun base64UrlDecodeToString(input: String): String {
+        var s = input.replace('-', '+').replace('_', '/')
+        val mod = s.length % 4
+        if (mod != 0) s += "=".repeat(4 - mod)
+        val decoded = Base64.decode(s, Base64.DEFAULT)
+        return String(decoded, Charsets.UTF_8)
+    }
+
+    private fun getTechnicianNameFromJwt(): String? {
+        return try {
+            val token = SessionManager(applicationContext).getToken()?.trim().orEmpty()
+            if (token.isEmpty()) return null
+
+            val parts = token.split(".")
+            if (parts.size < 2) return null
+
+            val payloadJson = base64UrlDecodeToString(parts[1])
+            val obj = JSONObject(payloadJson)
+            obj.optString("technician_name", null)?.trim()?.takeIf { it.isNotEmpty() }
+        } catch (_: Throwable) {
+            null
+        }
     }
 
     private fun getSelectedFailureValues(): List<String> {
@@ -160,8 +194,41 @@ class TerminalDetailsActivity : BaseActivity() {
     }
 
     /**
-     * Diálogo substatus obligatorio cuando targetStatus="Reparación Técnica"
+     * Envía el ZPL a la impresora Zebra por TCP socket.
      */
+    private fun sendZplToPrinter(
+        zpl: String,
+        chip: TextView,
+        tvResult: TextView,
+        btnPrintLabel: Button
+    ) {
+        thread {
+            var socket: Socket? = null
+            var output: OutputStream? = null
+            try {
+                socket = Socket(PRINTER_IP, PRINTER_PORT)
+                output = socket.getOutputStream()
+                output.write(zpl.toByteArray(Charsets.UTF_8))
+                output.flush()
+
+                runOnUiThread {
+                    StatusChip.apply(chip, ChipState.OK, "OK")
+                    tvResult.text = "Etiqueta enviada a impresora"
+                    btnPrintLabel.isEnabled = true
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                    tvResult.text = "Error impresora: ${e.message}"
+                    btnPrintLabel.isEnabled = true
+                }
+            } finally {
+                try { output?.close() } catch (_: Exception) {}
+                try { socket?.close() } catch (_: Exception) {}
+            }
+        }
+    }
+
     private fun showSubstatusDialogForReparacionTecnica(onSelected: (mdwSubstatus: String, uiLabel: String) -> Unit) {
         val labels = reparacionSubstatusOptions.map { it.label }.toTypedArray()
         AlertDialog.Builder(this)
@@ -174,9 +241,6 @@ class TerminalDetailsActivity : BaseActivity() {
             .show()
     }
 
-    /**
-     * Diálogo de fallas para Irreparable (OBLIGATORIO por MDW)
-     */
     private fun showFailureObsDialogForIrreparable(onConfirm: (failureObs: List<String>) -> Unit) {
         val noneIndex = failureOptions.indexOf(FailureObservationsCatalog.NONE)
         val items: Array<CharSequence> = failureOptions.toTypedArray()
@@ -217,11 +281,6 @@ class TerminalDetailsActivity : BaseActivity() {
         setDialogChecksFromModel(dialog, failureSelected)
     }
 
-    /**
-     * REJECT QA:
-     * - UI muestra con comas
-     * - MDW suele querer ';' -> enviamos ';' al backend para no romper contrato.
-     */
     private fun showQaRejectDialog(onConfirm: (qaObsStringForMdw: String, qaObsStringForUi: String) -> Unit) {
         for (i in qaSelected.indices) qaSelected[i] = false
 
@@ -262,9 +321,6 @@ class TerminalDetailsActivity : BaseActivity() {
         setDialogChecksFromModel(dialog, qaSelected)
     }
 
-    /**
-     * Ejecuta REJECT (QA) después de un MODIFY OK.
-     */
     private fun executeRejectQa(
         serial: String,
         qaObsStringForMdw: String,
@@ -311,7 +367,8 @@ class TerminalDetailsActivity : BaseActivity() {
     }
 
     /**
-     * MODIFY wrapper
+     * MODIFY wrapper (named args para evitar mismatch)
+     * technicianNameRequired=true => si no se puede obtener del JWT, no envía.
      */
     private fun executeChangeStatus(
         serial: String,
@@ -323,53 +380,70 @@ class TerminalDetailsActivity : BaseActivity() {
         finishOnSuccess: Boolean = false,
         substatus: String? = null,
         failureObservations: List<String>? = null,
+        recoveredParts: String? = null,
+        technicianNameRequired: Boolean = false,
         onOk: (() -> Unit)? = null
     ) {
         btnChangeState.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
         tvResult.text = "Cambiando estado..."
 
-        ApiClient.modify(serial, newStatus, substatus, failureObservations)
-            .enqueue(object : Callback<TerminalEventResponse> {
+        val techName = getTechnicianNameFromJwt()
 
-                override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
-                    val body = response.body()
+        if (technicianNameRequired && techName.isNullOrBlank()) {
+            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+            tvResult.text = "No se pudo obtener technicianName. Re-logueá e intentá de nuevo."
+            btnChangeState.isEnabled = true
+            return
+        }
 
-                    if (!response.isSuccessful || body == null) {
-                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                        val raw = response.errorBody()?.string()?.trim().orEmpty()
-                        val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
-                        tvResult.text = "HTTP ${response.code()} - $msg"
-                        btnChangeState.isEnabled = true
-                        return
-                    }
+        ApiClient.modify(
+            serial = serial,
+            targetStatus = newStatus,
+            targetSubstatus = substatus,
+            technicianName = techName, // lo mandamos siempre si existe
+            recoveredParts = recoveredParts,
+            failureObservations = failureObservations
+        ).enqueue(object : Callback<TerminalEventResponse> {
 
-                    if (body.ok) {
-                        StatusChip.apply(chip, ChipState.OK, "OK")
-                        tvResult.text = body.message ?: "Estado cambiado correctamente."
-                        tvStatusValue.text = newStatus
-                        currentStatus = newStatus
+            override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
+                val body = response.body()
 
-                        if (finishOnSuccess) {
-                            setResult(Activity.RESULT_OK)
-                            finish()
-                        } else {
-                            if (onOk == null) btnChangeState.isEnabled = true
-                            onOk?.invoke()
-                        }
-                    } else {
-                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                        tvResult.text = body.message ?: "Error al cambiar estado."
-                        btnChangeState.isEnabled = true
-                    }
+                if (!response.isSuccessful || body == null) {
+                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                    val raw = response.errorBody()?.string()?.trim().orEmpty()
+                    val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
+                    tvResult.text = "HTTP ${response.code()} - $msg"
+                    btnChangeState.isEnabled = true
+                    return
                 }
 
-                override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
+                if (body.ok) {
+                    StatusChip.apply(chip, ChipState.OK, "OK")
+                    tvResult.text = body.message ?: "Estado cambiado correctamente."
+                    tvStatusValue.text = newStatus
+                    currentStatus = newStatus
+
+                    if (finishOnSuccess) {
+                        setResult(Activity.RESULT_OK)
+                        finish()
+                    } else {
+                        if (onOk == null) btnChangeState.isEnabled = true
+                        onOk?.invoke()
+                    }
+                } else {
                     StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    tvResult.text = "Falla de conexión: ${t.message}"
+                    tvResult.text = body.message ?: "Error al cambiar estado."
                     btnChangeState.isEnabled = true
                 }
-            })
+            }
+
+            override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
+                StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                tvResult.text = "Falla de conexión: ${t.message}"
+                btnChangeState.isEnabled = true
+            }
+        })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -396,6 +470,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
         val btnComplete = findViewById<Button>(R.id.btnComplete)
         val btnChangeState = findViewById<Button>(R.id.btnChangeState)
+        val btnPrintLabel = findViewById<Button>(R.id.btnPrintLabel)
 
         val failureObsContainer = findViewById<View>(R.id.failureObsContainer)
         val btnFailureObs = findViewById<Button>(R.id.btnFailureObs)
@@ -476,27 +551,58 @@ class TerminalDetailsActivity : BaseActivity() {
                 setDialogChecksFromModel(dialog, failureSelected)
             }
         } else if (isQa) {
-            // QA: aprobar terminal o rebotar (MODIFY → REJECT con observaciones QA)
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
             btnComplete.text = "APROBAR TERMINAL"
             btnChangeState.text = "RECHAZAR TERMINAL"
+            btnPrintLabel.visibility = View.VISIBLE
+
+            // Imprimir etiqueta ZPL
+            btnPrintLabel.setOnClickListener {
+                btnPrintLabel.isEnabled = false
+                StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
+                tvResult.text = "Obteniendo etiqueta..."
+
+                ApiClient.printLabel(serial).enqueue(object : Callback<PrintLabelResponse> {
+
+                    override fun onResponse(call: Call<PrintLabelResponse>, response: Response<PrintLabelResponse>) {
+                        val body = response.body()
+
+                        if (!response.isSuccessful || body == null) {
+                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                            val raw = response.errorBody()?.string()?.trim().orEmpty()
+                            val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
+                            tvResult.text = "HTTP ${response.code()} - $msg"
+                            btnPrintLabel.isEnabled = true
+                            return
+                        }
+
+                        if (!body.ok || body.zpl.isNullOrEmpty()) {
+                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                            tvResult.text = body.message ?: "No se pudo generar etiqueta"
+                            btnPrintLabel.isEnabled = true
+                            return
+                        }
+
+                        tvResult.text = "Enviando a impresora..."
+                        sendZplToPrinter(body.zpl, chip, tvResult, btnPrintLabel)
+                    }
+
+                    override fun onFailure(call: Call<PrintLabelResponse>, t: Throwable) {
+                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                        tvResult.text = "Falla de conexión: ${t.message}"
+                        btnPrintLabel.isEnabled = true
+                    }
+                })
+            }
         } else if (isRecovery) {
-            // Recovery: procesar recovery y guardar repuestos recuperados
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.VISIBLE
             btnComplete.text = "PROCESAR TERMINAL"
             btnChangeState.text = "REVERTIR ESTADO"
 
-            // Diálogo para seleccionar y guardar repuestos recuperados
+            // Solo selecciona y muestra. (Camino A: se envía en MODIFY al completar)
             btnSelectRecoveredParts.setOnClickListener {
-                val recordId = csId
-                if (recordId.isNullOrEmpty()) {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    tvResult.text = "No se puede cargar: ID de registro no disponible."
-                    return@setOnClickListener
-                }
-
                 val items: Array<CharSequence> = recoveredPartsOptions.toTypedArray()
 
                 val dialog = AlertDialog.Builder(this)
@@ -506,53 +612,9 @@ class TerminalDetailsActivity : BaseActivity() {
                         val alert = dialogInterface as? AlertDialog
                         if (alert != null) setDialogChecksFromModel(alert, recoveredPartsSelected)
                     }
-                    .setPositiveButton("Guardar") { d, _ ->
+                    .setPositiveButton("Aceptar") { d, _ ->
                         d.dismiss()
-                        val selectedParts = getSelectedRecoveredParts()
-                        if (selectedParts.isEmpty()) {
-                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                            tvResult.text = "Seleccioná al menos un repuesto recuperado."
-                            return@setPositiveButton
-                        }
-
-                        val recoveredParts = selectedParts.joinToString("; ")
                         renderRecoveredPartsText(tvRecoveredParts)
-
-                        btnSelectRecoveredParts.isEnabled = false
-                        StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
-                        tvResult.text = "Guardando repuestos..."
-
-                        ApiClient.updateRecovery(recordId, recoveredParts).enqueue(object : Callback<TerminalEventResponse> {
-
-                            override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
-                                val body = response.body()
-
-                                if (!response.isSuccessful || body == null) {
-                                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                                    val raw = response.errorBody()?.string()?.trim().orEmpty()
-                                    val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
-                                    tvResult.text = "HTTP ${response.code()} - $msg"
-                                    btnSelectRecoveredParts.isEnabled = true
-                                    return
-                                }
-
-                                if (body.ok) {
-                                    StatusChip.apply(chip, ChipState.OK, "OK")
-                                    tvResult.text = body.message ?: "Repuestos guardados correctamente."
-                                    Toast.makeText(this@TerminalDetailsActivity, "Repuestos guardados", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                                    tvResult.text = body.message ?: "Error al guardar repuestos."
-                                }
-                                btnSelectRecoveredParts.isEnabled = true
-                            }
-
-                            override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
-                                StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                                tvResult.text = "Falla de conexión: ${t.message}"
-                                btnSelectRecoveredParts.isEnabled = true
-                            }
-                        })
                     }
                     .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
                     .create()
@@ -561,7 +623,6 @@ class TerminalDetailsActivity : BaseActivity() {
                 setDialogChecksFromModel(dialog, recoveredPartsSelected)
             }
         } else {
-            // Limpieza u otros roles: wording estándar
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
             btnComplete.text = "FINALIZAR PROCESO"
@@ -621,7 +682,6 @@ class TerminalDetailsActivity : BaseActivity() {
                     val observedFailures = cs?.failureObservations?.trim().takeIf { present(it) }
                     tvObservedFailuresValue.text = observedFailures ?: "-"
 
-                    // QA Observations (mostrar si viene)
                     val qaObsRaw = cs?.qaObservations?.trim()
                     if (present(qaObsRaw)) {
                         qaObsRow.visibility = View.VISIBLE
@@ -631,7 +691,6 @@ class TerminalDetailsActivity : BaseActivity() {
                         tvQaObservationsValue.text = "-"
                     }
 
-                    // Cantidad de rechazos QA (mostrar si viene y es > 0)
                     val qaRejectCount = cs?.qaRejectCount
                     if (qaRejectCount != null && qaRejectCount > 0) {
                         qaRejectCountRow.visibility = View.VISIBLE
@@ -641,9 +700,7 @@ class TerminalDetailsActivity : BaseActivity() {
                         tvQaRejectCountValue.text = "-"
                     }
 
-                    // Guardar csId para Recovery PATCH
                     csId = cs?.id
-
                     tvResult.text = ""
                     if (status != null) btnChangeState.isEnabled = true
                 }
@@ -810,8 +867,19 @@ class TerminalDetailsActivity : BaseActivity() {
                 return@setOnClickListener
             }
 
-            // Recovery: MODIFY a "Pendiente de facturación"
+            // Recovery (Camino A): MODIFY + recoveredParts + technicianName (OBLIGATORIO)
             if (isRecovery) {
+                val selectedParts = getSelectedRecoveredParts()
+                if (selectedParts.isEmpty()) {
+                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                    tvResult.text = "Seleccioná al menos un repuesto recuperado."
+                    return@setOnClickListener
+                }
+
+                val recoveredPartsStr = selectedParts.joinToString("; ").let {
+                    if (it.length > 500) it.take(500) else it
+                }
+
                 executeChangeStatus(
                     serial = serial,
                     newStatus = STATUS_PENDIENTE_FACTURACION,
@@ -821,7 +889,9 @@ class TerminalDetailsActivity : BaseActivity() {
                     btnChangeState = btnChangeState,
                     finishOnSuccess = true,
                     substatus = null,
-                    failureObservations = null
+                    failureObservations = null,
+                    recoveredParts = recoveredPartsStr,
+                    technicianNameRequired = true
                 )
                 return@setOnClickListener
             }

@@ -6,6 +6,8 @@ import android.os.Handler
 import android.os.Looper
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
+import com.enofir.tecnicos_app.model.PrintLabelRequest
+import com.enofir.tecnicos_app.model.PrintLabelResponse
 import com.enofir.tecnicos_app.model.RecoveryPatchRequest
 import com.enofir.tecnicos_app.model.TerminalEventRequest
 import com.enofir.tecnicos_app.model.TerminalEventResponse
@@ -210,15 +212,34 @@ object ApiClient {
         return api().terminalLookup(s)
     }
 
+    /**
+     * MODIFY (Recovery u otros cambios de estado):
+     * - action="MODIFY", serial, targetStatus (req)
+     * - targetSubstatus (opt)
+     * - technicianName (opt)
+     * - recoveredParts (opt, máx 500 chars)
+     * - failureObservations (opt, si MDW lo usa en algún flujo)
+     */
     fun modify(
         serial: String,
         targetStatus: String,
         targetSubstatus: String? = null,
+        technicianName: String? = null,
+        recoveredParts: String? = null,
         failureObservations: List<String>? = null
     ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val ts = targetStatus.trim()
         val tss = targetSubstatus?.trim()?.takeIf { it.isNotEmpty() }
+        val tech = technicianName?.trim()?.takeIf { it.isNotEmpty() }
+
+        val parts = recoveredParts
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let {
+                require(it.length <= 500) { "recoveredParts excede 500 caracteres" }
+                it
+            }
 
         require(s.isNotEmpty()) { "serial vacío" }
         require(ts.isNotEmpty()) { "targetStatus vacío" }
@@ -228,6 +249,8 @@ object ApiClient {
             serial = s,
             targetStatus = ts,
             targetSubstatus = tss,
+            technicianName = tech,
+            recoveredParts = parts,
             failureObservations = failureObservations?.takeIf { it.isNotEmpty() }
         )
 
@@ -280,6 +303,18 @@ object ApiClient {
 
         val payload = RecoveryPatchRequest(recoveredParts = parts)
         return api().updateRecovery(id, payload)
+    }
+
+    /**
+     * Obtiene el ZPL para imprimir etiqueta de un terminal.
+     * POST /print/label
+     */
+    fun printLabel(serial: String, darkness: Int? = null, lsMm: Int? = null): Call<PrintLabelResponse> {
+        val s = serial.trim()
+        require(s.isNotEmpty()) { "serial vacío" }
+
+        val payload = PrintLabelRequest(serial = s, darkness = darkness, lsMm = lsMm)
+        return api().printLabel(payload)
     }
 
     /**

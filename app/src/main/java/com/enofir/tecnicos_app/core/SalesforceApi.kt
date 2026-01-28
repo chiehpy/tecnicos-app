@@ -2,6 +2,8 @@ package com.enofir.tecnicos_app.core
 
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
+import com.enofir.tecnicos_app.model.PrintLabelRequest
+import com.enofir.tecnicos_app.model.PrintLabelResponse
 import com.enofir.tecnicos_app.model.RecoveryPatchRequest
 import com.enofir.tecnicos_app.model.RefreshRequest
 import com.enofir.tecnicos_app.model.RefreshResponse
@@ -40,4 +42,8 @@ interface SalesforceApi {
         @Path("id") id: String,
         @Body body: RecoveryPatchRequest
     ): Call<TerminalEventResponse>
+
+    @Headers("Content-Type: application/json")
+    @POST("print/label")
+    fun printLabel(@Body body: PrintLabelRequest): Call<PrintLabelResponse>
 }
