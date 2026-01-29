@@ -1,11 +1,8 @@
 package com.enofir.tecnicos_app.core
 
 import android.app.Activity
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
-import android.content.Context
+import android.app.ProgressDialog
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -13,17 +10,20 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import com.enofir.tecnicos_app.BuildConfig
 import com.enofir.tecnicos_app.model.AppVersionResponse
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+import java.io.FileOutputStream
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 /**
  * Verifica si hay actualizaciones disponibles y gestiona la descarga/instalación.
  */
 object UpdateChecker {
-
-    private var downloadId: Long = -1
 
     /**
      * Verifica si hay una versión más nueva disponible.
@@ -98,50 +98,96 @@ object UpdateChecker {
             .show()
     }
 
+    @Suppress("DEPRECATION")
     private fun downloadAndInstall(activity: Activity, url: String, version: String) {
         val fileName = "tecnicos-app-$version.apk"
 
-        // Eliminar APK anterior si existe
+        // Usar almacenamiento interno de la app
         val downloadDir = activity.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            ?: activity.filesDir
         val file = File(downloadDir, fileName)
+
+        // Eliminar APK anterior si existe
         if (file.exists()) file.delete()
 
-        val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle("Descargando actualización")
-            .setDescription("TechFlow App v$version")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalFilesDir(activity, Environment.DIRECTORY_DOWNLOADS, fileName)
-            .setAllowedOverMetered(true)
-            .setAllowedOverRoaming(true)
+        // Mostrar progreso
+        val progressDialog = ProgressDialog(activity).apply {
+            setMessage("Descargando actualización...")
+            setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
+            max = 100
+            progress = 0
+            setCancelable(false)
+            show()
+        }
 
-        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        downloadId = downloadManager.enqueue(request)
+        thread {
+            try {
+                val client = OkHttpClient.Builder()
+                    .connectTimeout(60, TimeUnit.SECONDS)
+                    .readTimeout(120, TimeUnit.SECONDS)
+                    .followRedirects(true)
+                    .followSslRedirects(true)
+                    .build()
 
-        // Registrar receiver para cuando termine la descarga
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                if (id == downloadId) {
-                    activity.unregisterReceiver(this)
+                val request = Request.Builder()
+                    .url(url)
+                    .build()
+
+                val response = client.newCall(request).execute()
+
+                if (!response.isSuccessful) {
+                    activity.runOnUiThread {
+                        progressDialog.dismiss()
+                        showMessage(activity, "Error al descargar: HTTP ${response.code()}")
+                    }
+                    return@thread
+                }
+
+                val body = response.body()
+                if (body == null) {
+                    activity.runOnUiThread {
+                        progressDialog.dismiss()
+                        showMessage(activity, "Error: respuesta vacía")
+                    }
+                    return@thread
+                }
+
+                val contentLength = body.contentLength()
+                val inputStream = body.byteStream()
+                val outputStream = FileOutputStream(file)
+
+                val buffer = ByteArray(8192)
+                var bytesRead: Int
+                var totalBytesRead: Long = 0
+
+                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                    outputStream.write(buffer, 0, bytesRead)
+                    totalBytesRead += bytesRead
+
+                    if (contentLength > 0) {
+                        val progress = ((totalBytesRead * 100) / contentLength).toInt()
+                        activity.runOnUiThread {
+                            progressDialog.progress = progress
+                        }
+                    }
+                }
+
+                outputStream.flush()
+                outputStream.close()
+                inputStream.close()
+
+                activity.runOnUiThread {
+                    progressDialog.dismiss()
                     installApk(activity, file)
+                }
+
+            } catch (e: Exception) {
+                activity.runOnUiThread {
+                    progressDialog.dismiss()
+                    showMessage(activity, "Error de descarga: ${e.message}")
                 }
             }
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            activity.registerReceiver(
-                receiver,
-                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-                Context.RECEIVER_NOT_EXPORTED
-            )
-        } else {
-            activity.registerReceiver(
-                receiver,
-                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-            )
-        }
-
-        showMessage(activity, "Descarga iniciada. Recibirás una notificación cuando esté lista.")
     }
 
     private fun installApk(activity: Activity, file: File) {
