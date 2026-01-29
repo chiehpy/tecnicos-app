@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import com.enofir.tecnicos_app.model.AppVersionResponse
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
@@ -315,6 +316,14 @@ object ApiClient {
 
         val payload = PrintLabelRequest(serial = s, darkness = darkness, lsMm = lsMm)
         return api().printLabel(payload)
+    }
+
+    /**
+     * Obtiene la versión más reciente de la app disponible.
+     * GET /app/version
+     */
+    fun getAppVersion(): Call<AppVersionResponse> {
+        return api().getAppVersion()
     }
 
     /**

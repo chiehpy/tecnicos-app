@@ -9,6 +9,7 @@ import androidx.appcompat.widget.PopupMenu
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.SessionManager
+import com.enofir.tecnicos_app.core.UpdateChecker
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.sdk.ScanActivity
 import com.enofir.tecnicos_app.utils.ChipState
@@ -58,6 +59,9 @@ class WorkActivity : BaseActivity() {
         }
 
         setContentView(R.layout.activity_work)
+
+        // Verificar actualizaciones OTA (silencioso)
+        UpdateChecker.check(this)
 
         // UI
         chip = findViewById(R.id.statusChip)
