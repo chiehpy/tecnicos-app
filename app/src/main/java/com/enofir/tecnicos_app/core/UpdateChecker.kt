@@ -2,6 +2,7 @@ package com.enofir.tecnicos_app.core
 
 import android.app.Activity
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -25,6 +26,11 @@ import kotlin.concurrent.thread
  */
 object UpdateChecker {
 
+    private const val PREFS = "update_checker"
+    private const val KEY_SKIPPED_VERSION = "skipped_version"
+    private const val KEY_LAST_PROMPT_TIME = "last_prompt_time"
+    private const val PROMPT_COOLDOWN_MS = 60 * 60 * 1000L // 1 hora
+
     /**
      * Verifica si hay una versión más nueva disponible.
      * Llama al endpoint /app/version y compara con la versión instalada.
@@ -46,7 +52,10 @@ object UpdateChecker {
                 val currentVersion = BuildConfig.VERSION_NAME
 
                 if (isNewerVersion(serverVersion, currentVersion)) {
-                    showUpdateDialog(activity, serverVersion, serverUrl)
+                    // No mostrar si ya se ofreció esta versión recientemente
+                    if (shouldShowUpdatePrompt(activity, serverVersion)) {
+                        showUpdateDialog(activity, serverVersion, serverUrl)
+                    }
                 } else if (showNoUpdateMessage) {
                     showMessage(activity, "Ya tenés la última versión ($currentVersion)")
                 }
@@ -79,6 +88,28 @@ object UpdateChecker {
         return false
     }
 
+    private fun shouldShowUpdatePrompt(context: Context, version: String): Boolean {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val skippedVersion = prefs.getString(KEY_SKIPPED_VERSION, null)
+        val lastPromptTime = prefs.getLong(KEY_LAST_PROMPT_TIME, 0)
+        val now = System.currentTimeMillis()
+
+        // Si es la misma versión que se saltó y no pasó el cooldown, no mostrar
+        if (skippedVersion == version && (now - lastPromptTime) < PROMPT_COOLDOWN_MS) {
+            return false
+        }
+
+        return true
+    }
+
+    private fun saveSkippedVersion(context: Context, version: String) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_SKIPPED_VERSION, version)
+            .putLong(KEY_LAST_PROMPT_TIME, System.currentTimeMillis())
+            .apply()
+    }
+
     private fun showUpdateDialog(activity: Activity, version: String, url: String) {
         AlertDialog.Builder(activity)
             .setTitle("Actualización disponible")
@@ -86,7 +117,9 @@ object UpdateChecker {
             .setPositiveButton("Descargar") { _, _ ->
                 downloadAndInstall(activity, url, version)
             }
-            .setNegativeButton("Más tarde", null)
+            .setNegativeButton("Más tarde") { _, _ ->
+                saveSkippedVersion(activity, version)
+            }
             .setCancelable(false)
             .show()
     }
