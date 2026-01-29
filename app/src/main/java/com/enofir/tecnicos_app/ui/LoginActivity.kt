@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.SessionManager
+import com.enofir.tecnicos_app.core.UpdateChecker
 import com.enofir.tecnicos_app.model.LoginResponse
 import retrofit2.Call
 import retrofit2.Callback
@@ -20,6 +21,9 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
+        // Verificar actualizaciones OTA (siempre, antes de verificar sesión)
+        UpdateChecker.check(this)
+
         val etUser = findViewById<EditText>(R.id.etUser)
         val etPass = findViewById<EditText>(R.id.etPass)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
@@ -27,7 +31,7 @@ class LoginActivity : AppCompatActivity() {
 
         val session = SessionManager(this)
 
-        // Si ya hay sesión, salteo login
+        // Si ya hay sesión, salteo login (pero la verificación OTA ya se disparó)
         if (session.isLoggedIn()) {
             goToWork()
             return
