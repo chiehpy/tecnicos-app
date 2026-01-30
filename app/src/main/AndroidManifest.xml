@@ -40,6 +40,8 @@
         tools:targetApi="34">
         <activity
             android:name=".ui.TerminalDetailsActivity" />
+        <activity
+            android:name=".ui.PrintLabelActivity" />
 
         <!-- Pantalla secundaria -->
         <activity

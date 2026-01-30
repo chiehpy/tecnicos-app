@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Imprimir Etiqueta"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/statusChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:text="LISTO" />
+
+        </LinearLayout>
+
+        <!-- Número de serie -->
+        <TextView
+            android:text="Número de serie"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/etSerial"
+            android:hint="Ingresá o escaneá el SN"
+            android:inputType="text"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Botón escanear -->
+        <Button
+            android:id="@+id/btnScan"
+            android:text="ESCANEAR"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Botón imprimir -->
+        <Button
+            android:id="@+id/btnPrint"
+            android:text="IMPRIMIR ETIQUETA"
+            android:layout_marginTop="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Botón configurar impresión -->
+        <Button
+            android:id="@+id/btnPrintConfig"
+            android:text="CONFIGURAR IMPRESION"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Resultado -->
+        <TextView
+            android:id="@+id/tvResult"
+            android:layout_marginTop="24dp"
+            android:textColor="@color/gray_text_secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Versión -->
+        <TextView
+            android:id="@+id/tvVersion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|left"
+            android:layout_margin="12dp"
+            android:alpha="0.6"
+            android:text="v1.0"
+            android:textColor="@color/gray_text_secondary"
+            android:textSize="10sp" />
+
+    </LinearLayout>
+
+</ScrollView>

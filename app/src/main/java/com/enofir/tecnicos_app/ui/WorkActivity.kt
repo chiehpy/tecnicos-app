@@ -166,11 +166,18 @@ class WorkActivity : BaseActivity() {
 
     private fun showMenu(anchor: ImageButton) {
         val popup = PopupMenu(this, anchor)
+        val currentRole = session.getRole()?.trim().orEmpty()
 
         popup.menu.add(Menu.NONE, 1, 1, "Inicio")
         popup.menu.add(Menu.NONE, 2, 2, "Ajustes")
         popup.menu.add(Menu.NONE, 3, 3, "Historial")
-        popup.menu.add(Menu.NONE, 4, 4, "Cerrar sesión")
+
+        // Solo mostrar opción de imprimir etiqueta para QA
+        if (currentRole == "QA") {
+            popup.menu.add(Menu.NONE, 5, 4, "Imprimir Etiqueta")
+        }
+
+        popup.menu.add(Menu.NONE, 4, 5, "Cerrar sesión")
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -185,6 +192,10 @@ class WorkActivity : BaseActivity() {
                 }
                 4 -> {
                     logout()
+                    true
+                }
+                5 -> {
+                    startActivity(Intent(this, PrintLabelActivity::class.java))
                     true
                 }
                 else -> false
