@@ -11,6 +11,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <!-- Selector de tipo de historial -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnViewTerminals"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Terminales"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnViewPrints"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Impresiones"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+
     <ScrollView
         android:layout_marginTop="12dp"
         android:layout_width="match_parent"

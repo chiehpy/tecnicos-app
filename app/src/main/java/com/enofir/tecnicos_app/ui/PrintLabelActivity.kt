@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.PrintConfigStore
+import com.enofir.tecnicos_app.core.PrintHistoryStore
 import com.enofir.tecnicos_app.model.PrintLabelResponse
 import com.enofir.tecnicos_app.sdk.ScanActivity
 import com.enofir.tecnicos_app.utils.ChipState
@@ -115,7 +116,7 @@ class PrintLabelActivity : BaseActivity() {
                 }
 
                 tvResult.text = "Enviando a impresora..."
-                sendZplToPrinter(body.zpl)
+                sendZplToPrinter(serial, body.zpl)
             }
 
             override fun onFailure(call: Call<PrintLabelResponse>, t: Throwable) {
@@ -126,7 +127,7 @@ class PrintLabelActivity : BaseActivity() {
         })
     }
 
-    private fun sendZplToPrinter(zpl: String) {
+    private fun sendZplToPrinter(serial: String, zpl: String) {
         thread {
             var socket: Socket? = null
             var output: OutputStream? = null
@@ -137,6 +138,9 @@ class PrintLabelActivity : BaseActivity() {
                 output.flush()
 
                 runOnUiThread {
+                    // Guardar en historial
+                    PrintHistoryStore.add(this, serial)
+
                     StatusChip.apply(chip, ChipState.OK, "OK")
                     tvResult.text = "Etiqueta enviada a impresora"
                     btnPrint.isEnabled = true
