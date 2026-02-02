@@ -115,6 +115,7 @@ object UpdateChecker {
             .setTitle("Actualización disponible")
             .setMessage("Hay una nueva versión disponible: v$version\n\n¿Descargar ahora?")
             .setPositiveButton("Descargar") { _, _ ->
+                saveSkippedVersion(activity, version) // Evitar que se muestre de nuevo al reiniciar
                 downloadAndInstall(activity, url, version)
             }
             .setNegativeButton("Más tarde") { _, _ ->
