@@ -12,6 +12,7 @@ object FailureObservationsCatalog {
         "Sin tapa de impresora",
         "Display roto",
         "Tactil roto",
+        "Film dañado",
         "Impresora rota",
         "Tapa de bateria rota",
         "Tapa de impresora rota",
