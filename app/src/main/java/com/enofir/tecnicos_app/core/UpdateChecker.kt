@@ -27,9 +27,7 @@ import kotlin.concurrent.thread
 object UpdateChecker {
 
     private const val PREFS = "update_checker"
-    private const val KEY_SKIPPED_VERSION = "skipped_version"
-    private const val KEY_LAST_PROMPT_TIME = "last_prompt_time"
-    private const val PROMPT_COOLDOWN_MS = 60 * 60 * 1000L // 1 hora
+    private const val KEY_DOWNLOADED_VERSION = "downloaded_version"
 
     /**
      * Verifica si hay una versión más nueva disponible.
@@ -51,11 +49,9 @@ object UpdateChecker {
                 val serverUrl = body.url ?: return
                 val currentVersion = BuildConfig.VERSION_NAME
 
-                if (isNewerVersion(serverVersion, currentVersion)) {
-                    // No mostrar si ya se ofreció esta versión recientemente
-                    if (shouldShowUpdatePrompt(activity, serverVersion)) {
-                        showUpdateDialog(activity, serverVersion, serverUrl)
-                    }
+                if (isNewerVersion(serverVersion, currentVersion) &&
+                    isNewerVersion(serverVersion, getDownloadedVersion(activity))) {
+                    showUpdateDialog(activity, serverVersion, serverUrl)
                 } else if (showNoUpdateMessage) {
                     showMessage(activity, "Ya tenés la última versión ($currentVersion)")
                 }
@@ -88,25 +84,15 @@ object UpdateChecker {
         return false
     }
 
-    private fun shouldShowUpdatePrompt(context: Context, version: String): Boolean {
-        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val skippedVersion = prefs.getString(KEY_SKIPPED_VERSION, null)
-        val lastPromptTime = prefs.getLong(KEY_LAST_PROMPT_TIME, 0)
-        val now = System.currentTimeMillis()
-
-        // Si es la misma versión que se saltó y no pasó el cooldown, no mostrar
-        if (skippedVersion == version && (now - lastPromptTime) < PROMPT_COOLDOWN_MS) {
-            return false
-        }
-
-        return true
+    private fun getDownloadedVersion(context: Context): String {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString(KEY_DOWNLOADED_VERSION, "0.0.0") ?: "0.0.0"
     }
 
-    private fun saveSkippedVersion(context: Context, version: String) {
+    private fun saveDownloadedVersion(context: Context, version: String) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
-            .putString(KEY_SKIPPED_VERSION, version)
-            .putLong(KEY_LAST_PROMPT_TIME, System.currentTimeMillis())
+            .putString(KEY_DOWNLOADED_VERSION, version)
             .apply()
     }
 
@@ -115,12 +101,10 @@ object UpdateChecker {
             .setTitle("Actualización disponible")
             .setMessage("Hay una nueva versión disponible: v$version\n\n¿Descargar ahora?")
             .setPositiveButton("Descargar") { _, _ ->
-                saveSkippedVersion(activity, version) // Evitar que se muestre de nuevo al reiniciar
+                saveDownloadedVersion(activity, version)
                 downloadAndInstall(activity, url, version)
             }
-            .setNegativeButton("Más tarde") { _, _ ->
-                saveSkippedVersion(activity, version)
-            }
+            .setNegativeButton("Más tarde", null)
             .setCancelable(false)
             .show()
     }
