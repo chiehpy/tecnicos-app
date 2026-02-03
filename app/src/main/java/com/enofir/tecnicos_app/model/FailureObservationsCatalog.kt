@@ -6,6 +6,8 @@ object FailureObservationsCatalog {
 
     val OPTIONS: List<String> = listOf(
         NONE,
+        "Vinculada",
+        "Audio defectuoso",
         "Carcasa posterior rota",
         "Carcasa frontal rota",
         "Sin tapa de bateria",
