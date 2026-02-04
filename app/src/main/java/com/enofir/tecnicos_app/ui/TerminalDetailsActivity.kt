@@ -524,6 +524,26 @@ class TerminalDetailsActivity : BaseActivity() {
         val qaRejectCountRow = findViewById<View>(R.id.qaRejectCountRow)
         val tvQaRejectCountValue = findViewById<TextView>(R.id.tvQaRejectCountValue)
 
+        // Nuevos campos de técnicos
+        val finalDiagnosisRow = findViewById<View>(R.id.finalDiagnosisRow)
+        val tvFinalDiagnosisValue = findViewById<TextView>(R.id.tvFinalDiagnosisValue)
+        val receivedByRow = findViewById<View>(R.id.receivedByRow)
+        val tvReceivedByValue = findViewById<TextView>(R.id.tvReceivedByValue)
+        val pretestByRow = findViewById<View>(R.id.pretestByRow)
+        val tvPretestByValue = findViewById<TextView>(R.id.tvPretestByValue)
+        val cleanedByRow = findViewById<View>(R.id.cleanedByRow)
+        val tvCleanedByValue = findViewById<TextView>(R.id.tvCleanedByValue)
+        val repairTechnicianRow = findViewById<View>(R.id.repairTechnicianRow)
+        val tvRepairTechnicianValue = findViewById<TextView>(R.id.tvRepairTechnicianValue)
+        val programmedByRow = findViewById<View>(R.id.programmedByRow)
+        val tvProgrammedByValue = findViewById<TextView>(R.id.tvProgrammedByValue)
+        val batteryTestedByRow = findViewById<View>(R.id.batteryTestedByRow)
+        val tvBatteryTestedByValue = findViewById<TextView>(R.id.tvBatteryTestedByValue)
+        val qaPerformedByRow = findViewById<View>(R.id.qaPerformedByRow)
+        val tvQaPerformedByValue = findViewById<TextView>(R.id.tvQaPerformedByValue)
+        val dismantledByRow = findViewById<View>(R.id.dismantledByRow)
+        val tvDismantledByValue = findViewById<TextView>(R.id.tvDismantledByValue)
+
         val btnComplete = findViewById<Button>(R.id.btnComplete)
         val btnChangeState = findViewById<Button>(R.id.btnChangeState)
         val btnPrintLabel = findViewById<Button>(R.id.btnPrintLabel)
@@ -559,6 +579,17 @@ class TerminalDetailsActivity : BaseActivity() {
 
         qaRejectCountRow.visibility = View.GONE
         tvQaRejectCountValue.text = "-"
+
+        // Ocultar nuevos campos inicialmente
+        finalDiagnosisRow.visibility = View.GONE
+        receivedByRow.visibility = View.GONE
+        pretestByRow.visibility = View.GONE
+        cleanedByRow.visibility = View.GONE
+        repairTechnicianRow.visibility = View.GONE
+        programmedByRow.visibility = View.GONE
+        batteryTestedByRow.visibility = View.GONE
+        qaPerformedByRow.visibility = View.GONE
+        dismantledByRow.visibility = View.GONE
 
         btnChangeState.isEnabled = false
         btnChangeState.text = "Cambiar estado"
@@ -771,6 +802,44 @@ class TerminalDetailsActivity : BaseActivity() {
                     } else {
                         qaRejectCountRow.visibility = View.GONE
                         tvQaRejectCountValue.text = "-"
+                    }
+
+                    // Mostrar campos de técnicos si tienen valor
+                    cs?.finalDiagnosis?.trim()?.takeIf { present(it) }?.let {
+                        finalDiagnosisRow.visibility = View.VISIBLE
+                        tvFinalDiagnosisValue.text = it
+                    }
+                    cs?.receivedBy?.trim()?.takeIf { present(it) }?.let {
+                        receivedByRow.visibility = View.VISIBLE
+                        tvReceivedByValue.text = it
+                    }
+                    cs?.pretestReviewedBy?.trim()?.takeIf { present(it) }?.let {
+                        pretestByRow.visibility = View.VISIBLE
+                        tvPretestByValue.text = it
+                    }
+                    cs?.cleanedBy?.trim()?.takeIf { present(it) }?.let {
+                        cleanedByRow.visibility = View.VISIBLE
+                        tvCleanedByValue.text = it
+                    }
+                    cs?.repairTechnician?.trim()?.takeIf { present(it) }?.let {
+                        repairTechnicianRow.visibility = View.VISIBLE
+                        tvRepairTechnicianValue.text = it
+                    }
+                    cs?.programmedBy?.trim()?.takeIf { present(it) }?.let {
+                        programmedByRow.visibility = View.VISIBLE
+                        tvProgrammedByValue.text = it
+                    }
+                    cs?.batteryTestedBy?.trim()?.takeIf { present(it) }?.let {
+                        batteryTestedByRow.visibility = View.VISIBLE
+                        tvBatteryTestedByValue.text = it
+                    }
+                    cs?.qaPerformedBy?.trim()?.takeIf { present(it) }?.let {
+                        qaPerformedByRow.visibility = View.VISIBLE
+                        tvQaPerformedByValue.text = it
+                    }
+                    cs?.dismantledBy?.trim()?.takeIf { present(it) }?.let {
+                        dismantledByRow.visibility = View.VISIBLE
+                        tvDismantledByValue.text = it
                     }
 
                     csId = cs?.id

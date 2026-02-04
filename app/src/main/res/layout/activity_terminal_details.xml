@@ -1,50 +1,54 @@
 <!-- res/layout/activity_terminal_details.xml -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
+    <!-- Header con título y chip de estado -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Detalle de terminal"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/statusChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="DESCONECTADO" />
+
+    </LinearLayout>
+
+    <!-- Área scrolleable para datos del terminal -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:fillViewport="true">
 
         <LinearLayout
+            android:id="@+id/dataContainer"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="8dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <!-- SERIAL -->
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/title"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:text="Detalle de terminal"
-                    android:textSize="20sp" />
-
-                <TextView
-                    android:id="@+id/statusChip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="10dp"
-                    android:text="DESCONECTADO" />
-
-            </LinearLayout>
-
             <TextView
                 android:text="Número de serie"
                 android:textStyle="bold"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
@@ -55,7 +59,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <!-- IMEI (siempre visible) -->
+            <!-- IMEI -->
             <TextView
                 android:text="IMEI"
                 android:textStyle="bold"
@@ -123,7 +127,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <!-- FALLAS OBSERVADAS (solo lectura desde SF via MDW) -->
+            <!-- FALLAS OBSERVADAS -->
             <TextView
                 android:text="Fallas observadas"
                 android:textStyle="bold"
@@ -184,7 +188,214 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <!-- Selector de observaciones (solo Revisión inicial, input para COMPLETE) -->
+            <!-- DIAGNÓSTICO FINAL -->
+            <LinearLayout
+                android:id="@+id/finalDiagnosisRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Diagnóstico final"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvFinalDiagnosisValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- RECEPCIONADO POR -->
+            <LinearLayout
+                android:id="@+id/receivedByRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Recepcionado por"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvReceivedByValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- PRETEST POR -->
+            <LinearLayout
+                android:id="@+id/pretestByRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Pretest por"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvPretestByValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- LIMPIEZA POR -->
+            <LinearLayout
+                android:id="@+id/cleanedByRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Limpieza por"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvCleanedByValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- REPARACIÓN POR -->
+            <LinearLayout
+                android:id="@+id/repairTechnicianRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Reparación por"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvRepairTechnicianValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- PROGRAMACIÓN POR -->
+            <LinearLayout
+                android:id="@+id/programmedByRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Carga e inyección por"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvProgrammedByValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- TEST BATERÍA POR -->
+            <LinearLayout
+                android:id="@+id/batteryTestedByRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Test batería por"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvBatteryTestedByValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- QA POR -->
+            <LinearLayout
+                android:id="@+id/qaPerformedByRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="QA por"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvQaPerformedByValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- DESGUAZADO POR -->
+            <LinearLayout
+                android:id="@+id/dismantledByRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="Desguazado por"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvDismantledByValue"
+                    android:text="-"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- Selector de observaciones (solo Revisión inicial) -->
             <LinearLayout
                 android:id="@+id/failureObsContainer"
                 android:layout_width="match_parent"
@@ -232,36 +443,7 @@
                     android:text="Repuestos: (sin seleccionar)" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/btnComplete"
-                android:text="Finalizar proceso"
-                android:layout_marginTop="18dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <Button
-                android:id="@+id/btnChangeState"
-                android:text="Cambiar estado"
-                android:layout_marginTop="12dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <Button
-                android:id="@+id/btnPrintLabel"
-                android:text="IMPRIMIR ETIQUETA"
-                android:layout_marginTop="12dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
-
-            <Button
-                android:id="@+id/btnPrintConfig"
-                android:text="CONFIGURAR IMPRESION"
-                android:layout_marginTop="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
-
+            <!-- Resultado de operación -->
             <TextView
                 android:id="@+id/tvResult"
                 android:layout_marginTop="16dp"
@@ -269,19 +451,59 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/tvVersion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|left"
-                android:layout_margin="12dp"
-                android:alpha="0.6"
-                android:text="v1.0"
-                android:textColor="@color/gray_text_secondary"
-                android:textSize="10sp" />
-
         </LinearLayout>
 
     </ScrollView>
 
-</FrameLayout>
+    <!-- Botones fijos abajo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@android:color/white"
+        android:elevation="8dp">
+
+        <Button
+            android:id="@+id/btnComplete"
+            android:text="Finalizar proceso"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btnChangeState"
+            android:text="Cambiar estado"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btnPrintLabel"
+            android:text="IMPRIMIR ETIQUETA"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnPrintConfig"
+            android:text="CONFIGURAR IMPRESION"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvVersion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="8dp"
+            android:alpha="0.6"
+            android:text="v1.0"
+            android:textColor="@color/gray_text_secondary"
+            android:textSize="10sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

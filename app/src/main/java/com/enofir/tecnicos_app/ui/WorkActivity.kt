@@ -141,7 +141,11 @@ class WorkActivity : BaseActivity() {
                             detailsLauncher.launch(intent)
                         } else {
                             StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                            tvResult.text = body.message
+                            // Mensaje amigable para errores conocidos
+                            tvResult.text = when (body.errorCode) {
+                                "SF_NOT_FOUND" -> "La terminal no se encuentra cargada en Salesforce"
+                                else -> body.message
+                            }
                         }
                     }
 
