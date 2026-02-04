@@ -217,7 +217,7 @@ object ApiClient {
      * MODIFY (Recovery u otros cambios de estado):
      * - action="MODIFY", serial, targetStatus (req)
      * - targetSubstatus (opt)
-     * - technicianName (opt)
+     * - technicianName (opt, solo permitido cuando targetStatus="Pendiente de facturación")
      * - recoveredParts (opt, máx 500 chars)
      * - failureObservations (opt, si MDW lo usa en algún flujo)
      */
@@ -232,7 +232,13 @@ object ApiClient {
         val s = serial.trim()
         val ts = targetStatus.trim()
         val tss = targetSubstatus?.trim()?.takeIf { it.isNotEmpty() }
-        val tech = technicianName?.trim()?.takeIf { it.isNotEmpty() }
+
+        // technicianName solo se permite cuando targetStatus="Pendiente de facturación"
+        val tech = if (ts == "Pendiente de facturación") {
+            technicianName?.trim()?.takeIf { it.isNotEmpty() }
+        } else {
+            null
+        }
 
         val parts = recoveredParts
             ?.trim()

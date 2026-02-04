@@ -107,6 +107,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
     private var currentStatus: String? = null
     private var csId: String? = null
+    private var currentAccountName: String? = null
 
     private fun present(s: String?): Boolean =
         !s.isNullOrBlank() && s.trim() != "-" && s.trim().lowercase() != "null"
@@ -175,7 +176,7 @@ class TerminalDetailsActivity : BaseActivity() {
         }
 
         btnIrreparable?.let { btn ->
-            val canBeIrreparable = IrreparableChecker.isIrreparable(vals)
+            val canBeIrreparable = IrreparableChecker.isIrreparable(vals, currentAccountName)
             btn.isEnabled = canBeIrreparable
             btn.alpha = if (canBeIrreparable) 1.0f else 0.5f
         }
@@ -738,6 +739,9 @@ class TerminalDetailsActivity : BaseActivity() {
                     val modelRaw = asset?.productName?.trim().takeIf { present(it) } ?: "-"
                     tvModel.text = computeModelLabel(modelRaw, imei2)
 
+                    // Guardar accountName para IrreparableChecker
+                    currentAccountName = cs?.accountName?.trim()
+
                     // Mostrar botones de impresión solo para N910 en rol QA
                     if (isQa && modelRaw.contains("N910", ignoreCase = true)) {
                         btnPrintLabel.visibility = View.VISIBLE
@@ -1024,7 +1028,7 @@ class TerminalDetailsActivity : BaseActivity() {
                 })
             }
 
-            if (isRevisionInicial && IrreparableChecker.isIrreparable(observations)) {
+            if (isRevisionInicial && IrreparableChecker.isIrreparable(observations, currentAccountName)) {
                 AlertDialog.Builder(this)
                     .setTitle("Advertencia: Terminal potencialmente irreparable")
                     .setMessage(

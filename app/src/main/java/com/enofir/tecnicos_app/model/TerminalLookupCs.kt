@@ -4,6 +4,9 @@ import com.google.gson.annotations.SerializedName
 
 data class TerminalLookupCs(
 
+    @SerializedName("accountName")
+    val accountName: String? = null,
+
     @SerializedName("failureObservations")
     val failureObservations: String? = null,
 

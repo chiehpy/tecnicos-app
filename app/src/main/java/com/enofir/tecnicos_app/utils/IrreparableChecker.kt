@@ -3,46 +3,60 @@ package com.enofir.tecnicos_app.utils
 import java.text.Normalizer
 
 /**
- * Evalúa si un terminal es irreparable según las fallas encontradas.
+ * Evalúa si un terminal es irreparable según las fallas encontradas y el cliente.
  *
- * IRREPARABLE = TRUE si:
+ * Clientes normales (ej: N910):
  * - Condición A: Contiene "placa"
  * - O Condición B: (B1 AND B2)
  *   - B1 (frente): "display roto" O "carcasa frontal"
  *   - B2 (segunda falla): "impresora rota" O "camara frontal rota" O "camara trasera rota" O "carcasa posterior rota"
+ *
+ * Mercado Libre SA:
+ * - Condición A: Contiene "placa"
+ * - O Condición B1 sola: "display roto" O "carcasa frontal"
  */
 object IrreparableChecker {
+
+    private const val MERCADO_LIBRE = "Mercado Libre SA"
 
     /**
      * Evalúa si las fallas indican un terminal irreparable.
      * @param textoFallas El texto de fallas (puede ser separado por comas u otro delimitador)
+     * @param accountName El nombre de la cuenta/cliente
      * @return true si el terminal es irreparable según las reglas de negocio
      */
-    fun isIrreparable(textoFallas: String?): Boolean {
+    fun isIrreparable(textoFallas: String?, accountName: String? = null): Boolean {
         if (textoFallas.isNullOrBlank()) return false
 
         val normalized = normalize(textoFallas)
+        val isMercadoLibre = accountName?.trim().equals(MERCADO_LIBRE, ignoreCase = true)
 
-        // Condición A: contiene "placa"
+        // Condición A: contiene "placa" (aplica a todos)
         if (normalized.contains("placa")) {
             return true
         }
 
-        // Condición B: B1 AND B2
         val b1 = checkGrupoFrente(normalized)
-        val b2 = checkGrupoSegundaFalla(normalized)
 
+        // Para Mercado Libre SA: solo necesita B1 (display roto o carcasa frontal)
+        if (isMercadoLibre) {
+            return b1
+        }
+
+        // Para otros clientes: necesita B1 AND B2
+        val b2 = checkGrupoSegundaFalla(normalized)
         return b1 && b2
     }
 
     /**
      * Evalúa si una lista de fallas seleccionadas indica un terminal irreparable.
      * @param fallas Lista de strings de fallas seleccionadas
+     * @param accountName El nombre de la cuenta/cliente
      * @return true si el terminal es irreparable según las reglas de negocio
      */
-    fun isIrreparable(fallas: List<String>?): Boolean {
+    fun isIrreparable(fallas: List<String>?, accountName: String? = null): Boolean {
         if (fallas.isNullOrEmpty()) return false
-        return isIrreparable(fallas.joinToString(", "))
+        return isIrreparable(fallas.joinToString(", "), accountName)
     }
 
     /**
