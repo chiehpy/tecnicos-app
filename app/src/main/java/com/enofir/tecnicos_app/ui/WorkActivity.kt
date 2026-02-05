@@ -9,6 +9,7 @@ import androidx.appcompat.widget.PopupMenu
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.SessionManager
+import com.enofir.tecnicos_app.core.UpdateChecker
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.sdk.ScanActivity
 import com.enofir.tecnicos_app.utils.ChipState
@@ -181,7 +182,8 @@ class WorkActivity : BaseActivity() {
             popup.menu.add(Menu.NONE, 5, 4, "Imprimir Etiqueta")
         }
 
-        popup.menu.add(Menu.NONE, 4, 5, "Cerrar sesión")
+        popup.menu.add(Menu.NONE, 6, 5, "Buscar actualizaciones")
+        popup.menu.add(Menu.NONE, 4, 6, "Cerrar sesión")
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -200,6 +202,10 @@ class WorkActivity : BaseActivity() {
                 }
                 5 -> {
                     startActivity(Intent(this, PrintLabelActivity::class.java))
+                    true
+                }
+                6 -> {
+                    UpdateChecker.check(this, showNoUpdateMessage = true)
                     true
                 }
                 else -> false
