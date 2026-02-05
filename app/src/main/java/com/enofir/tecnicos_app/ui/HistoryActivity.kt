@@ -24,7 +24,7 @@ class HistoryActivity : BaseActivity() {
     private lateinit var btnViewTerminals: Button
     private lateinit var btnViewPrints: Button
 
-    private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+    private val timeFmt = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     private var currentView = VIEW_TERMINALS
 
@@ -71,14 +71,13 @@ class HistoryActivity : BaseActivity() {
     }
 
     private fun updateButtonStates() {
-        // Resaltar el botón activo
         btnViewTerminals.alpha = if (currentView == VIEW_TERMINALS) 1.0f else 0.5f
         btnViewPrints.alpha = if (currentView == VIEW_PRINTS) 1.0f else 0.5f
     }
 
     private fun showTerminalsHistory() {
         val today = HistoryStore.getToday(this)
-            .filter { it.action == "COMPLETE" && it.ok }
+            .filter { it.ok }
 
         tvTitle.text = "Terminales de hoy (${today.size})"
         renderTerminalRows(today)
@@ -91,12 +90,34 @@ class HistoryActivity : BaseActivity() {
         renderPrintRows(today)
     }
 
+    private fun getActionDisplay(entry: HistoryEntry): String {
+        return when (entry.action) {
+            "COMPLETE" -> {
+                when {
+                    entry.role.contains("QA", ignoreCase = true) -> "QA Aprobado"
+                    entry.role.contains("Recovery", ignoreCase = true) -> "Recovery OK"
+                    entry.role.contains("Revisión", ignoreCase = true) ||
+                    entry.role.contains("Revision", ignoreCase = true) -> "Rev.Inicial OK"
+                    else -> "Completado"
+                }
+            }
+            "REJECT" -> {
+                val details = entry.message?.let { " ($it)" } ?: ""
+                "Rechazado$details"
+            }
+            "MODIFY" -> {
+                entry.message ?: "Estado cambiado"
+            }
+            else -> entry.action
+        }
+    }
+
     private fun renderTerminalRows(items: List<HistoryEntry>) {
         container.removeAllViews()
 
         if (items.isEmpty()) {
             val empty = TextView(this).apply {
-                text = "Todavía no hay terminales finalizadas hoy."
+                text = "Todavia no hay terminales procesadas hoy."
                 textSize = 14f
             }
             container.addView(empty)
@@ -105,16 +126,17 @@ class HistoryActivity : BaseActivity() {
 
         // Encabezado
         val header = layoutInflater.inflate(R.layout.row_history, container, false)
+        header.findViewById<TextView>(R.id.tvSerial).apply {
+            text = "SN"
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            background = null
+        }
+        header.findViewById<TextView>(R.id.tvAction).apply {
+            text = "Accion"
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+        }
         header.findViewById<TextView>(R.id.tvTime).apply {
             text = "Hora"
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-        }
-        header.findViewById<TextView>(R.id.tvSerial).apply {
-            text = "Serial"
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-        }
-        header.findViewById<TextView>(R.id.tvRole).apply {
-            text = "Rol"
             setTypeface(typeface, android.graphics.Typeface.BOLD)
         }
         container.addView(header)
@@ -122,9 +144,13 @@ class HistoryActivity : BaseActivity() {
         // Filas
         items.forEach { e ->
             val row = layoutInflater.inflate(R.layout.row_history, container, false)
+            row.findViewById<TextView>(R.id.tvSerial).apply {
+                text = e.serial
+                setOnClickListener { copyToClipboard(e.serial) }
+            }
+            row.findViewById<TextView>(R.id.tvAction).text = getActionDisplay(e)
             row.findViewById<TextView>(R.id.tvTime).text = timeFmt.format(Date(e.ts))
-            row.findViewById<TextView>(R.id.tvSerial).text = e.serial
-            row.findViewById<TextView>(R.id.tvRole).text = e.role
+
             container.addView(row)
         }
     }
@@ -134,7 +160,7 @@ class HistoryActivity : BaseActivity() {
 
         if (items.isEmpty()) {
             val empty = TextView(this).apply {
-                text = "Todavía no hay impresiones de hoy."
+                text = "Todavia no hay impresiones de hoy."
                 textSize = 14f
             }
             container.addView(empty)

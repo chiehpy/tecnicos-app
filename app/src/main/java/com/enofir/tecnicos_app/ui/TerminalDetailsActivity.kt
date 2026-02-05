@@ -480,6 +480,28 @@ class TerminalDetailsActivity : BaseActivity() {
                     tvStatusValue.text = newStatus
                     currentStatus = newStatus
 
+                    // Guardar en historial
+                    val actionDesc = buildString {
+                        append("→ $newStatus")
+                        if (!failureObservations.isNullOrEmpty()) {
+                            append(" (${failureObservations.joinToString(", ")})")
+                        }
+                        if (!recoveredParts.isNullOrBlank()) {
+                            append(" [${recoveredParts}]")
+                        }
+                    }
+                    HistoryStore.add(
+                        this@TerminalDetailsActivity,
+                        HistoryEntry(
+                            ts = System.currentTimeMillis(),
+                            serial = serial,
+                            role = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty(),
+                            action = "MODIFY",
+                            ok = true,
+                            message = actionDesc
+                        )
+                    )
+
                     if (finishOnSuccess) {
                         setResult(Activity.RESULT_OK)
                         finish()
