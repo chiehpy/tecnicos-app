@@ -13,6 +13,7 @@ import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.HistoryStore
 import com.enofir.tecnicos_app.core.PrintHistoryStore
 import com.enofir.tecnicos_app.model.HistoryEntry
+import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -91,31 +92,37 @@ class HistoryActivity : BaseActivity() {
     }
 
     private fun getActionDisplay(entry: HistoryEntry): String {
-        return when (entry.action) {
+        Log.d("HistoryDebug", "Entry: action=${entry.action}, role=${entry.role}, message=${entry.message}, serial=${entry.serial}")
+
+        val result = when (entry.action) {
             "COMPLETE" -> {
                 when {
-                    entry.role.contains("QA", ignoreCase = true) -> "QA OK"
-                    entry.role.contains("Recovery", ignoreCase = true) -> "Recovery"
+                    entry.role.contains("QA", ignoreCase = true) -> "QA Aprobado"
+                    entry.role.contains("Recovery", ignoreCase = true) -> "Recovery OK"
                     entry.role.contains("Revisión", ignoreCase = true) ||
-                    entry.role.contains("Revision", ignoreCase = true) -> "Rev.Inicial"
-                    else -> "OK"
+                    entry.role.contains("Revision", ignoreCase = true) -> "Rev. Inicial OK"
+                    else -> "Completado"
                 }
             }
             "REJECT" -> "Rechazado"
             "MODIFY" -> {
-                val status = entry.message?.replace("→ ", "")?.substringBefore(" (")?.substringBefore(" [") ?: "Cambiado"
-                // Acortar nombres largos
+                val status = entry.message?.replace("→ ", "")?.substringBefore(" (")?.substringBefore(" [") ?: "Modificado"
                 when {
-                    status.contains("Pendiente de facturación", ignoreCase = true) -> "Pend.Fact."
-                    status.contains("Reparación Técnica", ignoreCase = true) -> "Rep.Técnica"
+                    status.contains("Pendiente de facturación", ignoreCase = true) -> "Pend. Fact."
+                    status.contains("Reparación Técnica", ignoreCase = true) -> "Rep. Técnica"
+                    status.contains("Irreparable", ignoreCase = true) -> "Irreparable"
                     else -> status
                 }
             }
             else -> entry.action
         }
+
+        Log.d("HistoryDebug", "Result for ${entry.serial}: $result")
+        return result
     }
 
     private fun formatDuration(startTs: Long, endTs: Long): String {
+        Log.d("HistoryDebug", "formatDuration: startTs=$startTs, endTs=$endTs")
         if (startTs <= 0) return "-"
         val diffMs = endTs - startTs
         if (diffMs < 0) return "-"
@@ -171,8 +178,11 @@ class HistoryActivity : BaseActivity() {
                 text = e.serial
                 setOnClickListener { copyToClipboard(e.serial) }
             }
-            row.findViewById<TextView>(R.id.tvAction).text = getActionDisplay(e)
-            row.findViewById<TextView>(R.id.tvDuration).text = formatDuration(e.startTs, e.ts)
+            val actionText = getActionDisplay(e)
+            val durationText = formatDuration(e.startTs, e.ts)
+            Log.d("HistoryDebug", "Setting row: serial=${e.serial}, action=$actionText, duration=$durationText")
+            row.findViewById<TextView>(R.id.tvAction).text = actionText
+            row.findViewById<TextView>(R.id.tvDuration).text = durationText
             row.findViewById<TextView>(R.id.tvTime).text = timeFmt.format(Date(e.ts))
 
             container.addView(row)

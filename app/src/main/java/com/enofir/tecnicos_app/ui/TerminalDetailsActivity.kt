@@ -531,6 +531,7 @@ class TerminalDetailsActivity : BaseActivity() {
         setContentView(R.layout.activity_terminal_details)
 
         startTimestamp = System.currentTimeMillis()
+        android.util.Log.d("HistoryDebug", "onCreate: startTimestamp=$startTimestamp")
 
         val chip = findViewById<TextView>(R.id.statusChip)
         val tvSerial = findViewById<TextView>(R.id.tvSerialValue)
@@ -1095,10 +1096,12 @@ class TerminalDetailsActivity : BaseActivity() {
                             StatusChip.apply(chip, ChipState.OK, "OK")
                             tvResult.text = "Datos enviados correctamente. ${body.message}"
 
+                            val endTs = System.currentTimeMillis()
+                            android.util.Log.d("HistoryDebug", "Saving COMPLETE: startTimestamp=$startTimestamp, endTs=$endTs")
                             HistoryStore.add(
                                 this@TerminalDetailsActivity,
                                 HistoryEntry(
-                                    ts = System.currentTimeMillis(),
+                                    ts = endTs,
                                     serial = serial,
                                     role = role,
                                     action = "COMPLETE",

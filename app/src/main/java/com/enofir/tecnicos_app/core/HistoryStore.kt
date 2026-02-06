@@ -24,6 +24,7 @@ object HistoryStore {
             put("action", entry.action)
             put("ok", entry.ok)
             put("message", entry.message)
+            put("startTs", entry.startTs)
         }
 
         array.put(obj)
@@ -47,7 +48,8 @@ object HistoryStore {
                     role = o.getString("role"),
                     action = o.getString("action"),
                     ok = o.getBoolean("ok"),
-                    message = o.optString("message")
+                    message = o.optString("message"),
+                    startTs = o.optLong("startTs", 0)
                 )
             )
         }
