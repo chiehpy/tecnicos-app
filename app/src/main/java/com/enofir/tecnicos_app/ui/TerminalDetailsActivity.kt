@@ -108,6 +108,7 @@ class TerminalDetailsActivity : BaseActivity() {
     private var currentStatus: String? = null
     private var csId: String? = null
     private var currentAccountName: String? = null
+    private var startTimestamp: Long = 0
 
     private fun present(s: String?): Boolean =
         !s.isNullOrBlank() && s.trim() != "-" && s.trim().lowercase() != "null"
@@ -498,7 +499,8 @@ class TerminalDetailsActivity : BaseActivity() {
                             role = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty(),
                             action = "MODIFY",
                             ok = true,
-                            message = actionDesc
+                            message = actionDesc,
+                            startTs = startTimestamp
                         )
                     )
 
@@ -527,6 +529,8 @@ class TerminalDetailsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_terminal_details)
+
+        startTimestamp = System.currentTimeMillis()
 
         val chip = findViewById<TextView>(R.id.statusChip)
         val tvSerial = findViewById<TextView>(R.id.tvSerialValue)
@@ -967,7 +971,8 @@ class TerminalDetailsActivity : BaseActivity() {
                                                                 if (resolvedSubstatus != null) append(" | Sub: $resolvedSubstatus")
                                                                 if (!resolvedFailures.isNullOrEmpty()) append(" | Fallas: ${resolvedFailures.joinToString(", ")}")
                                                                 if (qaObsForUi != null) append(" | ObsQA: $qaObsForUi")
-                                                            }
+                                                            },
+                                                            startTs = startTimestamp
                                                         )
                                                     )
                                                     setResult(Activity.RESULT_OK)
@@ -1098,7 +1103,8 @@ class TerminalDetailsActivity : BaseActivity() {
                                     role = role,
                                     action = "COMPLETE",
                                     ok = true,
-                                    message = body.message
+                                    message = body.message,
+                                    startTs = startTimestamp
                                 )
                             )
 

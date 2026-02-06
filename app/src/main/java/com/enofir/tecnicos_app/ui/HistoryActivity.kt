@@ -94,21 +94,40 @@ class HistoryActivity : BaseActivity() {
         return when (entry.action) {
             "COMPLETE" -> {
                 when {
-                    entry.role.contains("QA", ignoreCase = true) -> "QA Aprobado"
-                    entry.role.contains("Recovery", ignoreCase = true) -> "Recovery OK"
+                    entry.role.contains("QA", ignoreCase = true) -> "QA OK"
+                    entry.role.contains("Recovery", ignoreCase = true) -> "Recovery"
                     entry.role.contains("Revisión", ignoreCase = true) ||
-                    entry.role.contains("Revision", ignoreCase = true) -> "Rev.Inicial OK"
-                    else -> "Completado"
+                    entry.role.contains("Revision", ignoreCase = true) -> "Rev.Inicial"
+                    else -> "OK"
                 }
             }
-            "REJECT" -> {
-                val details = entry.message?.let { " ($it)" } ?: ""
-                "Rechazado$details"
-            }
+            "REJECT" -> "Rechazado"
             "MODIFY" -> {
-                entry.message ?: "Estado cambiado"
+                val status = entry.message?.replace("→ ", "")?.substringBefore(" (")?.substringBefore(" [") ?: "Cambiado"
+                // Acortar nombres largos
+                when {
+                    status.contains("Pendiente de facturación", ignoreCase = true) -> "Pend.Fact."
+                    status.contains("Reparación Técnica", ignoreCase = true) -> "Rep.Técnica"
+                    else -> status
+                }
             }
             else -> entry.action
+        }
+    }
+
+    private fun formatDuration(startTs: Long, endTs: Long): String {
+        if (startTs <= 0) return "-"
+        val diffMs = endTs - startTs
+        if (diffMs < 0) return "-"
+
+        val totalSeconds = diffMs / 1000
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+
+        return if (minutes > 0) {
+            "${minutes}m ${seconds}s"
+        } else {
+            "${seconds}s"
         }
     }
 
@@ -135,6 +154,10 @@ class HistoryActivity : BaseActivity() {
             text = "Accion"
             setTypeface(typeface, android.graphics.Typeface.BOLD)
         }
+        header.findViewById<TextView>(R.id.tvDuration).apply {
+            text = "Dur."
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+        }
         header.findViewById<TextView>(R.id.tvTime).apply {
             text = "Hora"
             setTypeface(typeface, android.graphics.Typeface.BOLD)
@@ -149,6 +172,7 @@ class HistoryActivity : BaseActivity() {
                 setOnClickListener { copyToClipboard(e.serial) }
             }
             row.findViewById<TextView>(R.id.tvAction).text = getActionDisplay(e)
+            row.findViewById<TextView>(R.id.tvDuration).text = formatDuration(e.startTs, e.ts)
             row.findViewById<TextView>(R.id.tvTime).text = timeFmt.format(Date(e.ts))
 
             container.addView(row)

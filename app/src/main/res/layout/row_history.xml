@@ -10,9 +10,9 @@
         android:id="@+id/tvSerial"
         android:text="N..."
         android:layout_width="0dp"
-        android:layout_weight="2"
+        android:layout_weight="2.5"
         android:layout_height="wrap_content"
-        android:textSize="13sp"
+        android:textSize="12sp"
         android:background="?attr/selectableItemBackground"
         android:padding="4dp" />
 
@@ -20,11 +20,21 @@
         android:id="@+id/tvAction"
         android:text="Accion"
         android:layout_width="0dp"
-        android:layout_weight="3"
+        android:layout_weight="2.5"
+        android:layout_height="wrap_content"
+        android:textSize="11sp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:hyphenationFrequency="none" />
+
+    <TextView
+        android:id="@+id/tvDuration"
+        android:text="--:--"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="wrap_content"
         android:textSize="12sp"
-        android:ellipsize="end"
-        android:maxLines="2" />
+        android:gravity="center" />
 
     <TextView
         android:id="@+id/tvTime"
@@ -32,6 +42,6 @@
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:textSize="13sp"
+        android:textSize="12sp"
         android:gravity="end" />
 </LinearLayout>
