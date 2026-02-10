@@ -1040,14 +1040,10 @@ class TerminalDetailsActivity : BaseActivity() {
             // Recovery (Camino A): MODIFY + recoveredParts + technicianName (OBLIGATORIO)
             if (isRecovery) {
                 val selectedParts = getSelectedRecoveredParts()
-                if (selectedParts.isEmpty()) {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    tvResult.text = "Seleccioná al menos un repuesto recuperado."
-                    return@setOnClickListener
-                }
-
-                val recoveredPartsStr = selectedParts.joinToString("; ").let {
-                    if (it.length > 500) it.take(500) else it
+                val recoveredPartsStr = if (selectedParts.isEmpty()) "" else {
+                    selectedParts.joinToString("; ").let {
+                        if (it.length > 500) it.take(500) else it
+                    }
                 }
 
                 executeChangeStatus(

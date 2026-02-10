@@ -38,6 +38,8 @@ object FailureObservationsCatalog {
         "Lectora chip IC dañada",
         "No comunica",
         "No bootea",
-        "Tamper"
+        "Tamper",
+        "Falla lector magnetico",
+        "Falla lector NFC"
     )
 }
