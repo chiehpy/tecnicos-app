@@ -54,12 +54,14 @@ class TerminalDetailsActivity : BaseActivity() {
     private val failureOptions: List<String> = FailureObservationsCatalog.OPTIONS
     private val failureSelected: BooleanArray = BooleanArray(failureOptions.size) { false }
 
-    // Catálogo QA (definitivo)
-    private val qaOptions: List<String> = listOf(
+    // Catálogo QA — separado por categoría
+    private val qaOptionsLimpieza: List<String> = listOf(
         "Falta de limpieza: Carcasa posterior",
         "Falta de limpieza: Carcasa frontal",
         "Falta de limpieza: Tapa de bateria",
-        "Falta de limpieza: Tapa de impresora",
+        "Falta de limpieza: Tapa de impresora"
+    )
+    private val qaOptionsReparacion: List<String> = listOf(
         "Daño estetico: Carcasa posterior",
         "Daño estetico: Carcasa frontal",
         "Daño estetico: Dientes Impresora",
@@ -73,10 +75,17 @@ class TerminalDetailsActivity : BaseActivity() {
         "Tamper",
         "Camara trasera",
         "Camara frontal",
-        "Sin audio"
+        "Sin audio",
+        "Vinculada",
+        "Film dañado",
+        "Faltan Apps",
+        "Faltan llaves",
+        "Display defectuoso",
+        "Falla de hardware",
+        "Falla placa principal",
+        "Pin de carga defectuoso",
+        "Lente trasero de camara"
     )
-
-    private val qaSelected: BooleanArray = BooleanArray(qaOptions.size) { false }
 
     // Catálogo de repuestos recuperados (Recovery)
     private val recoveredPartsOptions: List<String> = listOf(
@@ -339,23 +348,37 @@ class TerminalDetailsActivity : BaseActivity() {
     }
 
     private fun showQaRejectDialog(onConfirm: (qaObsStringForMdw: String, qaObsStringForUi: String) -> Unit) {
-        for (i in qaSelected.indices) qaSelected[i] = false
+        // Paso 1: elegir categoría
+        AlertDialog.Builder(this)
+            .setTitle("Categoría de rechazo")
+            .setItems(arrayOf<CharSequence>("Limpieza", "Reparación")) { _, which ->
+                val filteredOptions = if (which == 0) qaOptionsLimpieza else qaOptionsReparacion
+                showQaObservationsDialog(filteredOptions, onConfirm)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
 
-        val items: Array<CharSequence> = qaOptions.toTypedArray()
+    private fun showQaObservationsDialog(
+        options: List<String>,
+        onConfirm: (qaObsStringForMdw: String, qaObsStringForUi: String) -> Unit
+    ) {
+        val selected = BooleanArray(options.size) { false }
+        val items: Array<CharSequence> = options.toTypedArray()
 
         val dialog = AlertDialog.Builder(this)
             .setTitle("Observaciones QA (obligatorio)")
-            .setMultiChoiceItems(items, qaSelected) { dialogInterface: DialogInterface, which: Int, checked: Boolean ->
-                qaSelected[which] = checked
+            .setMultiChoiceItems(items, selected) { dialogInterface: DialogInterface, which: Int, checked: Boolean ->
+                selected[which] = checked
                 val alert = dialogInterface as? AlertDialog
-                if (alert != null) setDialogChecksFromModel(alert, qaSelected)
+                if (alert != null) setDialogChecksFromModel(alert, selected)
             }
             .setPositiveButton("Continuar") { d, _ ->
                 d.dismiss()
 
                 val selectedVals = mutableListOf<String>()
-                for (i in qaSelected.indices) {
-                    if (qaSelected[i]) selectedVals.add(qaOptions[i])
+                for (i in selected.indices) {
+                    if (selected[i]) selectedVals.add(options[i])
                 }
 
                 if (selectedVals.isEmpty()) {
@@ -375,7 +398,7 @@ class TerminalDetailsActivity : BaseActivity() {
             .create()
 
         dialog.show()
-        setDialogChecksFromModel(dialog, qaSelected)
+        setDialogChecksFromModel(dialog, selected)
     }
 
     private fun executeRejectQa(
@@ -919,7 +942,7 @@ class TerminalDetailsActivity : BaseActivity() {
                     .setNegativeButton("Cancelar", null)
                     .show()
             } else {
-                val statusOptions = StatusCatalog.OPTIONS.filter { it != fromStatus }
+                val statusOptions = StatusCatalog.OPTIONS
                 if (statusOptions.isEmpty()) {
                     tvResult.text = "No hay estados disponibles para cambiar."
                     return@setOnClickListener
