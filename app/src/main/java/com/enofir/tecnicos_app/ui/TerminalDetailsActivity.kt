@@ -56,10 +56,6 @@ class TerminalDetailsActivity : BaseActivity() {
 
     // Catálogo QA (definitivo)
     private val qaOptions: List<String> = listOf(
-        "Falta de limpieza: Carcasa posterior",
-        "Falta de limpieza: Carcasa frontal",
-        "Falta de limpieza: Tapa de bateria",
-        "Falta de limpieza: Tapa de impresora",
         "Daño estetico: Carcasa posterior",
         "Daño estetico: Carcasa frontal",
         "Daño estetico: Dientes Impresora",
@@ -73,7 +69,16 @@ class TerminalDetailsActivity : BaseActivity() {
         "Tamper",
         "Camara trasera",
         "Camara frontal",
-        "Sin audio"
+        "Sin audio",
+        "Vinculada",
+        "Film dañado",
+        "Faltan Apps",
+        "Faltan llaves",
+        "Display defectuoso",
+        "Falla de hardware",
+        "Falla placa principal",
+        "Pin de carga defectuoso",
+        "Lente trasero de camara"
     )
 
     private val qaSelected: BooleanArray = BooleanArray(qaOptions.size) { false }
