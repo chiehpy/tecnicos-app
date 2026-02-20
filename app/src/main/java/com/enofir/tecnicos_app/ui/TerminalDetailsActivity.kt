@@ -56,6 +56,10 @@ class TerminalDetailsActivity : BaseActivity() {
 
     // Catálogo QA (definitivo)
     private val qaOptions: List<String> = listOf(
+        "Falta de limpieza: Carcasa posterior",
+        "Falta de limpieza: Carcasa frontal",
+        "Falta de limpieza: Tapa de bateria",
+        "Falta de limpieza: Tapa de impresora",
         "Daño estetico: Carcasa posterior",
         "Daño estetico: Carcasa frontal",
         "Daño estetico: Dientes Impresora",
