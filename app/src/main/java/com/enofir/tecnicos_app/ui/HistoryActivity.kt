@@ -28,6 +28,7 @@ class HistoryActivity : BaseActivity() {
     private val timeFmt = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     private var currentView = VIEW_TERMINALS
+    private val groupCollapsed = mutableMapOf<String, Boolean>()
 
     companion object {
         private const val VIEW_TERMINALS = 0
@@ -104,7 +105,7 @@ class HistoryActivity : BaseActivity() {
                     else -> "Completado"
                 }
             }
-            "REJECT" -> "Rechazado"
+            "REJECT" -> entry.message?.substringBefore(" |") ?: "Rechazada"
             "MODIFY" -> {
                 val status = entry.message?.replace("→ ", "")?.substringBefore(" (")?.substringBefore(" [") ?: "Modificado"
                 when {
@@ -150,7 +151,7 @@ class HistoryActivity : BaseActivity() {
             return
         }
 
-        // Encabezado
+        // Encabezado de columnas
         val header = layoutInflater.inflate(R.layout.row_history, container, false)
         header.findViewById<TextView>(R.id.tvSerial).apply {
             text = "SN"
@@ -171,21 +172,52 @@ class HistoryActivity : BaseActivity() {
         }
         container.addView(header)
 
-        // Filas
-        items.forEach { e ->
-            val row = layoutInflater.inflate(R.layout.row_history, container, false)
-            row.findViewById<TextView>(R.id.tvSerial).apply {
-                text = e.serial
-                setOnClickListener { copyToClipboard(e.serial) }
-            }
-            val actionText = getActionDisplay(e)
-            val durationText = formatDuration(e.startTs, e.ts)
-            Log.d("HistoryDebug", "Setting row: serial=${e.serial}, action=$actionText, duration=$durationText")
-            row.findViewById<TextView>(R.id.tvAction).text = actionText
-            row.findViewById<TextView>(R.id.tvDuration).text = durationText
-            row.findViewById<TextView>(R.id.tvTime).text = timeFmt.format(Date(e.ts))
+        // Agrupar por rol
+        val grouped = items.groupBy { it.role }
 
-            container.addView(row)
+        grouped.forEach { (role, entries) ->
+            if (!groupCollapsed.containsKey(role)) groupCollapsed[role] = false
+            val isCollapsed = groupCollapsed[role] == true
+
+            // Encabezado del grupo
+            val groupHeader = layoutInflater.inflate(R.layout.row_history_group_header, container, false)
+            val tvArrow = groupHeader.findViewById<TextView>(R.id.tvGroupArrow)
+            val tvRole = groupHeader.findViewById<TextView>(R.id.tvGroupRole)
+            val tvCount = groupHeader.findViewById<TextView>(R.id.tvGroupCount)
+            tvRole.text = role
+            tvCount.text = "(${entries.size})"
+            tvArrow.text = if (isCollapsed) "▶" else "▼"
+
+            // Contenedor de filas del grupo
+            val rowsContainer = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                visibility = if (isCollapsed) android.view.View.GONE else android.view.View.VISIBLE
+            }
+
+            entries.forEach { e ->
+                val row = layoutInflater.inflate(R.layout.row_history, container, false)
+                row.findViewById<TextView>(R.id.tvSerial).apply {
+                    text = e.serial
+                    setOnClickListener { copyToClipboard(e.serial) }
+                }
+                val actionText = getActionDisplay(e)
+                val durationText = formatDuration(e.startTs, e.ts)
+                Log.d("HistoryDebug", "Setting row: serial=${e.serial}, action=$actionText, duration=$durationText")
+                row.findViewById<TextView>(R.id.tvAction).text = actionText
+                row.findViewById<TextView>(R.id.tvDuration).text = durationText
+                row.findViewById<TextView>(R.id.tvTime).text = timeFmt.format(Date(e.ts))
+                rowsContainer.addView(row)
+            }
+
+            groupHeader.setOnClickListener {
+                val collapsed = groupCollapsed[role] == true
+                groupCollapsed[role] = !collapsed
+                tvArrow.text = if (!collapsed) "▶" else "▼"
+                rowsContainer.visibility = if (!collapsed) android.view.View.GONE else android.view.View.VISIBLE
+            }
+
+            container.addView(groupHeader)
+            container.addView(rowsContainer)
         }
     }
 

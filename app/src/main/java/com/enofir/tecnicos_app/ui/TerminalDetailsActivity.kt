@@ -82,7 +82,17 @@ class TerminalDetailsActivity : BaseActivity() {
         "Falla de hardware",
         "Falla placa principal",
         "Pin de carga defectuoso",
-        "Lente trasero de camara"
+        "Lente trasero de camara",
+        "No enciende",
+        "Imprime claro",
+        "Imprime corrido",
+        "No imprime",
+        "Fuga de luz",
+        "Lectora de chip no funciona",
+        "Lectora de chip bloqueada",
+        "Lectora magnetica no funciona",
+        "No bootea",
+        "No toma señal GPRS"
     )
 
     private val qaSelected: BooleanArray = BooleanArray(qaOptions.size) { false }
@@ -448,6 +458,7 @@ class TerminalDetailsActivity : BaseActivity() {
         failureObservations: List<String>? = null,
         recoveredParts: String? = null,
         technicianNameRequired: Boolean = false,
+        saveHistory: Boolean = true,
         onOk: (() -> Unit)? = null
     ) {
         btnChangeState.isEnabled = false
@@ -500,18 +511,20 @@ class TerminalDetailsActivity : BaseActivity() {
                             append(" [${recoveredParts}]")
                         }
                     }
-                    HistoryStore.add(
-                        this@TerminalDetailsActivity,
-                        HistoryEntry(
-                            ts = System.currentTimeMillis(),
-                            serial = serial,
-                            role = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty(),
-                            action = "MODIFY",
-                            ok = true,
-                            message = actionDesc,
-                            startTs = startTimestamp
+                    if (saveHistory) {
+                        HistoryStore.add(
+                            this@TerminalDetailsActivity,
+                            HistoryEntry(
+                                ts = System.currentTimeMillis(),
+                                serial = serial,
+                                role = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty(),
+                                action = "MODIFY",
+                                ok = true,
+                                message = actionDesc,
+                                startTs = startTimestamp
+                            )
                         )
-                    )
+                    }
 
                     if (finishOnSuccess) {
                         setResult(Activity.RESULT_OK)
@@ -928,7 +941,7 @@ class TerminalDetailsActivity : BaseActivity() {
                     .setNegativeButton("Cancelar", null)
                     .show()
             } else {
-                val statusOptions = StatusCatalog.OPTIONS.filter { it != fromStatus }
+                val statusOptions = StatusCatalog.OPTIONS
                 if (statusOptions.isEmpty()) {
                     tvResult.text = "No hay estados disponibles para cambiar."
                     return@setOnClickListener
@@ -959,6 +972,7 @@ class TerminalDetailsActivity : BaseActivity() {
                                     finishOnSuccess = false,
                                     substatus = resolvedSubstatus,
                                     failureObservations = resolvedFailures,
+                                    saveHistory = false,
                                     onOk = {
                                         if (isQa && qaObsForMdw != null) {
                                             executeRejectQa(
@@ -968,6 +982,14 @@ class TerminalDetailsActivity : BaseActivity() {
                                                 tvResult = tvResult,
                                                 btnChangeState = btnChangeState,
                                                 onSuccess = {
+                                                    val destAbrev = when (newStatus) {
+                                                        StatusCatalog.REVISION_INICIAL -> "R.I."
+                                                        StatusCatalog.REPARACION_TECNICA -> "Rep."
+                                                        StatusCatalog.LIMPIEZA -> "Lim."
+                                                        StatusCatalog.TESTEO -> "Testeo"
+                                                        StatusCatalog.IRREPARABLE -> "Irrep."
+                                                        else -> newStatus
+                                                    }
                                                     HistoryStore.add(
                                                         this@TerminalDetailsActivity,
                                                         HistoryEntry(
@@ -977,7 +999,7 @@ class TerminalDetailsActivity : BaseActivity() {
                                                             action = "REJECT",
                                                             ok = true,
                                                             message = buildString {
-                                                                append("Estado: $newStatus")
+                                                                append("Rechazada: $destAbrev")
                                                                 if (resolvedSubstatus != null) append(" | Sub: $resolvedSubstatus")
                                                                 if (!resolvedFailures.isNullOrEmpty()) append(" | Fallas: ${resolvedFailures.joinToString(", ")}")
                                                                 if (qaObsForUi != null) append(" | ObsQA: $qaObsForUi")
