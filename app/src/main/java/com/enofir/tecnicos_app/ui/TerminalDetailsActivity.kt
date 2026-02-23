@@ -972,7 +972,7 @@ class TerminalDetailsActivity : BaseActivity() {
                                     finishOnSuccess = false,
                                     substatus = resolvedSubstatus,
                                     failureObservations = resolvedFailures,
-                                    saveHistory = false,
+                                    saveHistory = !isQa,
                                     onOk = {
                                         if (isQa && qaObsForMdw != null) {
                                             executeRejectQa(
