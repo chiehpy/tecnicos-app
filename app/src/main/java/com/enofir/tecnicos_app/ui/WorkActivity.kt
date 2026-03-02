@@ -8,8 +8,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
+import com.enofir.tecnicos_app.core.CatalogsStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.UpdateChecker
+import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.sdk.ScanActivity
 import com.enofir.tecnicos_app.utils.ChipState
@@ -57,6 +59,17 @@ class WorkActivity : BaseActivity() {
             goToLogin()
             return
         }
+
+        // Cargar catálogos desde el MDW en background (silencioso si falla)
+        CatalogsStore.init(this)
+        ApiClient.fetchCatalogs().enqueue(object : Callback<CatalogsResponse> {
+            override fun onResponse(call: Call<CatalogsResponse>, response: Response<CatalogsResponse>) {
+                if (response.isSuccessful) {
+                    response.body()?.let { CatalogsStore.save(it, this@WorkActivity) }
+                }
+            }
+            override fun onFailure(call: Call<CatalogsResponse>, t: Throwable) { /* usa caché o defaults */ }
+        })
 
         setContentView(R.layout.activity_work)
 

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import com.enofir.tecnicos_app.model.AppVersionResponse
+import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
@@ -336,6 +337,10 @@ object ApiClient {
      */
     fun getAppVersion(): Call<AppVersionResponse> {
         return api().getAppVersion()
+    }
+
+    fun fetchCatalogs(): Call<CatalogsResponse> {
+        return api().getCatalogs()
     }
 
     /**

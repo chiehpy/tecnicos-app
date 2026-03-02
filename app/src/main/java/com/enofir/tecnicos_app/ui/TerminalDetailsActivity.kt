@@ -17,6 +17,7 @@ import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.HistoryStore
 import com.enofir.tecnicos_app.core.PrintConfigStore
 import com.enofir.tecnicos_app.core.SessionManager
+import com.enofir.tecnicos_app.core.CatalogsStore
 import com.enofir.tecnicos_app.model.FailureObservationsCatalog
 import com.enofir.tecnicos_app.model.HistoryEntry
 import com.enofir.tecnicos_app.model.PrintLabelResponse
@@ -54,70 +55,15 @@ class TerminalDetailsActivity : BaseActivity() {
     }
 
     // Failure observations (Revisión inicial)
-    private val failureOptions: List<String> = FailureObservationsCatalog.OPTIONS
-    private val failureSelected: BooleanArray = BooleanArray(failureOptions.size) { false }
+    private val failureOptions: List<String> get() = FailureObservationsCatalog.OPTIONS
+    private val failureSelected: BooleanArray by lazy { BooleanArray(CatalogsStore.failureObservations.size) { false } }
 
-    // Catálogo QA (definitivo)
-    private val qaOptions: List<String> = listOf(
-        "Falta de limpieza: Carcasa posterior",
-        "Falta de limpieza: Carcasa frontal",
-        "Falta de limpieza: Tapa de bateria",
-        "Falta de limpieza: Tapa de impresora",
-        "Daño estetico: Carcasa posterior",
-        "Daño estetico: Carcasa frontal",
-        "Daño estetico: Dientes Impresora",
-        "Daño estetico: Tapa de bateria",
-        "Daño estetico: Tapa de impresora",
-        "Daño estetico: Carcasa frontal gastada (amarilla)",
-        "Daño estetico: Carcasa posterior gastada (amarilla)",
-        "Daño estetico: Tapa de bateria gastada (amarilla)",
-        "Daño estetico: Tapa de impresora (amarilla)",
-        "Faltan tornillos",
-        "Tamper",
-        "Camara trasera",
-        "Camara frontal",
-        "Sin audio",
-        "Vinculada",
-        "Film dañado",
-        "Faltan Apps",
-        "Faltan llaves",
-        "Display defectuoso",
-        "Falla de hardware",
-        "Falla placa principal",
-        "Pin de carga defectuoso",
-        "Lente trasero de camara",
-        "No enciende",
-        "Imprime claro",
-        "Imprime corrido",
-        "No imprime",
-        "Fuga de luz",
-        "Lectora de chip no funciona",
-        "Lectora de chip bloqueada",
-        "Lectora magnetica no funciona",
-        "No bootea",
-        "No toma señal GPRS"
-    )
+    // Catálogo QA — obtenido desde CatalogsStore (servidor o caché)
+    private val qaOptions: List<String> get() = CatalogsStore.qaOptions
 
-    private val qaSelected: BooleanArray = BooleanArray(qaOptions.size) { false }
-
-    // Catálogo de repuestos recuperados (Recovery)
-    private val recoveredPartsOptions: List<String> = listOf(
-        "Carcasa frontal",
-        "Carcasa posterior",
-        "Bateria",
-        "Tapa bateria",
-        "Tapa impresora",
-        "Rodillo",
-        "Display",
-        "Impresora",
-        "Pila",
-        "Pila IO",
-        "Placa IO",
-        "Camara delantera",
-        "Camara trasera",
-        "Lectora magnetica"
-    )
-    private val recoveredPartsSelected: BooleanArray = BooleanArray(recoveredPartsOptions.size) { false }
+    // Catálogo de repuestos recuperados (Recovery) — obtenido desde CatalogsStore
+    private val recoveredPartsOptions: List<String> get() = CatalogsStore.recoveredParts
+    private val recoveredPartsSelected: BooleanArray by lazy { BooleanArray(CatalogsStore.recoveredParts.size) { false } }
 
     // Substatus UI -> valor real MDW
     private data class SubOpt(val label: String, val mdwValue: String)
@@ -361,7 +307,7 @@ class TerminalDetailsActivity : BaseActivity() {
     }
 
     private fun showQaRejectDialog(onConfirm: (qaObsStringForMdw: String, qaObsStringForUi: String) -> Unit) {
-        for (i in qaSelected.indices) qaSelected[i] = false
+        val qaSelected = BooleanArray(qaOptions.size) { false }
 
         val items: Array<CharSequence> = qaOptions.toTypedArray()
 
