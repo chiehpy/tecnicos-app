@@ -3,9 +3,11 @@ package com.enofir.tecnicos_app.ui
 import android.app.Activity
 import android.content.DialogInterface
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Base64
 import android.view.View
 import android.widget.Button
+import android.widget.Chronometer
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.enofir.tecnicos_app.R
@@ -40,6 +42,7 @@ class TerminalDetailsActivity : BaseActivity() {
         private const val ROLE_REVISION_INICIAL = "Revisión inicial"
         private const val ROLE_QA = "QA"
         private const val ROLE_RECOVERY = "Recovery"
+        private const val ROLE_VERIFICAR_APPS = "Verificar Apps"
 
         private const val STATUS_IRREPARABLE = "Irreparable"
         private const val STATUS_REPARACION_TECNICA = "Reparación Técnica"
@@ -555,6 +558,16 @@ class TerminalDetailsActivity : BaseActivity() {
         startTimestamp = System.currentTimeMillis()
         android.util.Log.d("HistoryDebug", "onCreate: startTimestamp=$startTimestamp")
 
+        val chronometer = findViewById<Chronometer>(R.id.chronometer)
+        val chronometerVisible = SessionManager(this).getChronometerVisible()
+        if (chronometerVisible) {
+            chronometer.visibility = View.VISIBLE
+            chronometer.base = SystemClock.elapsedRealtime()
+            chronometer.start()
+        } else {
+            chronometer.visibility = View.GONE
+        }
+
         val chip = findViewById<TextView>(R.id.statusChip)
         val tvSerial = findViewById<TextView>(R.id.tvSerialValue)
         val tvImei = findViewById<TextView>(R.id.tvImeiValue)
@@ -607,6 +620,7 @@ class TerminalDetailsActivity : BaseActivity() {
         val isRevisionInicial = role == ROLE_REVISION_INICIAL
         val isQa = role == ROLE_QA
         val isRecovery = role == ROLE_RECOVERY
+        val isVerificarApps = role == ROLE_VERIFICAR_APPS
 
         // Recovery views
         val recoveryContainer = findViewById<View>(R.id.recoveryContainer)
@@ -766,6 +780,11 @@ class TerminalDetailsActivity : BaseActivity() {
                 dialog.show()
                 setDialogChecksFromModel(dialog, recoveredPartsSelected)
             }
+        } else if (isVerificarApps) {
+            failureObsContainer.visibility = View.GONE
+            recoveryContainer.visibility = View.GONE
+            btnComplete.text = "APPS OK"
+            btnChangeState.text = "SIN APPS"
         } else {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
@@ -893,7 +912,8 @@ class TerminalDetailsActivity : BaseActivity() {
 
                     csId = cs?.id
                     tvResult.text = ""
-                    if (status != null) btnChangeState.isEnabled = true
+                    if (status != null && !isVerificarApps) btnChangeState.isEnabled = true
+                    if (isVerificarApps) btnChangeState.isEnabled = true
                 }
 
                 override fun onFailure(call: Call<TerminalLookupResponse>, t: Throwable) {
@@ -905,6 +925,58 @@ class TerminalDetailsActivity : BaseActivity() {
 
         // ===== CAMBIAR ESTADO =====
         btnChangeState.setOnClickListener {
+            // SIN APPS: envía COMPLETE con role "Verificar Apps"
+            if (isVerificarApps) {
+                btnChangeState.isEnabled = false
+                btnComplete.isEnabled = false
+                StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
+                tvResult.text = "Enviando SIN APPS..."
+
+                ApiClient.complete(serial, role, null, appOk = false).enqueue(object : Callback<TerminalEventResponse> {
+                    override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
+                        val body = response.body()
+                        if (!response.isSuccessful || body == null) {
+                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                            val raw = response.errorBody()?.string()?.trim().orEmpty()
+                            tvResult.text = "HTTP ${response.code()} - ${if (raw.isNotEmpty()) raw else "Error en respuesta"}"
+                            btnChangeState.isEnabled = true
+                            btnComplete.isEnabled = true
+                            return
+                        }
+                        if (body.ok) {
+                            StatusChip.apply(chip, ChipState.OK, "OK")
+                            tvResult.text = "Datos enviados correctamente. ${body.message}"
+                            HistoryStore.add(
+                                this@TerminalDetailsActivity,
+                                HistoryEntry(
+                                    ts = System.currentTimeMillis(),
+                                    serial = serial,
+                                    role = role,
+                                    action = "SIN_APPS",
+                                    ok = true,
+                                    message = body.message,
+                                    startTs = startTimestamp
+                                )
+                            )
+                            setResult(Activity.RESULT_OK)
+                            finish()
+                        } else {
+                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                            tvResult.text = body.message ?: "Error"
+                            btnChangeState.isEnabled = true
+                            btnComplete.isEnabled = true
+                        }
+                    }
+                    override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
+                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                        tvResult.text = "Falla de conexión: ${t.message}"
+                        btnChangeState.isEnabled = true
+                        btnComplete.isEnabled = true
+                    }
+                })
+                return@setOnClickListener
+            }
+
             val fromStatus = currentStatus
             if (fromStatus == null) {
                 tvResult.text = "No se puede cambiar: estado actual desconocido."
@@ -1105,7 +1177,8 @@ class TerminalDetailsActivity : BaseActivity() {
                 StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
                 tvResult.text = "Enviando COMPLETE..."
 
-                ApiClient.complete(serial, role, observations).enqueue(object : Callback<TerminalEventResponse> {
+                val appOkValue = if (isVerificarApps) true else null
+                ApiClient.complete(serial, role, observations, appOk = appOkValue).enqueue(object : Callback<TerminalEventResponse> {
 
                     override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                         val body = response.body()
@@ -1131,7 +1204,7 @@ class TerminalDetailsActivity : BaseActivity() {
                                     ts = endTs,
                                     serial = serial,
                                     role = role,
-                                    action = "COMPLETE",
+                                    action = if (isVerificarApps) "APPS_OK" else "COMPLETE",
                                     ok = true,
                                     message = body.message,
                                     startTs = startTimestamp

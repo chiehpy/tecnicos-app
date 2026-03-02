@@ -57,6 +57,20 @@
 
     </RadioGroup>
 
+    <TextView
+        android:text="Cronómetro"
+        android:textStyle="bold"
+        android:layout_marginTop="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Switch
+        android:id="@+id/swChronometer"
+        android:text="Mostrar cronómetro en pantalla de detalles"
+        android:layout_marginTop="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <Button
         android:id="@+id/btnSave"
         android:text="Guardar"

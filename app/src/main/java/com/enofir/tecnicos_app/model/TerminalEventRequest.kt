@@ -11,6 +11,7 @@ import com.google.gson.annotations.SerializedName
  * COMPLETE:
  * - action, serial, role
  * - failureObservations: solo para role == "Revisión inicial"
+ * - appOk: solo para role == "Verificar Apps" (false = SIN APPS)
  *
  * MODIFY:
  * - action, serial, targetStatus
@@ -53,5 +54,10 @@ data class TerminalEventRequest(
     // ===== MODIFY (Recovery) =====
     // Repuestos recuperados (máx 500 chars)
     @SerializedName("recoveredParts")
-    val recoveredParts: String? = null
+    val recoveredParts: String? = null,
+
+    // ===== COMPLETE (Verificar Apps) =====
+    // null = omitido (APPS OK por defecto), false = SIN APPS
+    @SerializedName("appOk")
+    val appOk: Boolean? = null
 )

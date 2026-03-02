@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Spinner
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import com.enofir.tecnicos_app.R
@@ -32,6 +33,7 @@ class SettingsActivity : BaseActivity() {
         val rgScannerOrientation = findViewById<RadioGroup>(R.id.rgScannerOrientation)
         val rbVertical = findViewById<RadioButton>(R.id.rbVertical)
         val rbHorizontal = findViewById<RadioButton>(R.id.rbHorizontal)
+        val swChronometer = findViewById<Switch>(R.id.swChronometer)
 
         // Roles permitidos para este usuario (desde MDW login)
         val roles: List<String> = session.getAllowedRoles()
@@ -70,6 +72,8 @@ class SettingsActivity : BaseActivity() {
             rbHorizontal.isChecked = true
         }
 
+        swChronometer.isChecked = session.getChronometerVisible()
+
         btnSave.setOnClickListener {
             val selectedRole = spRole.selectedItem?.toString()?.trim().orEmpty()
             if (selectedRole.isEmpty()) {
@@ -87,6 +91,8 @@ class SettingsActivity : BaseActivity() {
                 else -> SessionManager.SCANNER_PORTRAIT
             }
             session.setScannerOrientation(selectedOrientation)
+
+            session.setChronometerVisible(swChronometer.isChecked)
 
             Toast.makeText(this, "Ajustes guardados", Toast.LENGTH_SHORT).show()
             finish()

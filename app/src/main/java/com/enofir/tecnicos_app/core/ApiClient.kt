@@ -189,7 +189,12 @@ object ApiClient {
         return api().terminalEvent(payload)
     }
 
-    fun complete(serial: String, role: String, failureObservations: List<String>? = null): Call<TerminalEventResponse> {
+    fun complete(
+        serial: String,
+        role: String,
+        failureObservations: List<String>? = null,
+        appOk: Boolean? = null
+    ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val r = role.trim()
 
@@ -201,7 +206,8 @@ object ApiClient {
             serial = s,
             role = r,
             technicianName = null,
-            failureObservations = failureObservations?.takeIf { it.isNotEmpty() }
+            failureObservations = failureObservations?.takeIf { it.isNotEmpty() },
+            appOk = appOk
         )
 
         return api().terminalEvent(payload)

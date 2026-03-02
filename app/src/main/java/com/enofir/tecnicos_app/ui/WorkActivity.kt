@@ -96,6 +96,17 @@ class WorkActivity : BaseActivity() {
                 tvResult.text = "No hay rol activo. Configuralo en Ajustes."
                 return@setOnClickListener
             }
+
+            // Verificar Apps no usa ASSIGN
+            if (activeRole == "Verificar Apps") {
+                val intent = Intent(this@WorkActivity, TerminalDetailsActivity::class.java).apply {
+                    putExtra(TerminalDetailsActivity.EXTRA_SERIAL, serial)
+                    putExtra(TerminalDetailsActivity.EXTRA_ROLE, activeRole)
+                }
+                detailsLauncher.launch(intent)
+                return@setOnClickListener
+            }
+
             if (technicianName.isEmpty()) {
                 tvResult.text = "Sesión inválida: falta technicianName."
                 return@setOnClickListener
