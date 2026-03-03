@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import com.enofir.tecnicos_app.model.AppVersionResponse
+import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
@@ -189,7 +190,14 @@ object ApiClient {
         return api().terminalEvent(payload)
     }
 
-    fun complete(serial: String, role: String, failureObservations: List<String>? = null): Call<TerminalEventResponse> {
+    fun complete(
+        serial: String,
+        role: String,
+        failureObservations: List<String>? = null,
+        appOk: Boolean? = null,
+        firmwareOk: Boolean? = null,
+        llaveOk: Boolean? = null
+    ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val r = role.trim()
 
@@ -201,7 +209,10 @@ object ApiClient {
             serial = s,
             role = r,
             technicianName = null,
-            failureObservations = failureObservations?.takeIf { it.isNotEmpty() }
+            failureObservations = failureObservations?.takeIf { it.isNotEmpty() },
+            appOk = appOk,
+            firmwareOk = firmwareOk,
+            llaveOk = llaveOk
         )
 
         return api().terminalEvent(payload)
@@ -330,6 +341,10 @@ object ApiClient {
      */
     fun getAppVersion(): Call<AppVersionResponse> {
         return api().getAppVersion()
+    }
+
+    fun fetchCatalogs(): Call<CatalogsResponse> {
+        return api().getCatalogs()
     }
 
     /**

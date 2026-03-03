@@ -1,6 +1,7 @@
 package com.enofir.tecnicos_app.core
 
 import com.enofir.tecnicos_app.model.AppVersionResponse
+import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
@@ -50,4 +51,7 @@ interface SalesforceApi {
 
     @GET("app/version")
     fun getAppVersion(): Call<AppVersionResponse>
+
+    @GET("app/catalogs")
+    fun getCatalogs(): Call<CatalogsResponse>
 }

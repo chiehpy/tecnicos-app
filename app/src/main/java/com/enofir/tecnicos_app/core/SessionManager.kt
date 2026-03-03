@@ -93,6 +93,24 @@ class SessionManager(context: Context) {
         return prefs.getString(KEY_SCANNER_ORIENTATION, SCANNER_LANDSCAPE) ?: SCANNER_LANDSCAPE
     }
 
+    fun setChronometerVisible(visible: Boolean) {
+        prefs.edit().putBoolean(KEY_CHRONOMETER_VISIBLE, visible).apply()
+    }
+
+    fun getChronometerVisible(): Boolean {
+        return prefs.getBoolean(KEY_CHRONOMETER_VISIBLE, false)
+    }
+
+    fun setProgrammerConfig(firmware: Boolean, llaves: Boolean) {
+        prefs.edit()
+            .putBoolean(KEY_PROG_FIRMWARE, firmware)
+            .putBoolean(KEY_PROG_LLAVES, llaves)
+            .apply()
+    }
+
+    fun isProgrammerFirmware(): Boolean = prefs.getBoolean(KEY_PROG_FIRMWARE, false)
+    fun isProgrammerLlaves(): Boolean   = prefs.getBoolean(KEY_PROG_LLAVES, false)
+
     companion object {
         private const val PREFS = "tecnicos_app_session"
         private const val KEY_TOKEN = "token"
@@ -102,6 +120,9 @@ class SessionManager(context: Context) {
         private const val KEY_TECHNICIAN_NAME = "technician_name"
         private const val KEY_ALLOWED_ROLES = "allowed_roles"
         private const val KEY_SCANNER_ORIENTATION = "scanner_orientation"
+        private const val KEY_CHRONOMETER_VISIBLE = "chronometer_visible"
+        private const val KEY_PROG_FIRMWARE = "prog_firmware"
+        private const val KEY_PROG_LLAVES   = "prog_llaves"
         private const val ROLE_SEPARATOR = "|||"
 
         const val SCANNER_PORTRAIT = "PORTRAIT"

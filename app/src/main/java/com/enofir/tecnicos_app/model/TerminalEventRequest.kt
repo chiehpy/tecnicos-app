@@ -11,6 +11,8 @@ import com.google.gson.annotations.SerializedName
  * COMPLETE:
  * - action, serial, role
  * - failureObservations: solo para role == "Revisión inicial"
+ * - appOk: solo para role == "Verificar Apps" (false = SIN APPS)
+ * - firmwareOk / llaveOk: solo para role == "Programador (carga de firmwares)" (true = realizado, omitido si no aplica)
  *
  * MODIFY:
  * - action, serial, targetStatus
@@ -53,5 +55,18 @@ data class TerminalEventRequest(
     // ===== MODIFY (Recovery) =====
     // Repuestos recuperados (máx 500 chars)
     @SerializedName("recoveredParts")
-    val recoveredParts: String? = null
+    val recoveredParts: String? = null,
+
+    // ===== COMPLETE (Verificar Apps) =====
+    // null = omitido (APPS OK por defecto), false = SIN APPS
+    @SerializedName("appOk")
+    val appOk: Boolean? = null,
+
+    // ===== COMPLETE (Programador) =====
+    // null = omitido (no aplica), true = operación realizada
+    @SerializedName("firmwareOk")
+    val firmwareOk: Boolean? = null,
+
+    @SerializedName("llaveOk")
+    val llaveOk: Boolean? = null
 )

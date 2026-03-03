@@ -1,11 +1,15 @@
 package com.enofir.tecnicos_app.ui
 
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Spinner
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import com.enofir.tecnicos_app.R
@@ -14,6 +18,9 @@ import com.enofir.tecnicos_app.core.SessionManager
 class SettingsActivity : BaseActivity() {
 
     private lateinit var session: SessionManager
+    private lateinit var llProgrammerType: LinearLayout
+    private lateinit var swFirmware: Switch
+    private lateinit var swLlaves: Switch
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,6 +39,10 @@ class SettingsActivity : BaseActivity() {
         val rgScannerOrientation = findViewById<RadioGroup>(R.id.rgScannerOrientation)
         val rbVertical = findViewById<RadioButton>(R.id.rbVertical)
         val rbHorizontal = findViewById<RadioButton>(R.id.rbHorizontal)
+        val swChronometer = findViewById<Switch>(R.id.swChronometer)
+        llProgrammerType = findViewById(R.id.llProgrammerType)
+        swFirmware = findViewById(R.id.swFirmware)
+        swLlaves = findViewById(R.id.swLlaves)
 
         // Roles permitidos para este usuario (desde MDW login)
         val roles: List<String> = session.getAllowedRoles()
@@ -55,10 +66,23 @@ class SettingsActivity : BaseActivity() {
         val displayRole = if (currentRole == "Recovery") "Parts Recovery" else currentRole
         tvCurrent.text = "Rol actual: ${if (currentRole.isEmpty()) "(no configurado)" else displayRole}"
 
+        spRole.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
+                val selected = parent.getItemAtPosition(pos).toString()
+                val isProg = selected == "Programador (carga de firmwares)"
+                llProgrammerType.visibility = if (isProg) View.VISIBLE else View.GONE
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
         if (currentRole.isNotEmpty()) {
             val idx = roles.indexOf(currentRole)
             if (idx >= 0) spRole.setSelection(idx)
         }
+
+        // Restaurar estado switches del programador
+        swFirmware.isChecked = session.isProgrammerFirmware()
+        swLlaves.isChecked   = session.isProgrammerLlaves()
 
         // Seleccionar orientación actual del escáner
         // Vertical = LANDSCAPE (barcode de abajo hacia arriba)
@@ -70,11 +94,21 @@ class SettingsActivity : BaseActivity() {
             rbHorizontal.isChecked = true
         }
 
+        swChronometer.isChecked = session.getChronometerVisible()
+
         btnSave.setOnClickListener {
             val selectedRole = spRole.selectedItem?.toString()?.trim().orEmpty()
             if (selectedRole.isEmpty()) {
                 Toast.makeText(this, "Seleccioná un rol.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
+            }
+
+            if (selectedRole == "Programador (carga de firmwares)") {
+                if (!swFirmware.isChecked && !swLlaves.isChecked) {
+                    Toast.makeText(this, "Seleccioná al menos un tipo de programación (Firmware o Llaves).", Toast.LENGTH_LONG).show()
+                    return@setOnClickListener
+                }
+                session.setProgrammerConfig(swFirmware.isChecked, swLlaves.isChecked)
             }
 
             // Guardar rol
@@ -87,6 +121,8 @@ class SettingsActivity : BaseActivity() {
                 else -> SessionManager.SCANNER_PORTRAIT
             }
             session.setScannerOrientation(selectedOrientation)
+
+            session.setChronometerVisible(swChronometer.isChecked)
 
             Toast.makeText(this, "Ajustes guardados", Toast.LENGTH_SHORT).show()
             finish()

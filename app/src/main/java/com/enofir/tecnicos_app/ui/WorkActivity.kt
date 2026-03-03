@@ -8,8 +8,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
+import com.enofir.tecnicos_app.core.CatalogsStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.UpdateChecker
+import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.sdk.ScanActivity
 import com.enofir.tecnicos_app.utils.ChipState
@@ -58,6 +60,17 @@ class WorkActivity : BaseActivity() {
             return
         }
 
+        // Cargar catálogos desde el MDW en background (silencioso si falla)
+        CatalogsStore.init(this)
+        ApiClient.fetchCatalogs().enqueue(object : Callback<CatalogsResponse> {
+            override fun onResponse(call: Call<CatalogsResponse>, response: Response<CatalogsResponse>) {
+                if (response.isSuccessful) {
+                    response.body()?.let { CatalogsStore.save(it, this@WorkActivity) }
+                }
+            }
+            override fun onFailure(call: Call<CatalogsResponse>, t: Throwable) { /* usa caché o defaults */ }
+        })
+
         setContentView(R.layout.activity_work)
 
         // UI
@@ -96,6 +109,17 @@ class WorkActivity : BaseActivity() {
                 tvResult.text = "No hay rol activo. Configuralo en Ajustes."
                 return@setOnClickListener
             }
+
+            // Verificar Apps no usa ASSIGN
+            if (activeRole == "Verificar Apps") {
+                val intent = Intent(this@WorkActivity, TerminalDetailsActivity::class.java).apply {
+                    putExtra(TerminalDetailsActivity.EXTRA_SERIAL, serial)
+                    putExtra(TerminalDetailsActivity.EXTRA_ROLE, activeRole)
+                }
+                detailsLauncher.launch(intent)
+                return@setOnClickListener
+            }
+
             if (technicianName.isEmpty()) {
                 tvResult.text = "Sesión inválida: falta technicianName."
                 return@setOnClickListener

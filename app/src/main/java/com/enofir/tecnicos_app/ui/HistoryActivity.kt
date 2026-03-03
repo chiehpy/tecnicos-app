@@ -96,6 +96,8 @@ class HistoryActivity : BaseActivity() {
         Log.d("HistoryDebug", "Entry: action=${entry.action}, role=${entry.role}, message=${entry.message}, serial=${entry.serial}")
 
         val result = when (entry.action) {
+            "APPS_OK" -> "Apps OK"
+            "SIN_APPS" -> "Sin Apps"
             "COMPLETE" -> {
                 when {
                     entry.role.contains("QA", ignoreCase = true) -> "QA Aprobado"
