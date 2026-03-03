@@ -44,6 +44,7 @@ class TerminalDetailsActivity : BaseActivity() {
         private const val ROLE_QA = "QA"
         private const val ROLE_RECOVERY = "Recovery"
         private const val ROLE_VERIFICAR_APPS = "Verificar Apps"
+        private const val ROLE_PROGRAMADOR = "Programador (carga de firmwares)"
 
         private const val STATUS_IRREPARABLE = "Irreparable"
         private const val STATUS_REPARACION_TECNICA = "Reparación Técnica"
@@ -497,6 +498,73 @@ class TerminalDetailsActivity : BaseActivity() {
         })
     }
 
+    private fun executeComplete(
+        serial: String,
+        role: String,
+        chip: TextView,
+        tvResult: TextView,
+        btnComplete: Button,
+        observations: List<String>? = null,
+        appOk: Boolean? = null,
+        firmwareOk: Boolean? = null,
+        llaveOk: Boolean? = null
+    ) {
+        btnComplete.isEnabled = false
+        StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
+        tvResult.text = "Enviando COMPLETE..."
+
+        val isVerificarAppsRole = role == ROLE_VERIFICAR_APPS
+        val appOkValue = if (isVerificarAppsRole) true else appOk
+        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk).enqueue(object : Callback<TerminalEventResponse> {
+
+            override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
+                val body = response.body()
+
+                if (!response.isSuccessful || body == null) {
+                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                    val raw = response.errorBody()?.string()?.trim().orEmpty()
+                    val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
+                    tvResult.text = "HTTP ${response.code()} - $msg"
+                    btnComplete.isEnabled = true
+                    return
+                }
+
+                if (body.ok) {
+                    StatusChip.apply(chip, ChipState.OK, "OK")
+                    tvResult.text = "Datos enviados correctamente. ${body.message}"
+
+                    val endTs = System.currentTimeMillis()
+                    android.util.Log.d("HistoryDebug", "Saving COMPLETE: startTimestamp=$startTimestamp, endTs=$endTs")
+                    HistoryStore.add(
+                        this@TerminalDetailsActivity,
+                        HistoryEntry(
+                            ts = endTs,
+                            serial = serial,
+                            role = role,
+                            action = if (isVerificarAppsRole) "APPS_OK" else "COMPLETE",
+                            ok = true,
+                            message = body.message,
+                            startTs = startTimestamp
+                        )
+                    )
+
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                } else {
+                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                    tvResult.text = body.message ?: "Error"
+                    btnComplete.isEnabled = true
+                }
+            }
+
+            override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
+                StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                tvResult.text = "Falla de conexión: ${t.message}"
+                btnComplete.isEnabled = true
+            }
+        })
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_terminal_details)
@@ -567,6 +635,7 @@ class TerminalDetailsActivity : BaseActivity() {
         val isQa = role == ROLE_QA
         val isRecovery = role == ROLE_RECOVERY
         val isVerificarApps = role == ROLE_VERIFICAR_APPS
+        val isProgramador = role == ROLE_PROGRAMADOR
 
         // Recovery views
         val recoveryContainer = findViewById<View>(R.id.recoveryContainer)
@@ -1111,67 +1180,32 @@ class TerminalDetailsActivity : BaseActivity() {
                 return@setOnClickListener
             }
 
+            // Programador (carga de firmwares)
+            if (isProgramador) {
+                val session = SessionManager(this)
+                val doFirmware = session.isProgrammerFirmware()
+                val doLlaves = session.isProgrammerLlaves()
+                if (!doFirmware && !doLlaves) {
+                    AlertDialog.Builder(this)
+                        .setTitle("Configuración incompleta")
+                        .setMessage("No tenés ningún tipo de programación configurado en Ajustes.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                    return@setOnClickListener
+                }
+                executeComplete(
+                    serial, role, chip, tvResult, btnComplete,
+                    firmwareOk = if (doFirmware) true else null,
+                    llaveOk    = if (doLlaves)   true else null
+                )
+                return@setOnClickListener
+            }
+
             val observations = if (isRevisionInicial) getSelectedFailureValues() else null
             if (isRevisionInicial && observations.isNullOrEmpty()) {
                 StatusChip.apply(chip, ChipState.ERROR, "ERROR")
                 tvResult.text = "Seleccioná al menos una observación (o 'Sin falla')."
                 return@setOnClickListener
-            }
-
-            fun executeComplete() {
-                btnComplete.isEnabled = false
-                StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
-                tvResult.text = "Enviando COMPLETE..."
-
-                val appOkValue = if (isVerificarApps) true else null
-                ApiClient.complete(serial, role, observations, appOk = appOkValue).enqueue(object : Callback<TerminalEventResponse> {
-
-                    override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
-                        val body = response.body()
-
-                        if (!response.isSuccessful || body == null) {
-                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                            val raw = response.errorBody()?.string()?.trim().orEmpty()
-                            val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
-                            tvResult.text = "HTTP ${response.code()} - $msg"
-                            btnComplete.isEnabled = true
-                            return
-                        }
-
-                        if (body.ok) {
-                            StatusChip.apply(chip, ChipState.OK, "OK")
-                            tvResult.text = "Datos enviados correctamente. ${body.message}"
-
-                            val endTs = System.currentTimeMillis()
-                            android.util.Log.d("HistoryDebug", "Saving COMPLETE: startTimestamp=$startTimestamp, endTs=$endTs")
-                            HistoryStore.add(
-                                this@TerminalDetailsActivity,
-                                HistoryEntry(
-                                    ts = endTs,
-                                    serial = serial,
-                                    role = role,
-                                    action = if (isVerificarApps) "APPS_OK" else "COMPLETE",
-                                    ok = true,
-                                    message = body.message,
-                                    startTs = startTimestamp
-                                )
-                            )
-
-                            setResult(Activity.RESULT_OK)
-                            finish()
-                        } else {
-                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                            tvResult.text = body.message ?: "Error"
-                            btnComplete.isEnabled = true
-                        }
-                    }
-
-                    override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
-                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                        tvResult.text = "Falla de conexión: ${t.message}"
-                        btnComplete.isEnabled = true
-                    }
-                })
             }
 
             if (isRevisionInicial && IrreparableChecker.isIrreparable(observations, currentAccountName)) {
@@ -1182,11 +1216,11 @@ class TerminalDetailsActivity : BaseActivity() {
                                 "${observations?.joinToString(", ")}\n\n" +
                                 "¿Estás seguro que querés enviarlo a reparación técnica en lugar de marcarlo como Irreparable?"
                     )
-                    .setPositiveButton("Sí, enviar a reparación") { _, _ -> executeComplete() }
+                    .setPositiveButton("Sí, enviar a reparación") { _, _ -> executeComplete(serial, role, chip, tvResult, btnComplete, observations) }
                     .setNegativeButton("Cancelar", null)
                     .show()
             } else {
-                executeComplete()
+                executeComplete(serial, role, chip, tvResult, btnComplete, observations)
             }
         }
         // ===== FIN COMPLETE =====
