@@ -101,7 +101,6 @@ object UpdateChecker {
             .setTitle("Actualización disponible")
             .setMessage("Hay una nueva versión disponible: v$version\n\n¿Descargar ahora?")
             .setPositiveButton("Descargar") { _, _ ->
-                saveDownloadedVersion(activity, version)
                 downloadAndInstall(activity, url, version)
             }
             .setNegativeButton("Más tarde", null)
@@ -196,6 +195,7 @@ object UpdateChecker {
 
                 activity.runOnUiThread {
                     progressDialog.dismiss()
+                    saveDownloadedVersion(activity, version)
                     installApk(activity, file)
                 }
 
