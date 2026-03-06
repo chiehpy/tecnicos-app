@@ -18,12 +18,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 import kotlin.concurrent.thread
 
 /**
@@ -145,21 +140,11 @@ object UpdateChecker {
 
         thread {
             try {
-                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
-                    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-                })
-                val sslContext = SSLContext.getInstance("SSL")
-                sslContext.init(null, trustAllCerts, SecureRandom())
-
                 val client = OkHttpClient.Builder()
                     .connectTimeout(60, TimeUnit.SECONDS)
                     .readTimeout(120, TimeUnit.SECONDS)
                     .followRedirects(true)
                     .followSslRedirects(true)
-                    .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
-                    .hostnameVerifier { _, _ -> true }
                     .build()
 
                 val request = Request.Builder()
