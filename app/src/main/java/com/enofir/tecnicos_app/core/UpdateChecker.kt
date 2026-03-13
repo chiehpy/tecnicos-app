@@ -10,6 +10,7 @@ import android.os.Environment
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import com.enofir.tecnicos_app.BuildConfig
+import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.model.AppVersionResponse
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -18,7 +19,12 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
+import java.security.KeyStore
+import java.security.cert.CertificateFactory
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 import kotlin.concurrent.thread
 
 /**
@@ -139,12 +145,8 @@ object UpdateChecker {
 
         thread {
             try {
-                val client = OkHttpClient.Builder()
-                    .connectTimeout(60, TimeUnit.SECONDS)
-                    .readTimeout(120, TimeUnit.SECONDS)
-                    .followRedirects(true)
-                    .followSslRedirects(true)
-                    .build()
+                val client = buildDownloadClient(activity)
+
 
                 val request = Request.Builder()
                     .url(url)
@@ -206,6 +208,52 @@ object UpdateChecker {
                 }
             }
         }
+    }
+
+    private fun buildDownloadClient(context: Context): OkHttpClient {
+        val builder = OkHttpClient.Builder()
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .followRedirects(true)
+            .followSslRedirects(true)
+
+        // En Android < 7.1, ISRG Root X1 (Let's Encrypt) no está en el trust store del sistema.
+        // Agregamos el cert manualmente solo para el cliente de descarga.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) {
+            try {
+                val cf = CertificateFactory.getInstance("X.509")
+                val isrgCert = context.resources.openRawResource(R.raw.isrg_root_x1).use {
+                    cf.generateCertificate(it)
+                }
+
+                val keyStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+                    load(null, null)
+                }
+
+                // Cargar certs del sistema
+                val systemTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+                systemTmf.init(null as KeyStore?)
+                (systemTmf.trustManagers.firstOrNull { it is X509TrustManager } as? X509TrustManager)
+                    ?.acceptedIssuers
+                    ?.forEachIndexed { i, cert -> keyStore.setCertificateEntry("system_$i", cert) }
+
+                // Agregar ISRG Root X1
+                keyStore.setCertificateEntry("isrg_root_x1", isrgCert)
+
+                val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+                tmf.init(keyStore)
+
+                val trustManager = tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
+                val sslContext = SSLContext.getInstance("TLS").apply {
+                    init(null, tmf.trustManagers, null)
+                }
+                builder.sslSocketFactory(sslContext.socketFactory, trustManager)
+            } catch (_: Exception) {
+                // Si falla, usar configuración por defecto
+            }
+        }
+
+        return builder.build()
     }
 
     private fun installApk(activity: Activity, file: File) {
