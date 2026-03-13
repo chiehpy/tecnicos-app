@@ -12,6 +12,7 @@ import com.enofir.tecnicos_app.model.RefreshResponse
 import com.enofir.tecnicos_app.model.TerminalEventRequest
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.model.TerminalLookupResponse
+import com.enofir.tecnicos_app.model.VmCheckResponse
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -54,4 +55,7 @@ interface SalesforceApi {
 
     @GET("app/catalogs")
     fun getCatalogs(): Call<CatalogsResponse>
+
+    @GET("vm/check")
+    fun vmCheck(@Query("serial") serial: String): Call<VmCheckResponse>
 }

@@ -14,6 +14,7 @@ import com.enofir.tecnicos_app.model.RecoveryPatchRequest
 import com.enofir.tecnicos_app.model.TerminalEventRequest
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.model.TerminalLookupResponse
+import com.enofir.tecnicos_app.model.VmCheckResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -345,6 +346,12 @@ object ApiClient {
 
     fun fetchCatalogs(): Call<CatalogsResponse> {
         return api().getCatalogs()
+    }
+
+    fun vmCheck(serial: String): Call<VmCheckResponse> {
+        val s = serial.trim()
+        require(s.isNotEmpty()) { "serial vacío" }
+        return api().vmCheck(s)
     }
 
     /**

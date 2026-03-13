@@ -804,6 +804,11 @@ class TerminalDetailsActivity : BaseActivity() {
             recoveryContainer.visibility = View.GONE
             btnComplete.text = "APPS OK"
             btnChangeState.text = "SIN APPS"
+        } else if (isProgramador) {
+            failureObsContainer.visibility = View.GONE
+            recoveryContainer.visibility = View.GONE
+            btnComplete.text = "PROGRAMAR TERMINAL"
+            btnChangeState.visibility = View.GONE
         } else {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
