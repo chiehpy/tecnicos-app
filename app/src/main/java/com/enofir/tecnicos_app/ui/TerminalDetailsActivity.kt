@@ -24,6 +24,7 @@ import com.enofir.tecnicos_app.model.PrintLabelResponse
 import com.enofir.tecnicos_app.model.StatusCatalog
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.model.TerminalLookupResponse
+import com.enofir.tecnicos_app.model.VmCheckResponse
 import java.io.OutputStream
 import java.net.Socket
 import kotlin.concurrent.thread
@@ -62,9 +63,10 @@ class TerminalDetailsActivity : BaseActivity() {
     // Catálogo QA — obtenido desde CatalogsStore (servidor o caché)
     private val qaOptions: List<String> get() = CatalogsStore.qaOptions
 
-    // Catálogo de repuestos recuperados (Recovery) — obtenido desde CatalogsStore
-    private val recoveredPartsOptions: List<String> get() = CatalogsStore.recoveredParts
-    private val recoveredPartsSelected: BooleanArray by lazy { BooleanArray(CatalogsStore.recoveredParts.size) { false } }
+    // Catálogo de repuestos recuperados (Recovery) — filtrado por modelo según serial
+    private var serial: String = ""
+    private val recoveredPartsOptions get() = CatalogsStore.getRecoveredParts(serial)
+    private val recoveredPartsSelected: BooleanArray by lazy { BooleanArray(recoveredPartsOptions.size) { false } }
 
     // Substatus UI -> valor real MDW
     private data class SubOpt(val label: String, val mdwValue: String)
@@ -154,16 +156,18 @@ class TerminalDetailsActivity : BaseActivity() {
 
     private fun getSelectedRecoveredParts(): List<String> {
         val out = mutableListOf<String>()
-        for (i in recoveredPartsOptions.indices) if (recoveredPartsSelected[i]) out.add(recoveredPartsOptions[i])
+        for (i in recoveredPartsOptions.indices) if (recoveredPartsSelected[i]) out.add(recoveredPartsOptions[i].pn)
         return out
     }
 
     private fun renderRecoveredPartsText(tvRecoveredParts: TextView) {
-        val vals = getSelectedRecoveredParts()
-        tvRecoveredParts.text = if (vals.isEmpty()) {
+        val names = recoveredPartsOptions
+            .filterIndexed { i, _ -> recoveredPartsSelected.getOrElse(i) { false } }
+            .map { it.name }
+        tvRecoveredParts.text = if (names.isEmpty()) {
             "Repuestos: (sin seleccionar)"
         } else {
-            "Repuestos: ${vals.joinToString(", ")}"
+            "Repuestos: ${names.joinToString(", ")}"
         }
     }
 
@@ -629,7 +633,7 @@ class TerminalDetailsActivity : BaseActivity() {
         val btnFailureObs = findViewById<Button>(R.id.btnFailureObs)
         val tvFailureObs = findViewById<TextView>(R.id.tvFailureObs)
 
-        val serial = intent.getStringExtra(EXTRA_SERIAL)?.trim().orEmpty()
+        serial = intent.getStringExtra(EXTRA_SERIAL)?.trim().orEmpty()
         val role = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty()
         val isRevisionInicial = role == ROLE_REVISION_INICIAL
         val isQa = role == ROLE_QA
@@ -776,7 +780,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
             // Solo selecciona y muestra. (Camino A: se envía en MODIFY al completar)
             btnSelectRecoveredParts.setOnClickListener {
-                val items: Array<CharSequence> = recoveredPartsOptions.toTypedArray()
+                val items: Array<CharSequence> = recoveredPartsOptions.map { it.name }.toTypedArray()
 
                 val dialog = AlertDialog.Builder(this)
                     .setTitle("Seleccionar repuestos recuperados")
@@ -856,10 +860,19 @@ class TerminalDetailsActivity : BaseActivity() {
                     // Guardar accountName para IrreparableChecker
                     currentAccountName = cs?.accountName?.trim()
 
-                    // Mostrar botones de impresión solo para N910 en rol QA
-                    if (isQa && modelRaw.contains("N910", ignoreCase = true)) {
-                        btnPrintLabel.visibility = View.VISIBLE
-                        btnPrintConfig.visibility = View.VISIBLE
+                    // Mostrar botones de impresión solo para QA si el serial está en la VM
+                    if (isQa) {
+                        ApiClient.vmCheck(serial).enqueue(object : Callback<VmCheckResponse> {
+                            override fun onResponse(call: Call<VmCheckResponse>, response: Response<VmCheckResponse>) {
+                                if (response.isSuccessful && response.body()?.exists == true) {
+                                    btnPrintLabel.visibility = View.VISIBLE
+                                    btnPrintConfig.visibility = View.VISIBLE
+                                }
+                            }
+                            override fun onFailure(call: Call<VmCheckResponse>, t: Throwable) {
+                                // Sin conexión o error: dejar botones ocultos
+                            }
+                        })
                     }
 
                     val status = cs?.status?.trim().takeIf { present(it) }

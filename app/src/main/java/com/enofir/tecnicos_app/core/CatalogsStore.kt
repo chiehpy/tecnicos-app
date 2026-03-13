@@ -2,6 +2,7 @@ package com.enofir.tecnicos_app.core
 
 import android.content.Context
 import com.enofir.tecnicos_app.model.CatalogsResponse
+import com.enofir.tecnicos_app.model.RecoveredPartItem
 import com.google.gson.Gson
 
 object CatalogsStore {
@@ -43,10 +44,55 @@ object CatalogsStore {
             "Lectora de chip no funciona", "Lectora de chip bloqueada",
             "Lectora magnetica no funciona", "No bootea", "No toma señal GPRS"
         ),
-        recoveredParts = listOf(
-            "Carcasa frontal", "Carcasa posterior", "Bateria", "Tapa bateria",
-            "Tapa impresora", "Rodillo", "Display", "Impresora", "Pila", "Pila IO",
-            "Placa IO", "Camara delantera", "Camara trasera", "Lectora magnetica"
+        recoveredParts = mapOf(
+            "N910" to listOf(
+                RecoveredPartItem("111012496U", "Carcasa frontal"),
+                RecoveredPartItem("300052005U", "Carcasa frontal + Display"),
+                RecoveredPartItem("111016684U", "Carcasa posterior"),
+                RecoveredPartItem("111016685U", "Tapa bateria"),
+                RecoveredPartItem("111016682U", "Tapa impresora"),
+                RecoveredPartItem("102050193U", "Display"),
+                RecoveredPartItem("102040064U", "Impresora"),
+                RecoveredPartItem("115080285U", "Rodillo"),
+                RecoveredPartItem("301823114U", "Placa IO"),
+                RecoveredPartItem("111011983U", "Bracket placa IO"),
+                RecoveredPartItem("108010045U", "Lectora chip IC"),
+                RecoveredPartItem("102030103U", "Cabezal magnetico"),
+                RecoveredPartItem("102020268U", "Camara posterior"),
+                RecoveredPartItem("102020269U", "Camara frontal"),
+                RecoveredPartItem("115030008U", "Parlante"),
+                RecoveredPartItem("108010078U", "Pin de carga"),
+                RecoveredPartItem("108010143U", "Ficha micro USB"),
+                RecoveredPartItem("111040263U", "Almohadilla de apoyo")
+            ),
+            "N950_amarilla" to listOf(
+                RecoveredPartItem("111018011U", "Carcasa frontal + Display (amarilla)"),
+                RecoveredPartItem("111018119U", "Carcasa posterior (amarilla)"),
+                RecoveredPartItem("111018014U", "Tapa bateria (amarilla)"),
+                RecoveredPartItem("111018010U", "Tapa impresora (amarilla)"),
+                RecoveredPartItem("102040062U", "Impresora"),
+                RecoveredPartItem("115080285U", "Rodillo"),
+                RecoveredPartItem("301981004U", "Placa IO"),
+                RecoveredPartItem("112030145U", "PET MESH"),
+                RecoveredPartItem("112020225U", "Flex BEyF"),
+                RecoveredPartItem("111050508U", "Botones"),
+                RecoveredPartItem("111017228U", "Zebra bar bracket"),
+                RecoveredPartItem("102050488U", "Display")
+            ),
+            "N950_celeste" to listOf(
+                RecoveredPartItem("111017208U", "Carcasa frontal + Display (blanca)"),
+                RecoveredPartItem("111017890U", "Carcasa posterior (blanca)"),
+                RecoveredPartItem("111017042U", "Tapa bateria (blanca)"),
+                RecoveredPartItem("111017052U", "Tapa impresora (celeste)"),
+                RecoveredPartItem("102040062U", "Impresora"),
+                RecoveredPartItem("115080285U", "Rodillo"),
+                RecoveredPartItem("301981004U", "Placa IO"),
+                RecoveredPartItem("112030145U", "PET MESH"),
+                RecoveredPartItem("112020225U", "Flex BEyF"),
+                RecoveredPartItem("111050508U", "Botones"),
+                RecoveredPartItem("111017228U", "Zebra bar bracket"),
+                RecoveredPartItem("102050488U", "Display")
+            )
         ),
         statuses = listOf(
             "Revisión inicial", "Reparación Técnica", "Limpieza", "Testeo", "Irreparable"
@@ -81,7 +127,15 @@ object CatalogsStore {
 
     val failureObservations: List<String> get() = _cached?.failureObservations ?: defaults.failureObservations
     val qaOptions: List<String> get() = _cached?.qaOptions ?: defaults.qaOptions
-    val recoveredParts: List<String> get() = _cached?.recoveredParts ?: defaults.recoveredParts
+    fun getRecoveredParts(serial: String): List<RecoveredPartItem> {
+        val key = when {
+            serial.startsWith("NCC", ignoreCase = true) -> "N950_amarilla"
+            serial.startsWith("NCB", ignoreCase = true) -> "N950_celeste"
+            else -> "N910"
+        }
+        val map = _cached?.recoveredParts ?: defaults.recoveredParts
+        return map[key] ?: map["N910"] ?: emptyList()
+    }
     val statuses: List<String> get() = _cached?.statuses ?: defaults.statuses
     val substatusReparacion: List<String> get() = _cached?.substatusReparacion ?: defaults.substatusReparacion
 }
