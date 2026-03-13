@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Dominios de descarga de GitHub: agregar ISRG Root X1 para Android < 7.1 -->
+    <domain-config>
+        <domain includeSubdomains="true">github.com</domain>
+        <domain includeSubdomains="true">githubusercontent.com</domain>
+        <trust-anchors>
+            <certificates src="system"/>
+            <certificates src="@raw/isrg_root_x1"/>
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
