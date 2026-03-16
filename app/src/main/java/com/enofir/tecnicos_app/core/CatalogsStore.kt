@@ -66,6 +66,7 @@ object CatalogsStore {
                 RecoveredPartItem("111040263U", "Almohadilla de apoyo")
             ),
             "N950_amarilla" to listOf(
+                RecoveredPartItem("111018011UND", "Carcasa frontal (amarilla)"),
                 RecoveredPartItem("111018011U", "Carcasa frontal + Display (amarilla)"),
                 RecoveredPartItem("111018119U", "Carcasa posterior (amarilla)"),
                 RecoveredPartItem("111018014U", "Tapa bateria (amarilla)"),
@@ -77,9 +78,12 @@ object CatalogsStore {
                 RecoveredPartItem("112020225U", "Flex BEyF"),
                 RecoveredPartItem("111050508U", "Botones"),
                 RecoveredPartItem("111017228U", "Zebra bar bracket"),
-                RecoveredPartItem("102050488U", "Display")
+                RecoveredPartItem("102050488U", "Display"),
+                RecoveredPartItem("102020377U", "Camara posterior"),
+                RecoveredPartItem("102020263U", "Camara frontal")
             ),
             "N950_celeste" to listOf(
+                RecoveredPartItem("111017208UND", "Carcasa frontal (blanca)"),
                 RecoveredPartItem("111017208U", "Carcasa frontal + Display (blanca)"),
                 RecoveredPartItem("111017890U", "Carcasa posterior (blanca)"),
                 RecoveredPartItem("111017042U", "Tapa bateria (blanca)"),
@@ -91,7 +95,9 @@ object CatalogsStore {
                 RecoveredPartItem("112020225U", "Flex BEyF"),
                 RecoveredPartItem("111050508U", "Botones"),
                 RecoveredPartItem("111017228U", "Zebra bar bracket"),
-                RecoveredPartItem("102050488U", "Display")
+                RecoveredPartItem("102050488U", "Display"),
+                RecoveredPartItem("102020377U", "Camara posterior"),
+                RecoveredPartItem("102020263U", "Camara frontal")
             )
         ),
         statuses = listOf(
