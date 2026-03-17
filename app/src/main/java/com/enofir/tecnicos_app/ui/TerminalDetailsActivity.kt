@@ -1,6 +1,7 @@
 package com.enofir.tecnicos_app.ui
 
 import android.app.Activity
+import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.os.SystemClock
@@ -46,6 +47,7 @@ class TerminalDetailsActivity : BaseActivity() {
         private const val ROLE_RECOVERY = "Recovery"
         private const val ROLE_VERIFICAR_APPS = "Verificar Apps"
         private const val ROLE_PROGRAMADOR = "Programador (carga de firmwares)"
+        private const val ROLE_REPARACION = "Reparación"
 
         private const val STATUS_IRREPARABLE = "Irreparable"
         private const val STATUS_REPARACION_TECNICA = "Reparación Técnica"
@@ -67,6 +69,11 @@ class TerminalDetailsActivity : BaseActivity() {
     private var serial: String = ""
     private val recoveredPartsOptions get() = CatalogsStore.getRecoveredParts(serial)
     private val recoveredPartsSelected: BooleanArray by lazy { BooleanArray(recoveredPartsOptions.size) { false } }
+
+    // Catálogo de repuestos utilizados (Reparación) — separado del de Recovery
+    private val repairedPartsOptions get() = CatalogsStore.getRepairedParts(serial)
+    private val repairedPartsSelected: BooleanArray by lazy { BooleanArray(repairedPartsOptions.size) { false } }
+    private var repairedPartsNoneSelected = false
 
     // Substatus UI -> valor real MDW
     private data class SubOpt(val label: String, val mdwValue: String)
@@ -168,6 +175,33 @@ class TerminalDetailsActivity : BaseActivity() {
             "Repuestos: (sin seleccionar)"
         } else {
             "Repuestos: ${names.joinToString(", ")}"
+        }
+    }
+
+    private fun getSelectedRepairedParts(): List<String> {
+        if (repairedPartsNoneSelected) return emptyList()
+        return repairedPartsOptions
+            .filterIndexed { i, _ -> repairedPartsSelected.getOrElse(i) { false } }
+            .map { it.sfId ?: it.pn }
+    }
+
+    private fun getPartUsageCount(partId: String): Int =
+        getSharedPreferences("part_usage", Context.MODE_PRIVATE).getInt("u_$partId", 0)
+
+    private fun incrementPartUsageCount(partId: String) {
+        val prefs = getSharedPreferences("part_usage", Context.MODE_PRIVATE)
+        prefs.edit().putInt("u_$partId", prefs.getInt("u_$partId", 0) + 1).apply()
+    }
+
+    private fun renderRepairedPartsText(tv: TextView) {
+        tv.text = when {
+            repairedPartsNoneSelected -> "Repuestos: No se cambiaron repuestos"
+            else -> {
+                val names = repairedPartsOptions
+                    .filterIndexed { i, _ -> repairedPartsSelected.getOrElse(i) { false } }
+                    .map { it.name }
+                if (names.isEmpty()) "Repuestos: (sin seleccionar)" else "Repuestos: ${names.joinToString(", ")}"
+            }
         }
     }
 
@@ -511,7 +545,9 @@ class TerminalDetailsActivity : BaseActivity() {
         observations: List<String>? = null,
         appOk: Boolean? = null,
         firmwareOk: Boolean? = null,
-        llaveOk: Boolean? = null
+        llaveOk: Boolean? = null,
+        spareParts: List<String>? = null,
+        caseId: String? = null
     ) {
         btnComplete.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
@@ -519,7 +555,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
         val isVerificarAppsRole = role == ROLE_VERIFICAR_APPS
         val appOkValue = if (isVerificarAppsRole) true else appOk
-        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk).enqueue(object : Callback<TerminalEventResponse> {
+        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId).enqueue(object : Callback<TerminalEventResponse> {
 
             override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                 val body = response.body()
@@ -536,6 +572,8 @@ class TerminalDetailsActivity : BaseActivity() {
                 if (body.ok) {
                     StatusChip.apply(chip, ChipState.OK, "OK")
                     tvResult.text = "Datos enviados correctamente. ${body.message}"
+
+                    spareParts?.forEach { partId -> incrementPartUsageCount(partId) }
 
                     val endTs = System.currentTimeMillis()
                     android.util.Log.d("HistoryDebug", "Saving COMPLETE: startTimestamp=$startTimestamp, endTs=$endTs")
@@ -640,6 +678,7 @@ class TerminalDetailsActivity : BaseActivity() {
         val isRecovery = role == ROLE_RECOVERY
         val isVerificarApps = role == ROLE_VERIFICAR_APPS
         val isProgramador = role == ROLE_PROGRAMADOR
+        val isReparacion = role == ROLE_REPARACION
 
         // Recovery views
         val recoveryContainer = findViewById<View>(R.id.recoveryContainer)
@@ -809,6 +848,58 @@ class TerminalDetailsActivity : BaseActivity() {
             recoveryContainer.visibility = View.GONE
             btnComplete.text = "PROGRAMAR TERMINAL"
             btnChangeState.visibility = View.GONE
+        } else if (isReparacion) {
+            failureObsContainer.visibility = View.GONE
+            recoveryContainer.visibility = View.VISIBLE
+            btnComplete.text = "REPARAR TERMINAL"
+            btnChangeState.text = "CAMBIAR ESTADO"
+            btnSelectRecoveredParts.text = "REPUESTOS UTILIZADOS"
+
+            btnSelectRecoveredParts.setOnClickListener {
+                val noneLabel = "No se cambiaron repuestos"
+                // Sort by usage count descending, keeping original index mapping
+                val sortedIndices = repairedPartsOptions.indices
+                    .sortedByDescending { i -> getPartUsageCount(repairedPartsOptions[i].sfId ?: repairedPartsOptions[i].pn) }
+                val sortedParts = sortedIndices.map { repairedPartsOptions[it] }
+
+                val allItems = (listOf(noneLabel) + sortedParts.map { part ->
+                    val usadoSuffix = if (part.pn.endsWith("UND") || part.pn.endsWith("U")) " - USADO" else ""
+                    val stockSuffix = if ((part.stock ?: 0) > 0) " (${part.stock})" else ""
+                    "${part.name}$usadoSuffix$stockSuffix"
+                }).toTypedArray()
+
+                val dialogSelected = BooleanArray(allItems.size) { false }
+                if (repairedPartsNoneSelected) {
+                    dialogSelected[0] = true
+                } else {
+                    sortedIndices.forEachIndexed { sortPos, origIdx ->
+                        dialogSelected[sortPos + 1] = repairedPartsSelected.getOrElse(origIdx) { false }
+                    }
+                }
+
+                val dialog = AlertDialog.Builder(this)
+                    .setTitle("Repuestos utilizados")
+                    .setMultiChoiceItems(allItems, dialogSelected) { _, which, checked ->
+                        if (which == 0) {
+                            dialogSelected.fill(false)
+                            dialogSelected[0] = checked
+                        } else {
+                            dialogSelected[0] = false
+                            dialogSelected[which] = checked
+                        }
+                    }
+                    .setPositiveButton("Aceptar") { d, _ ->
+                        repairedPartsNoneSelected = dialogSelected[0]
+                        sortedIndices.forEachIndexed { sortPos, origIdx ->
+                            repairedPartsSelected[origIdx] = dialogSelected[sortPos + 1]
+                        }
+                        renderRepairedPartsText(tvRecoveredParts)
+                        d.dismiss()
+                    }
+                    .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
+                    .create()
+                dialog.show()
+            }
         } else {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
@@ -1170,6 +1261,31 @@ class TerminalDetailsActivity : BaseActivity() {
             if (serial.isEmpty() || role.isEmpty()) {
                 StatusChip.apply(chip, ChipState.ERROR, "ERROR")
                 tvResult.text = "Faltan datos (serial/role)."
+                return@setOnClickListener
+            }
+
+            // Reparación: COMPLETE + spareParts (opcional) + caseId
+            if (isReparacion) {
+                val selected = getSelectedRepairedParts()
+                val selectionMade = repairedPartsNoneSelected || selected.isNotEmpty()
+
+                if (!selectionMade) {
+                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                    tvResult.text = "Seleccioná los repuestos utilizados (o 'No se cambiaron repuestos')."
+                    return@setOnClickListener
+                }
+
+                if (selected.isNotEmpty() && csId.isNullOrBlank()) {
+                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                    tvResult.text = "No se pudo obtener el ID del caso de SF. Reiniciá la pantalla."
+                    return@setOnClickListener
+                }
+
+                executeComplete(
+                    serial, role, chip, tvResult, btnComplete,
+                    spareParts = selected.ifEmpty { null },
+                    caseId = if (selected.isNotEmpty()) csId else null
+                )
                 return@setOnClickListener
             }
 

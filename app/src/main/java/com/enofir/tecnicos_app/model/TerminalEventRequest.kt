@@ -13,6 +13,7 @@ import com.google.gson.annotations.SerializedName
  * - failureObservations: solo para role == "Revisión inicial"
  * - appOk: solo para role == "Verificar Apps" (false = SIN APPS)
  * - firmwareOk / llaveOk: solo para role == "Programador (carga de firmwares)" (true = realizado, omitido si no aplica)
+ * - spareParts / caseId: solo para role == "Reparación" (lista de PNs usados del stock + SF Case ID)
  *
  * MODIFY:
  * - action, serial, targetStatus
@@ -68,5 +69,14 @@ data class TerminalEventRequest(
     val firmwareOk: Boolean? = null,
 
     @SerializedName("llaveOk")
-    val llaveOk: Boolean? = null
+    val llaveOk: Boolean? = null,
+
+    // ===== COMPLETE (Reparación) =====
+    // Lista de part numbers utilizados del stock (ej. ["102040064U", "111016685U"])
+    @SerializedName("spareParts")
+    val spareParts: List<String>? = null,
+
+    // SF Case ID — requerido cuando spareParts no está vacío
+    @SerializedName("caseId")
+    val caseId: String? = null
 )

@@ -197,7 +197,9 @@ object ApiClient {
         failureObservations: List<String>? = null,
         appOk: Boolean? = null,
         firmwareOk: Boolean? = null,
-        llaveOk: Boolean? = null
+        llaveOk: Boolean? = null,
+        spareParts: List<String>? = null,
+        caseId: String? = null
     ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val r = role.trim()
@@ -213,7 +215,9 @@ object ApiClient {
             failureObservations = failureObservations?.takeIf { it.isNotEmpty() },
             appOk = appOk,
             firmwareOk = firmwareOk,
-            llaveOk = llaveOk
+            llaveOk = llaveOk,
+            spareParts = spareParts?.takeIf { it.isNotEmpty() },
+            caseId = caseId
         )
 
         return api().terminalEvent(payload)

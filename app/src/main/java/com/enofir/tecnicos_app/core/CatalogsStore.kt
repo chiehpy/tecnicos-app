@@ -107,6 +107,132 @@ object CatalogsStore {
         ),
         substatusReparacion = listOf(
             "Carga de firmware", "Reparación", "Carga de firmware + Inyección"
+        ),
+        repairedParts = mapOf(
+            "N910" to listOf(
+                // Usados
+                RecoveredPartItem("111012496U", "Carcasa frontal",             sfId = "a03Vr00000rHEQPIA4"),
+                RecoveredPartItem("300052005U", "Carcasa frontal + Display",   sfId = "a03Vr00000lGEHIIA4"),
+                RecoveredPartItem("111016684U", "Carcasa posterior",           sfId = "a03Vr00000lGEHKIA4"),
+                RecoveredPartItem("111016685U", "Tapa bateria",                sfId = "a03Vr00000lGEHLIA4"),
+                RecoveredPartItem("111016682U", "Tapa impresora",              sfId = "a03Vr00000lGEHJIA4"),
+                RecoveredPartItem("102050193U", "Display",                     sfId = "a03Vr00000rHEQOIA4"),
+                RecoveredPartItem("102040064U", "Impresora",                   sfId = "a03Vr00000lGEHRIA4"),
+                RecoveredPartItem("115080285U", "Rodillo",                     sfId = "a03Vr00000lGEHqIAO"),
+                RecoveredPartItem("301823114U", "Placa IO",                    sfId = "a03Vr00000lGEHMIA4"),
+                RecoveredPartItem("111011983U", "Bracket placa IO",            sfId = "a03Vr00000uUpcmIAC"),
+                RecoveredPartItem("108010045U", "Lectora chip IC",             sfId = "a03Vr00000lGEHSIA4"),
+                RecoveredPartItem("102030103U", "Cabezal magnetico",           sfId = "a03Vr00000lGEHQIA4"),
+                RecoveredPartItem("102020268U", "Camara posterior",            sfId = "a03Vr00000lGEHOIA4"),
+                RecoveredPartItem("102020269U", "Camara frontal",              sfId = "a03Vr00000lGEHPIA4"),
+                RecoveredPartItem("115030008U", "Parlante",                    sfId = "a03Vr00000lGEHTIA4"),
+                RecoveredPartItem("108010078U", "Pin de carga",                sfId = "a03Vr00000lGEHYIA4"),
+                RecoveredPartItem("108010143U", "Ficha micro USB",             sfId = "a03Vr00000lGEHZIA4"),
+                RecoveredPartItem("111040263U", "Almohadilla de apoyo",        sfId = "a03Vr00000lGEHUIA4"),
+                // Nuevos
+                RecoveredPartItem("111012496",  "Carcasa frontal",             sfId = "a03Vr00000sIqKRIA0"),
+                RecoveredPartItem("300052005",  "Carcasa frontal + Display",   sfId = "a03Vr00000lAFNqIAO"),
+                RecoveredPartItem("111016684",  "Carcasa posterior",           sfId = "a03Vr00000lAFNwIAO"),
+                RecoveredPartItem("111016685",  "Tapa bateria",                sfId = "a03Vr00000lAFNxIAO"),
+                RecoveredPartItem("111016682",  "Tapa impresora",              sfId = "a03Vr00000lAFNvIAO"),
+                RecoveredPartItem("102050193",  "Display",                     sfId = "a03Vr00000sIqKQIA0"),
+                RecoveredPartItem("102040064",  "Impresora",                   sfId = "a03Vr00000lAFO5IAO"),
+                RecoveredPartItem("115080285",  "Rodillo",                     sfId = "a03Vr00000lAFODIA4"),
+                RecoveredPartItem("301823114",  "Placa IO",                    sfId = "a03Vr00000lAFO0IAO"),
+                RecoveredPartItem("111011983",  "Bracket placa IO",            sfId = "a03Vr00000lAFNrIAO"),
+                RecoveredPartItem("108010045",  "Lectora chip IC",             sfId = "a03Vr00000lAFO8IAO"),
+                RecoveredPartItem("102030103",  "Cabezal magnetico",           sfId = "a03Vr00000lAFO4IAO"),
+                RecoveredPartItem("102020268",  "Camara posterior",            sfId = "a03Vr00000lAFO2IAO"),
+                RecoveredPartItem("102020269",  "Camara frontal",              sfId = "a03Vr00000lAFO3IAO"),
+                RecoveredPartItem("115030008",  "Parlante",                    sfId = "a03Vr00000lAFOCIA4"),
+                RecoveredPartItem("108010078",  "Pin de carga",                sfId = "a03Vr00000lAFOYIA4"),
+                RecoveredPartItem("108010143",  "Ficha micro USB",             sfId = "a03Vr00000lAFOZIA4"),
+                RecoveredPartItem("111040263",  "Almohadilla de apoyo",        sfId = "a03Vr00000lAFOOIA4"),
+                RecoveredPartItem("113010034",  "Pila CR2025 - 034",           sfId = "a03Vr00000lAFO6IAO"),
+                RecoveredPartItem("113010025",  "Pila CR2025 - 025",           sfId = "a03Vr00000lAFO7IAO")
+            ),
+            "N950_amarilla" to listOf(
+                // Usados
+                RecoveredPartItem("111018011U", "Carcasa frontal + Display (amarilla)", sfId = "a03Vr00000lGEHbIAO"),
+                RecoveredPartItem("111018119U", "Carcasa posterior (amarilla)",         sfId = "a03Vr00000lGEHkIAO"),
+                RecoveredPartItem("111018014U", "Tapa bateria (amarilla)",              sfId = "a03Vr00000lGEHlIAO"),
+                RecoveredPartItem("111018010U", "Tapa impresora (amarilla)",            sfId = "a03Vr00000lGEHjIAO"),
+                RecoveredPartItem("102050488U", "Display",                              sfId = "a03Vr00000vfy2gIAA"),
+                RecoveredPartItem("102040062U", "Impresora",                            sfId = "a03Vr00000lGEHdIAO"),
+                RecoveredPartItem("115080285U", "Rodillo",                              sfId = "a03Vr00000lGEHpIAO"),
+                RecoveredPartItem("301981004U", "Placa IO",                             sfId = "a03Vr00000lGEHaIAO"),
+                RecoveredPartItem("112030145U", "PET MESH",                             sfId = "a03Vr00000qSKilIAG"),
+                RecoveredPartItem("112020225U", "Flex BEyF",                            sfId = "a03Vr00000qSKinIAG"),
+                RecoveredPartItem("111050508U", "Botones",                              sfId = "a03Vr00000qSKimIAG"),
+                RecoveredPartItem("111017228U", "Zebra bar bracket",                    sfId = "a03Vr00000qSKikIAG"),
+                RecoveredPartItem("102020377U", "Camara posterior",                     sfId = "a03Vr00000lGEHfIAO"),
+                RecoveredPartItem("102020263U", "Camara frontal",                       sfId = "a03Vr00000lGEHgIAO"),
+                RecoveredPartItem("115030044U", "Parlante",                             sfId = "a03Vr00000lGEHeIAO"),
+                RecoveredPartItem("108010100U", "Lectora chip IC",                      sfId = "a03Vr00000lGEHiIAO"),
+                RecoveredPartItem("112020395U", "Flex carga",                           sfId = "a03Vr00000qSKioIAG"),
+                RecoveredPartItem("102030174U", "Cabezal magnetico",                    sfId = "a03Vr00000qSKipIAG"),
+                RecoveredPartItem("111015638U", "Soporte cabezal magnetico",            sfId = "a03Vr00000qSKiqIAG"),
+                RecoveredPartItem("113010051U", "Pila",                                 sfId = "a03Vr00000lGEHhIAO"),
+                // Nuevos
+                RecoveredPartItem("111018011",  "Carcasa frontal + Display (amarilla)", sfId = "a03Vr00000lAFOdIAO"),
+                RecoveredPartItem("111018119",  "Carcasa posterior (amarilla)",         sfId = "a03Vr00000lAFP5IAO"),
+                RecoveredPartItem("111018014",  "Tapa bateria (amarilla)",              sfId = "a03Vr00000lAFP6IAO"),
+                RecoveredPartItem("111018010",  "Tapa impresora (amarilla)",            sfId = "a03Vr00000lAFP4IAO"),
+                RecoveredPartItem("102040062",  "Impresora",                            sfId = "a03Vr00000lAFOfIAO"),
+                RecoveredPartItem("115080285",  "Rodillo",                              sfId = "a03Vr00000lAFPFIA4"),
+                RecoveredPartItem("301981004",  "Placa IO",                             sfId = "a03Vr00000lAFOcIAO"),
+                RecoveredPartItem("112020225",  "Flex BEyF",                            sfId = "a03Vr00000lAFOkIAO"),
+                RecoveredPartItem("111017228",  "Zebra bar bracket",                    sfId = "a03Vr00000lAFOyIAO"),
+                RecoveredPartItem("102020377",  "Camara posterior",                     sfId = "a03Vr00000lAFOiIAO"),
+                RecoveredPartItem("102020263",  "Camara frontal",                       sfId = "a03Vr00000lAFOjIAO"),
+                RecoveredPartItem("115030044",  "Parlante",                             sfId = "a03Vr00000lAFOhIAO"),
+                RecoveredPartItem("108010100",  "Lectora chip IC",                      sfId = "a03Vr00000lAFOrIAO"),
+                RecoveredPartItem("112020395",  "Flex carga",                           sfId = "a03Vr00000lAFOoIAO"),
+                RecoveredPartItem("102030174",  "Cabezal magnetico",                    sfId = "a03Vr00000lAFOgIAO"),
+                RecoveredPartItem("111015638",  "Soporte cabezal magnetico",            sfId = "a03Vr00000lAFP2IAO"),
+                RecoveredPartItem("113010051",  "Pila",                                 sfId = "a03Vr00000lAFOpIAO")
+            ),
+            "N950_celeste" to listOf(
+                // Usados
+                RecoveredPartItem("111017208U", "Carcasa frontal + Display (blanca)", sfId = "a03Vr00000lGEHcIAO"),
+                RecoveredPartItem("111017890U", "Carcasa posterior (blanca)",         sfId = "a03Vr00000lGEHnIAO"),
+                RecoveredPartItem("111017042U", "Tapa bateria (blanca)",              sfId = "a03Vr00000lGEHoIAO"),
+                RecoveredPartItem("111017052U", "Tapa impresora (celeste)",           sfId = "a03Vr00000lGEHmIAO"),
+                RecoveredPartItem("102050488U", "Display",                            sfId = "a03Vr00000vfy2gIAA"),
+                RecoveredPartItem("102040062U", "Impresora",                          sfId = "a03Vr00000lGEHdIAO"),
+                RecoveredPartItem("115080285U", "Rodillo",                            sfId = "a03Vr00000lGEHpIAO"),
+                RecoveredPartItem("301981004U", "Placa IO",                           sfId = "a03Vr00000lGEHaIAO"),
+                RecoveredPartItem("112030145U", "PET MESH",                           sfId = "a03Vr00000qSKilIAG"),
+                RecoveredPartItem("112020225U", "Flex BEyF",                          sfId = "a03Vr00000qSKinIAG"),
+                RecoveredPartItem("111050508U", "Botones",                            sfId = "a03Vr00000qSKimIAG"),
+                RecoveredPartItem("111017228U", "Zebra bar bracket",                  sfId = "a03Vr00000qSKikIAG"),
+                RecoveredPartItem("102020377U", "Camara posterior",                   sfId = "a03Vr00000lGEHfIAO"),
+                RecoveredPartItem("102020263U", "Camara frontal",                     sfId = "a03Vr00000lGEHgIAO"),
+                RecoveredPartItem("115030044U", "Parlante",                           sfId = "a03Vr00000lGEHeIAO"),
+                RecoveredPartItem("108010100U", "Lectora chip IC",                    sfId = "a03Vr00000lGEHiIAO"),
+                RecoveredPartItem("112020395U", "Flex carga",                         sfId = "a03Vr00000qSKioIAG"),
+                RecoveredPartItem("102030174U", "Cabezal magnetico",                  sfId = "a03Vr00000qSKipIAG"),
+                RecoveredPartItem("111015638U", "Soporte cabezal magnetico",          sfId = "a03Vr00000qSKiqIAG"),
+                RecoveredPartItem("113010051U", "Pila",                               sfId = "a03Vr00000lGEHhIAO"),
+                // Nuevos
+                RecoveredPartItem("111017208",  "Carcasa frontal + Display (blanca)", sfId = "a03Vr00000lAFOeIAO"),
+                RecoveredPartItem("111017890",  "Carcasa posterior (blanca)",         sfId = "a03Vr00000lAFP8IAO"),
+                RecoveredPartItem("111017042",  "Tapa bateria (blanca)",              sfId = "a03Vr00000lAFP9IAO"),
+                RecoveredPartItem("111017052",  "Tapa impresora (celeste)",           sfId = "a03Vr00000lAFP7IAO"),
+                RecoveredPartItem("102040062",  "Impresora",                          sfId = "a03Vr00000lAFOfIAO"),
+                RecoveredPartItem("115080285",  "Rodillo",                            sfId = "a03Vr00000lAFPFIA4"),
+                RecoveredPartItem("301981004",  "Placa IO",                           sfId = "a03Vr00000lAFOcIAO"),
+                RecoveredPartItem("112020225",  "Flex BEyF",                          sfId = "a03Vr00000lAFOkIAO"),
+                RecoveredPartItem("111017228",  "Zebra bar bracket",                  sfId = "a03Vr00000lAFOyIAO"),
+                RecoveredPartItem("102020377",  "Camara posterior",                   sfId = "a03Vr00000lAFOiIAO"),
+                RecoveredPartItem("102020263",  "Camara frontal",                     sfId = "a03Vr00000lAFOjIAO"),
+                RecoveredPartItem("115030044",  "Parlante",                           sfId = "a03Vr00000lAFOhIAO"),
+                RecoveredPartItem("108010100",  "Lectora chip IC",                    sfId = "a03Vr00000lAFOrIAO"),
+                RecoveredPartItem("112020395",  "Flex carga",                         sfId = "a03Vr00000lAFOoIAO"),
+                RecoveredPartItem("102030174",  "Cabezal magnetico",                  sfId = "a03Vr00000lAFOgIAO"),
+                RecoveredPartItem("111015638",  "Soporte cabezal magnetico",          sfId = "a03Vr00000lAFP2IAO"),
+                RecoveredPartItem("113010051",  "Pila",                               sfId = "a03Vr00000lAFOpIAO")
+            )
         )
     )
 
@@ -146,4 +272,13 @@ object CatalogsStore {
     }
     val statuses: List<String> get() = _cached?.statuses ?: defaults.statuses
     val substatusReparacion: List<String> get() = _cached?.substatusReparacion ?: defaults.substatusReparacion
+    fun getRepairedParts(serial: String): List<RecoveredPartItem> {
+        val key = when {
+            serial.startsWith("NCC", ignoreCase = true) -> "N950_amarilla"
+            serial.startsWith("NCB", ignoreCase = true) -> "N950_celeste"
+            else -> "N910"
+        }
+        val map = _cached?.repairedParts ?: defaults.repairedParts
+        return map?.get(key) ?: map?.get("N910") ?: emptyList()
+    }
 }

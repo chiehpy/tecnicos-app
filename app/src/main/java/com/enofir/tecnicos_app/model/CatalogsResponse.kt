@@ -7,5 +7,6 @@ data class CatalogsResponse(
     @SerializedName("qa_options") val qaOptions: List<String>,
     @SerializedName("recovered_parts") val recoveredParts: Map<String, List<RecoveredPartItem>>,
     val statuses: List<String>,
-    @SerializedName("substatus_reparacion") val substatusReparacion: List<String>
+    @SerializedName("substatus_reparacion") val substatusReparacion: List<String>,
+    @SerializedName("repaired_parts") val repairedParts: Map<String, List<RecoveredPartItem>>? = null
 )
