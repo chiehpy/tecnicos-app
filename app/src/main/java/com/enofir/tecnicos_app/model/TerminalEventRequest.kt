@@ -78,5 +78,9 @@ data class TerminalEventRequest(
 
     // SF Case ID — requerido cuando spareParts no está vacío
     @SerializedName("caseId")
-    val caseId: String? = null
+    val caseId: String? = null,
+
+    // Tiempo de reparación HH:MM (desde que se abre la actividad hasta COMPLETE)
+    @SerializedName("repair_time")
+    val repairTime: String? = null
 )

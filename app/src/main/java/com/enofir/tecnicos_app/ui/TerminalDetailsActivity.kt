@@ -547,7 +547,8 @@ class TerminalDetailsActivity : BaseActivity() {
         firmwareOk: Boolean? = null,
         llaveOk: Boolean? = null,
         spareParts: List<String>? = null,
-        caseId: String? = null
+        caseId: String? = null,
+        repairTime: String? = null
     ) {
         btnComplete.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
@@ -555,7 +556,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
         val isVerificarAppsRole = role == ROLE_VERIFICAR_APPS
         val appOkValue = if (isVerificarAppsRole) true else appOk
-        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId).enqueue(object : Callback<TerminalEventResponse> {
+        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime).enqueue(object : Callback<TerminalEventResponse> {
 
             override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                 val body = response.body()
@@ -1264,7 +1265,7 @@ class TerminalDetailsActivity : BaseActivity() {
                 return@setOnClickListener
             }
 
-            // Reparación: COMPLETE + spareParts (opcional) + caseId
+            // Reparación: COMPLETE + spareParts (opcional) + caseId + repairTime
             if (isReparacion) {
                 val selected = getSelectedRepairedParts()
                 val selectionMade = repairedPartsNoneSelected || selected.isNotEmpty()
@@ -1275,16 +1276,21 @@ class TerminalDetailsActivity : BaseActivity() {
                     return@setOnClickListener
                 }
 
-                if (selected.isNotEmpty() && csId.isNullOrBlank()) {
+                if (csId.isNullOrBlank()) {
                     StatusChip.apply(chip, ChipState.ERROR, "ERROR")
                     tvResult.text = "No se pudo obtener el ID del caso de SF. Reiniciá la pantalla."
                     return@setOnClickListener
                 }
 
+                val nowTs = System.currentTimeMillis()
+                val totalMinutes = ((nowTs - startTimestamp) / 1000 / 60).toInt()
+                val repairTime = "%02d:%02d".format(totalMinutes / 60, totalMinutes % 60)
+
                 executeComplete(
                     serial, role, chip, tvResult, btnComplete,
                     spareParts = selected.ifEmpty { null },
-                    caseId = if (selected.isNotEmpty()) csId else null
+                    caseId = csId,
+                    repairTime = repairTime
                 )
                 return@setOnClickListener
             }
