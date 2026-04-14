@@ -15,18 +15,27 @@ object CatalogsStore {
 
     private val defaults = CatalogsResponse(
         failureObservations = listOf(
-            "Sin falla", "Vinculada", "Audio defectuoso", "Carcasa posterior rota",
-            "Carcasa frontal rota", "Se tilda terminal", "Sin tapa de bateria",
-            "Sin tapa de impresora", "Display roto", "Botón de inicio defectuoso",
-            "Tactil roto", "Film dañado", "Impresora rota", "Tapa de bateria rota",
-            "Tapa de impresora rota", "No enciende", "Cucarachas en placa principal",
+            "Sin falla", "Vinculada", "Audio defectuoso",
+            "Carcasa posterior rayada", "Carcasa posterior golpeada",
+            "Carcasa posterior rota", "Carcasa posterior desgastada",
+            "Carcasa frontal rayada", "Carcasa frontal golpeada",
+            "Carcasa frontal rota", "Carcasa frontal desgastada",
+            "Se tilda terminal", "Sin tapa de bateria", "Sin tapa de impresora",
+            "Display rayado", "Display golpeado", "Display roto",
+            "Botón de inicio defectuoso", "Tactil roto", "Film dañado", "Impresora rota",
+            "Tapa de bateria rayada", "Tapa de bateria golpeada",
+            "Tapa de bateria rota", "Tapa de bateria desgastada",
+            "Tapa de impresora rayada", "Tapa de impresora golpeada",
+            "Tapa de impresora rota", "Tapa de impresora desgastada",
+            "No enciende", "Cucarachas en placa principal",
             "Placa dañada - no bootea", "Placa dañada - no enciende",
             "Placa dañada - no anda impresora", "Placa dañada - sobrecalienta",
             "Placa dañada - sulfatada", "Placa dañada - tamper permanente",
             "Camara frontal rota", "Camara trasera rota", "Entrada USB dañada",
             "Pin de carga dañado", "Boton home", "USB sucio", "Lectora chip IC sucio",
             "Lectora chip IC dañada", "No comunica", "No bootea", "Tamper",
-            "Falla lector magnetico", "Falla lector NFC"
+            "Falla lector magnetico", "Falla lector NFC",
+            "No carga USB", "No da video"
         ),
         qaOptions = listOf(
             "Falta de limpieza: Carcasa posterior", "Falta de limpieza: Carcasa frontal",

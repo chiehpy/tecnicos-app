@@ -82,5 +82,9 @@ data class TerminalEventRequest(
 
     // Tiempo de reparación HH:MM (desde que se abre la actividad hasta COMPLETE)
     @SerializedName("repair_time")
-    val repairTime: String? = null
+    val repairTime: String? = null,
+
+    // Fallas adicionales encontradas por el técnico de Reparación (van a InitialDiagnosis__c)
+    @SerializedName("initialDiagnosis")
+    val initialDiagnosis: List<String>? = null
 )

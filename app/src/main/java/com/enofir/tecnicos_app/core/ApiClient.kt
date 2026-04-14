@@ -200,7 +200,8 @@ object ApiClient {
         llaveOk: Boolean? = null,
         spareParts: List<String>? = null,
         caseId: String? = null,
-        repairTime: String? = null
+        repairTime: String? = null,
+        initialDiagnosis: List<String>? = null
     ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val r = role.trim()
@@ -219,7 +220,8 @@ object ApiClient {
             llaveOk = llaveOk,
             spareParts = spareParts?.takeIf { it.isNotEmpty() },
             caseId = caseId,
-            repairTime = repairTime
+            repairTime = repairTime,
+            initialDiagnosis = initialDiagnosis?.takeIf { it.isNotEmpty() }
         )
 
         return api().terminalEvent(payload)
@@ -245,7 +247,8 @@ object ApiClient {
         targetSubstatus: String? = null,
         technicianName: String? = null,
         recoveredParts: String? = null,
-        failureObservations: List<String>? = null
+        failureObservations: List<String>? = null,
+        initialDiagnosis: List<String>? = null
     ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val ts = targetStatus.trim()
@@ -276,7 +279,8 @@ object ApiClient {
             targetSubstatus = tss,
             technicianName = tech,
             recoveredParts = parts,
-            failureObservations = failureObservations?.takeIf { it.isNotEmpty() }
+            failureObservations = failureObservations?.takeIf { it.isNotEmpty() },
+            initialDiagnosis = initialDiagnosis?.takeIf { it.isNotEmpty() }
         )
 
         return api().terminalEvent(payload)

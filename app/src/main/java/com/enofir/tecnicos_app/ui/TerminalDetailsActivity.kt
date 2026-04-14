@@ -3,12 +3,19 @@ package com.enofir.tecnicos_app.ui
 import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Base64
 import android.view.View
+import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.BaseAdapter
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.Chronometer
+import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.enofir.tecnicos_app.R
@@ -60,7 +67,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
     // Failure observations (Revisión inicial)
     private val failureOptions: List<String> get() = FailureObservationsCatalog.OPTIONS
-    private val failureSelected: BooleanArray by lazy { BooleanArray(CatalogsStore.failureObservations.size) { false } }
+    private val failureSelected: MutableSet<String> = mutableSetOf()
 
     // Catálogo QA — obtenido desde CatalogsStore (servidor o caché)
     private val qaOptions: List<String> get() = CatalogsStore.qaOptions
@@ -86,7 +93,11 @@ class TerminalDetailsActivity : BaseActivity() {
     private var currentStatus: String? = null
     private var csId: String? = null
     private var currentAccountName: String? = null
+    private var currentModelRaw: String = ""
     private var startTimestamp: Long = 0
+
+    // Fallas de Revisión Inicial — cargadas desde el lookup
+    private var revisionInicialFailures: List<String> = emptyList()
 
     private fun present(s: String?): Boolean =
         !s.isNullOrBlank() && s.trim() != "-" && s.trim().lowercase() != "null"
@@ -125,20 +136,13 @@ class TerminalDetailsActivity : BaseActivity() {
         }
     }
 
-    private fun getSelectedFailureValues(): List<String> {
-        val out = mutableListOf<String>()
-        for (i in failureOptions.indices) if (failureSelected[i]) out.add(failureOptions[i])
-        return out
-    }
+    private fun getSelectedFailureValues(): List<String> = failureSelected.toList()
 
-    private fun clearAllFailureSelections() {
-        for (i in failureSelected.indices) failureSelected[i] = false
-    }
+    private fun clearAllFailureSelections() { failureSelected.clear() }
 
     private fun setOnlyNoneFailureSelected() {
-        clearAllFailureSelections()
-        val noneIndex = failureOptions.indexOf(FailureObservationsCatalog.NONE)
-        if (noneIndex >= 0) failureSelected[noneIndex] = true
+        failureSelected.clear()
+        failureSelected.add(FailureObservationsCatalog.NONE)
     }
 
     private fun setDialogChecksFromModel(dialog: AlertDialog, model: BooleanArray) {
@@ -306,32 +310,136 @@ class TerminalDetailsActivity : BaseActivity() {
     }
 
     private fun showFailureObsDialogForIrreparable(onConfirm: (failureObs: List<String>) -> Unit) {
-        val noneIndex = failureOptions.indexOf(FailureObservationsCatalog.NONE)
-        val items: Array<CharSequence> = failureOptions.toTypedArray()
+        showFailureTreeDialog(
+            title = "Seleccionar fallas (obligatorio)",
+            positiveLabel = "Continuar",
+            showPlacaDanada = true,
+            requireSelection = true,
+            irreparableOnly = true,
+            onConfirm = onConfirm
+        )
+    }
 
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Seleccionar fallas (obligatorio)")
-            .setMultiChoiceItems(items, failureSelected) { dialogInterface: DialogInterface, which: Int, checked: Boolean ->
-                failureSelected[which] = checked
+    private sealed class FallaDialogItem {
+        data class Flat(val label: String) : FallaDialogItem()
+        data class Cat(val cat: FailureObservationsCatalog.FallaCategory) : FallaDialogItem()
+        data class Locked(val label: String) : FallaDialogItem()
+    }
 
-                if (noneIndex >= 0) {
-                    if (which == noneIndex && checked) {
-                        setOnlyNoneFailureSelected()
-                    } else if (which != noneIndex && checked) {
-                        failureSelected[noneIndex] = false
+    private fun showFailureTreeDialog(
+        title: String,
+        positiveLabel: String,
+        showPlacaDanada: Boolean,
+        requireSelection: Boolean,
+        irreparableOnly: Boolean = false,
+        onConfirm: (List<String>) -> Unit
+    ) {
+        val noneLabel = FailureObservationsCatalog.NONE
+        val cats = FailureObservationsCatalog.CATEGORIES
+            .filter { showPlacaDanada || it.name != "Placa dañada" }
+        val flatOpts = FailureObservationsCatalog.FLAT_OPTIONS
+            .filter { it != noneLabel }
+            .filter { !irreparableOnly || it != noneLabel }
+
+        val items: List<FallaDialogItem> = (if (irreparableOnly) emptyList() else listOf(FallaDialogItem.Flat(noneLabel))) +
+                cats.map { FallaDialogItem.Cat(it) } +
+                flatOpts.map { FallaDialogItem.Flat(it) }
+
+        val listView = ListView(this)
+
+        val adapter = object : BaseAdapter() {
+            override fun getCount() = items.size
+            override fun getItem(pos: Int) = items[pos]
+            override fun getItemId(pos: Int) = pos.toLong()
+            override fun getViewTypeCount() = 2
+            override fun getItemViewType(pos: Int) = if (items[pos] is FallaDialogItem.Cat) 1 else 0
+
+            override fun getView(pos: Int, convertView: View?, parent: ViewGroup): View {
+                return when (val item = items[pos]) {
+                    is FallaDialogItem.Flat -> {
+                        val cb = CheckBox(this@TerminalDetailsActivity)
+                        cb.text = item.label
+                        cb.textSize = 15f
+                        cb.setPadding(32, 24, 32, 24)
+                        cb.isChecked = item.label in failureSelected
+                        cb.isClickable = false
+                        cb.isFocusable = false
+                        cb
                     }
+                    is FallaDialogItem.Cat -> {
+                        val selectedCount = item.cat.subOptions.count { it in failureSelected }
+                        val cb = CheckBox(this@TerminalDetailsActivity)
+                        cb.text = "${item.cat.name}  ▶"
+                        cb.textSize = 15f
+                        cb.setPadding(32, 24, 32, 24)
+                        cb.isChecked = selectedCount > 0
+                        cb.isClickable = false
+                        cb.isFocusable = false
+                        cb
+                    }
+                    is FallaDialogItem.Locked -> TextView(this@TerminalDetailsActivity) // nunca ocurre aquí
                 }
-
-                val alert = dialogInterface as? AlertDialog
-                if (alert != null) setDialogChecksFromModel(alert, failureSelected)
             }
-            .setPositiveButton("Continuar") { d, _ ->
+        }
+
+        listView.adapter = adapter
+        listView.onItemClickListener = AdapterView.OnItemClickListener { _, _, pos, _ ->
+            when (val item = items[pos]) {
+                is FallaDialogItem.Locked -> { /* no-op */ }
+                is FallaDialogItem.Flat -> {
+                    val label = item.label
+                    if (label == noneLabel) {
+                        if (noneLabel in failureSelected) failureSelected.remove(noneLabel)
+                        else { failureSelected.clear(); failureSelected.add(noneLabel) }
+                    } else {
+                        if (label in failureSelected) failureSelected.remove(label)
+                        else { failureSelected.add(label); failureSelected.remove(noneLabel) }
+                    }
+                    adapter.notifyDataSetChanged()
+                }
+                is FallaDialogItem.Cat -> {
+                    val cat = item.cat
+                    val subArray = cat.subOptions.toTypedArray()
+                    val subChecked = BooleanArray(subArray.size) { subArray[it] in failureSelected }
+                    AlertDialog.Builder(this)
+                        .setTitle(cat.name)
+                        .setMultiChoiceItems(subArray, subChecked) { _, which, checked ->
+                            val sub = subArray[which]
+                            if (checked) { failureSelected.add(sub); failureSelected.remove(noneLabel) }
+                            else failureSelected.remove(sub)
+                        }
+                        .setPositiveButton("Listo") { d, _ ->
+                            d.dismiss()
+                            adapter.notifyDataSetChanged()
+                        }
+                        .show()
+                }
+            }
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(listView)
+            .setPositiveButton(positiveLabel) { d, _ ->
                 d.dismiss()
-                val vals = getSelectedFailureValues()
-                if (vals.isEmpty()) {
+                val vals = failureSelected.toList()
+                if (requireSelection && vals.isEmpty()) {
                     AlertDialog.Builder(this)
                         .setTitle("Faltan fallas")
-                        .setMessage("Seleccioná al menos una falla (o 'Sin falla').")
+                        .setMessage("Seleccioná al menos una falla.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                    return@setPositiveButton
+                }
+                if (irreparableOnly && !IrreparableChecker.isIrreparable(vals, currentAccountName)) {
+                    AlertDialog.Builder(this)
+                        .setTitle("Fallas insuficientes")
+                        .setMessage(
+                            "Las fallas seleccionadas no califican como irreparable.\n\n" +
+                            "Se requiere: placa dañada, carcasa frontal o display roto" +
+                            if (currentAccountName?.trim().equals("Mercado Libre SA", ignoreCase = true))
+                                "." else " combinado con impresora rota, cámara rota o carcasa posterior rota."
+                        )
                         .setPositiveButton("OK", null)
                         .show()
                     return@setPositiveButton
@@ -339,10 +447,206 @@ class TerminalDetailsActivity : BaseActivity() {
                 onConfirm(vals)
             }
             .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    /**
+     * Form 1 del flujo de Reparación COMPLETE — árbol de fallas.
+     * - "No se encontraron fallas adicionales" al tope (exclusivo con el resto)
+     * - Fallas de Revisión Inicial: pre-chequeadas y bloqueadas (grises)
+     * - Categorías con sub-opciones + fallas planas, filtrando irreparables para ML N950
+     * Devuelve solo las fallas NUEVAS seleccionadas (no las de RI).
+     */
+    private fun showRepairFallasDialog(onConfirm: (initialDiagnosis: List<String>) -> Unit) {
+        val isMercadoLibre = currentAccountName?.trim().equals("Mercado Libre SA", ignoreCase = true)
+        val irreparableKeywords = listOf("placa", "carcasa frontal", "display", "tactil", "táctil")
+        val noAdditional = "No se encontraron fallas adicionales"
+
+        val lockedFallas = revisionInicialFailures.filter { it != FailureObservationsCatalog.NONE }
+        val lockedSet = lockedFallas.toSet()
+
+        val cats = FailureObservationsCatalog.CATEGORIES
+            .filter { cat -> !(isMercadoLibre && irreparableKeywords.any { kw -> cat.name.contains(kw, ignoreCase = true) }) }
+
+        val flatOpts = FailureObservationsCatalog.FLAT_OPTIONS
+            .filter { it != FailureObservationsCatalog.NONE && it !in lockedSet }
+            .filter { f -> !(isMercadoLibre && irreparableKeywords.any { kw -> f.contains(kw, ignoreCase = true) }) }
+
+        val items: List<FallaDialogItem> =
+            listOf(FallaDialogItem.Flat(noAdditional)) +
+            lockedFallas.map { FallaDialogItem.Locked(it) } +
+            cats.map { FallaDialogItem.Cat(it) } +
+            flatOpts.map { FallaDialogItem.Flat(it) }
+
+        val newSelected = mutableSetOf<String>()
+        var noAdditionalSelected = false
+
+        val listView = ListView(this)
+
+        val adapter = object : BaseAdapter() {
+            override fun getCount() = items.size
+            override fun getItem(pos: Int) = items[pos]
+            override fun getItemId(pos: Int) = pos.toLong()
+            override fun getViewTypeCount() = 3
+            override fun getItemViewType(pos: Int) = when (items[pos]) {
+                is FallaDialogItem.Flat -> 0
+                is FallaDialogItem.Cat -> 1
+                is FallaDialogItem.Locked -> 2
+            }
+
+            override fun getView(pos: Int, convertView: View?, parent: ViewGroup): View {
+                return when (val item = items[pos]) {
+                    is FallaDialogItem.Flat -> {
+                        val isNoAdd = item.label == noAdditional
+                        val cb = CheckBox(this@TerminalDetailsActivity)
+                        cb.text = item.label
+                        cb.textSize = 15f
+                        cb.setPadding(32, 24, 32, 24)
+                        cb.isChecked = if (isNoAdd) noAdditionalSelected else item.label in newSelected
+                        cb.isClickable = false
+                        cb.isFocusable = false
+                        cb
+                    }
+                    is FallaDialogItem.Cat -> {
+                        val selectedCount = item.cat.subOptions.count { it in newSelected }
+                        val cb = CheckBox(this@TerminalDetailsActivity)
+                        cb.text = "${item.cat.name}  ▶"
+                        cb.textSize = 15f
+                        cb.setPadding(32, 24, 32, 24)
+                        cb.isChecked = selectedCount > 0
+                        cb.isClickable = false
+                        cb.isFocusable = false
+                        cb
+                    }
+                    is FallaDialogItem.Locked -> {
+                        val cb = CheckBox(this@TerminalDetailsActivity)
+                        cb.text = item.label
+                        cb.textSize = 15f
+                        cb.setPadding(32, 24, 32, 24)
+                        cb.isChecked = true
+                        cb.isClickable = false
+                        cb.isFocusable = false
+                        cb.alpha = 0.4f
+                        cb
+                    }
+                }
+            }
+        }
+
+        listView.adapter = adapter
+        listView.onItemClickListener = AdapterView.OnItemClickListener { _, _, pos, _ ->
+            when (val item = items[pos]) {
+                is FallaDialogItem.Locked -> { /* bloqueado */ }
+                is FallaDialogItem.Flat -> {
+                    val label = item.label
+                    if (label == noAdditional) {
+                        noAdditionalSelected = !noAdditionalSelected
+                        if (noAdditionalSelected) newSelected.clear()
+                    } else {
+                        if (label in newSelected) newSelected.remove(label)
+                        else { newSelected.add(label); noAdditionalSelected = false }
+                    }
+                    adapter.notifyDataSetChanged()
+                }
+                is FallaDialogItem.Cat -> {
+                    val cat = item.cat
+                    val subArray = cat.subOptions.toTypedArray()
+                    val subChecked = BooleanArray(subArray.size) { subArray[it] in newSelected }
+                    AlertDialog.Builder(this)
+                        .setTitle(cat.name)
+                        .setMultiChoiceItems(subArray, subChecked) { _, which, checked ->
+                            val sub = subArray[which]
+                            if (checked) { newSelected.add(sub); noAdditionalSelected = false }
+                            else newSelected.remove(sub)
+                        }
+                        .setPositiveButton("Listo") { d, _ ->
+                            d.dismiss()
+                            adapter.notifyDataSetChanged()
+                        }
+                        .show()
+                }
+            }
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Fallas encontradas")
+            .setView(listView)
+            .setPositiveButton("Continuar", null)
+            .setNegativeButton("Cancelar", null)
             .create()
 
         dialog.show()
-        setDialogChecksFromModel(dialog, failureSelected)
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            if (!noAdditionalSelected && newSelected.isEmpty()) {
+                AlertDialog.Builder(this)
+                    .setTitle("Falta seleccionar")
+                    .setMessage("Seleccioná al menos una falla o \"$noAdditional\".")
+                    .setPositiveButton("OK", null)
+                    .show()
+                return@setOnClickListener
+            }
+            dialog.dismiss()
+            onConfirm(newSelected.toList())
+        }
+    }
+
+    /** Form 2 del flujo de Reparación COMPLETE — selección de repuestos utilizados. */
+    private fun showRepairPartsDialog(onConfirm: (selected: List<String>, noneSelected: Boolean) -> Unit) {
+        val noneLabel = "No se cambiaron repuestos"
+        val sortedIndices = repairedPartsOptions.indices
+            .sortedByDescending { i -> getPartUsageCount(repairedPartsOptions[i].sfId ?: repairedPartsOptions[i].pn) }
+        val sortedParts = sortedIndices.map { repairedPartsOptions[it] }
+
+        val allItems = (listOf(noneLabel) + sortedParts.map { part ->
+            val usadoSuffix = if (part.pn.endsWith("UND") || part.pn.endsWith("U")) " - USADO" else ""
+            val stockSuffix = if ((part.stock ?: 0) > 0) " (${part.stock})" else ""
+            "${part.name}$usadoSuffix$stockSuffix"
+        }).toTypedArray()
+
+        val dialogSelected = BooleanArray(allItems.size) { false }
+        if (repairedPartsNoneSelected) {
+            dialogSelected[0] = true
+        } else {
+            sortedIndices.forEachIndexed { sortPos, origIdx ->
+                dialogSelected[sortPos + 1] = repairedPartsSelected.getOrElse(origIdx) { false }
+            }
+        }
+
+        val partsDialog = AlertDialog.Builder(this)
+            .setTitle("Repuestos utilizados")
+            .setMultiChoiceItems(allItems, dialogSelected) { _, which, checked ->
+                if (which == 0) {
+                    dialogSelected.fill(false)
+                    dialogSelected[0] = checked
+                } else {
+                    dialogSelected[0] = false
+                    dialogSelected[which] = checked
+                }
+            }
+            .setPositiveButton("Aceptar", null)
+            .setNegativeButton("Cancelar", null)
+            .create()
+
+        partsDialog.show()
+
+        partsDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val anySelected = dialogSelected.any { it }
+            if (!anySelected) {
+                AlertDialog.Builder(this)
+                    .setTitle("Falta seleccionar")
+                    .setMessage("Seleccioná al menos un repuesto o \"$noneLabel\".")
+                    .setPositiveButton("OK", null)
+                    .show()
+                return@setOnClickListener
+            }
+            repairedPartsNoneSelected = dialogSelected[0]
+            sortedIndices.forEachIndexed { sortPos, origIdx ->
+                repairedPartsSelected[origIdx] = dialogSelected[sortPos + 1]
+            }
+            partsDialog.dismiss()
+            val selected = getSelectedRepairedParts()
+            onConfirm(selected, repairedPartsNoneSelected)
+        }
     }
 
     private fun showQaRejectDialog(onConfirm: (qaObsStringForMdw: String, qaObsStringForUi: String) -> Unit) {
@@ -444,6 +748,7 @@ class TerminalDetailsActivity : BaseActivity() {
         finishOnSuccess: Boolean = false,
         substatus: String? = null,
         failureObservations: List<String>? = null,
+        initialDiagnosis: List<String>? = null,
         recoveredParts: String? = null,
         technicianNameRequired: Boolean = false,
         saveHistory: Boolean = true,
@@ -466,9 +771,10 @@ class TerminalDetailsActivity : BaseActivity() {
             serial = serial,
             targetStatus = newStatus,
             targetSubstatus = substatus,
-            technicianName = techName, // lo mandamos siempre si existe
+            technicianName = techName,
             recoveredParts = recoveredParts,
-            failureObservations = failureObservations
+            failureObservations = failureObservations,
+            initialDiagnosis = initialDiagnosis
         ).enqueue(object : Callback<TerminalEventResponse> {
 
             override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
@@ -548,7 +854,8 @@ class TerminalDetailsActivity : BaseActivity() {
         llaveOk: Boolean? = null,
         spareParts: List<String>? = null,
         caseId: String? = null,
-        repairTime: String? = null
+        repairTime: String? = null,
+        initialDiagnosis: List<String>? = null
     ) {
         btnComplete.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
@@ -556,7 +863,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
         val isVerificarAppsRole = role == ROLE_VERIFICAR_APPS
         val appOkValue = if (isVerificarAppsRole) true else appOk
-        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime).enqueue(object : Callback<TerminalEventResponse> {
+        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis).enqueue(object : Callback<TerminalEventResponse> {
 
             override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                 val body = response.body()
@@ -720,46 +1027,11 @@ class TerminalDetailsActivity : BaseActivity() {
         tvResult.text = ""
 
         if (isRevisionInicial) {
-            failureObsContainer.visibility = View.VISIBLE
+            failureObsContainer.visibility = View.GONE
             btnComplete.text = "Enviar a reparación técnica"
             btnChangeState.text = "Irreparable"
-
-            btnChangeState.isEnabled = false
-            btnChangeState.alpha = 0.5f
-
-            btnFailureObs.isEnabled = true
-            renderFailureObsText(tvFailureObs, btnChangeState)
-
-            btnFailureObs.setOnClickListener {
-                val noneIndex = failureOptions.indexOf(FailureObservationsCatalog.NONE)
-                val items: Array<CharSequence> = failureOptions.toTypedArray()
-
-                val dialog = AlertDialog.Builder(this)
-                    .setTitle("Fallas encontradas")
-                    .setMultiChoiceItems(items, failureSelected) { dialogInterface: DialogInterface, which: Int, checked: Boolean ->
-                        failureSelected[which] = checked
-
-                        if (noneIndex >= 0) {
-                            if (which == noneIndex && checked) {
-                                setOnlyNoneFailureSelected()
-                            } else if (which != noneIndex && checked) {
-                                failureSelected[noneIndex] = false
-                            }
-                        }
-
-                        val alert = dialogInterface as? AlertDialog
-                        if (alert != null) setDialogChecksFromModel(alert, failureSelected)
-                    }
-                    .setPositiveButton("Aceptar") { d, _ ->
-                        renderFailureObsText(tvFailureObs, btnChangeState)
-                        d.dismiss()
-                    }
-                    .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
-                    .create()
-
-                dialog.show()
-                setDialogChecksFromModel(dialog, failureSelected)
-            }
+            btnChangeState.isEnabled = true
+            btnChangeState.alpha = 1.0f
         } else if (isQa) {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
@@ -851,56 +1123,9 @@ class TerminalDetailsActivity : BaseActivity() {
             btnChangeState.visibility = View.GONE
         } else if (isReparacion) {
             failureObsContainer.visibility = View.GONE
-            recoveryContainer.visibility = View.VISIBLE
+            recoveryContainer.visibility = View.GONE
             btnComplete.text = "REPARAR TERMINAL"
             btnChangeState.text = "CAMBIAR ESTADO"
-            btnSelectRecoveredParts.text = "REPUESTOS UTILIZADOS"
-
-            btnSelectRecoveredParts.setOnClickListener {
-                val noneLabel = "No se cambiaron repuestos"
-                // Sort by usage count descending, keeping original index mapping
-                val sortedIndices = repairedPartsOptions.indices
-                    .sortedByDescending { i -> getPartUsageCount(repairedPartsOptions[i].sfId ?: repairedPartsOptions[i].pn) }
-                val sortedParts = sortedIndices.map { repairedPartsOptions[it] }
-
-                val allItems = (listOf(noneLabel) + sortedParts.map { part ->
-                    val usadoSuffix = if (part.pn.endsWith("UND") || part.pn.endsWith("U")) " - USADO" else ""
-                    val stockSuffix = if ((part.stock ?: 0) > 0) " (${part.stock})" else ""
-                    "${part.name}$usadoSuffix$stockSuffix"
-                }).toTypedArray()
-
-                val dialogSelected = BooleanArray(allItems.size) { false }
-                if (repairedPartsNoneSelected) {
-                    dialogSelected[0] = true
-                } else {
-                    sortedIndices.forEachIndexed { sortPos, origIdx ->
-                        dialogSelected[sortPos + 1] = repairedPartsSelected.getOrElse(origIdx) { false }
-                    }
-                }
-
-                val dialog = AlertDialog.Builder(this)
-                    .setTitle("Repuestos utilizados")
-                    .setMultiChoiceItems(allItems, dialogSelected) { _, which, checked ->
-                        if (which == 0) {
-                            dialogSelected.fill(false)
-                            dialogSelected[0] = checked
-                        } else {
-                            dialogSelected[0] = false
-                            dialogSelected[which] = checked
-                        }
-                    }
-                    .setPositiveButton("Aceptar") { d, _ ->
-                        repairedPartsNoneSelected = dialogSelected[0]
-                        sortedIndices.forEachIndexed { sortPos, origIdx ->
-                            repairedPartsSelected[origIdx] = dialogSelected[sortPos + 1]
-                        }
-                        renderRepairedPartsText(tvRecoveredParts)
-                        d.dismiss()
-                    }
-                    .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
-                    .create()
-                dialog.show()
-            }
         } else {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
@@ -953,6 +1178,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
                     val modelRaw = asset?.productName?.trim().takeIf { present(it) } ?: "-"
                     tvModel.text = computeModelLabel(modelRaw, imei2)
+                    currentModelRaw = modelRaw
 
                     // Guardar accountName para IrreparableChecker
                     currentAccountName = cs?.accountName?.trim()
@@ -978,6 +1204,11 @@ class TerminalDetailsActivity : BaseActivity() {
 
                     val observedFailures = cs?.failureObservations?.trim().takeIf { present(it) }
                     tvObservedFailuresValue.text = observedFailures ?: "-"
+                    revisionInicialFailures = observedFailures
+                        ?.split(",", ";", "+")
+                        ?.map { it.trim() }
+                        ?.filter { it.isNotEmpty() }
+                        ?: emptyList()
 
                     val qaObsRaw = cs?.qaObservations?.trim()
                     if (present(qaObsRaw)) {
@@ -1109,34 +1340,35 @@ class TerminalDetailsActivity : BaseActivity() {
             }
 
             if (isRevisionInicial) {
-                val selectedFallas = getSelectedFailureValues()
-                if (selectedFallas.isEmpty()) {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    tvResult.text = "Seleccioná al menos una falla (o 'Sin falla')."
-                    return@setOnClickListener
-                }
-
-                AlertDialog.Builder(this)
-                    .setTitle("Confirmar cambio a Irreparable")
-                    .setMessage(
-                        "Razón: ${selectedFallas.joinToString(", ")}\n\n" +
-                                "¿Estás seguro que querés marcar este terminal como Irreparable?"
-                    )
-                    .setPositiveButton("Aceptar") { _, _ ->
-                        executeChangeStatus(
-                            serial = serial,
-                            newStatus = STATUS_IRREPARABLE,
-                            chip = chip,
-                            tvResult = tvResult,
-                            tvStatusValue = tvStatusValue,
-                            btnChangeState = btnChangeState,
-                            finishOnSuccess = true,
-                            substatus = null,
-                            failureObservations = selectedFallas
+                showFailureTreeDialog(
+                    title = "Seleccionar fallas (obligatorio)",
+                    positiveLabel = "Continuar",
+                    showPlacaDanada = true,
+                    requireSelection = true,
+                    irreparableOnly = true
+                ) { selectedFallas ->
+                    AlertDialog.Builder(this)
+                        .setTitle("Confirmar cambio a Irreparable")
+                        .setMessage(
+                            "Razón: ${selectedFallas.joinToString(", ")}\n\n" +
+                                    "¿Estás seguro que querés marcar este terminal como Irreparable?"
                         )
-                    }
-                    .setNegativeButton("Cancelar", null)
-                    .show()
+                        .setPositiveButton("Aceptar") { _, _ ->
+                            executeChangeStatus(
+                                serial = serial,
+                                newStatus = STATUS_IRREPARABLE,
+                                chip = chip,
+                                tvResult = tvResult,
+                                tvStatusValue = tvStatusValue,
+                                btnChangeState = btnChangeState,
+                                finishOnSuccess = true,
+                                substatus = null,
+                                failureObservations = selectedFallas
+                            )
+                        }
+                        .setNegativeButton("Cancelar", null)
+                        .show()
+                }
             } else {
                 val statusOptions = StatusCatalog.OPTIONS
                 if (statusOptions.isEmpty()) {
@@ -1159,6 +1391,9 @@ class TerminalDetailsActivity : BaseActivity() {
                             }
 
                             fun doModifyThenMaybeReject(qaObsForMdw: String?, qaObsForUi: String?) {
+                                val isIrreparable = newStatus == STATUS_IRREPARABLE
+                                // Revisión Inicial → FailureObservations__c; otros roles → InitialDiagnosis__c
+                                val irreparableUsesFailureObs = isIrreparable && role == ROLE_REVISION_INICIAL
                                 executeChangeStatus(
                                     serial = serial,
                                     newStatus = newStatus,
@@ -1168,7 +1403,8 @@ class TerminalDetailsActivity : BaseActivity() {
                                     btnChangeState = btnChangeState,
                                     finishOnSuccess = false,
                                     substatus = resolvedSubstatus,
-                                    failureObservations = resolvedFailures,
+                                    failureObservations = if (irreparableUsesFailureObs) resolvedFailures else if (isIrreparable) null else resolvedFailures,
+                                    initialDiagnosis = if (isIrreparable && !irreparableUsesFailureObs) resolvedFailures else null,
                                     saveHistory = !isQa,
                                     onOk = {
                                         if (isQa && qaObsForMdw != null) {
@@ -1265,33 +1501,31 @@ class TerminalDetailsActivity : BaseActivity() {
                 return@setOnClickListener
             }
 
-            // Reparación: COMPLETE + spareParts (opcional) + caseId + repairTime
+            // Reparación: Form 1 (fallas) → Form 2 (repuestos) → COMPLETE
             if (isReparacion) {
-                val selected = getSelectedRepairedParts()
-                val selectionMade = repairedPartsNoneSelected || selected.isNotEmpty()
-
-                if (!selectionMade) {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    tvResult.text = "Seleccioná los repuestos utilizados (o 'No se cambiaron repuestos')."
-                    return@setOnClickListener
-                }
-
                 if (csId.isNullOrBlank()) {
                     StatusChip.apply(chip, ChipState.ERROR, "ERROR")
                     tvResult.text = "No se pudo obtener el ID del caso de SF. Reiniciá la pantalla."
                     return@setOnClickListener
                 }
 
-                val nowTs = System.currentTimeMillis()
-                val totalMinutes = ((nowTs - startTimestamp) / 1000 / 60).toInt()
-                val repairTime = "%02d:%02d".format(totalMinutes / 60, totalMinutes % 60)
+                // Form 1: fallas encontradas
+                showRepairFallasDialog { nuevasFallas ->
+                    // Form 2: repuestos utilizados
+                    showRepairPartsDialog { selected, noneSelected ->
+                        val nowTs = System.currentTimeMillis()
+                        val totalSeconds = ((nowTs - startTimestamp) / 1000).toInt()
+                        val repairTime = "%02d:%02d:%02d".format(totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60)
 
-                executeComplete(
-                    serial, role, chip, tvResult, btnComplete,
-                    spareParts = selected.ifEmpty { null },
-                    caseId = csId,
-                    repairTime = repairTime
-                )
+                        executeComplete(
+                            serial, role, chip, tvResult, btnComplete,
+                            spareParts = selected.ifEmpty { null },
+                            caseId = csId,
+                            repairTime = repairTime,
+                            initialDiagnosis = nuevasFallas.ifEmpty { null }
+                        )
+                    }
+                }
                 return@setOnClickListener
             }
 
@@ -1341,27 +1575,33 @@ class TerminalDetailsActivity : BaseActivity() {
                 return@setOnClickListener
             }
 
-            val observations = if (isRevisionInicial) getSelectedFailureValues() else null
-            if (isRevisionInicial && observations.isNullOrEmpty()) {
-                StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                tvResult.text = "Seleccioná al menos una observación (o 'Sin falla')."
+            if (isRevisionInicial) {
+                showFailureTreeDialog(
+                    title = "Fallas encontradas (obligatorio)",
+                    positiveLabel = "Enviar a reparación",
+                    showPlacaDanada = false,
+                    requireSelection = true
+                ) { observations ->
+                    if (IrreparableChecker.isIrreparable(observations, currentAccountName)) {
+                        AlertDialog.Builder(this)
+                            .setTitle("Advertencia: Terminal potencialmente irreparable")
+                            .setMessage(
+                                "Las fallas seleccionadas indican que este terminal podría ser irreparable:\n\n" +
+                                        "${observations.joinToString(", ")}\n\n" +
+                                        "¿Estás seguro que querés enviarlo a reparación técnica en lugar de marcarlo como Irreparable?"
+                            )
+                            .setPositiveButton("Sí, enviar a reparación") { _, _ -> executeComplete(serial, role, chip, tvResult, btnComplete, observations) }
+                            .setNegativeButton("Cancelar", null)
+                            .show()
+                    } else {
+                        executeComplete(serial, role, chip, tvResult, btnComplete, observations)
+                    }
+                }
                 return@setOnClickListener
             }
 
-            if (isRevisionInicial && IrreparableChecker.isIrreparable(observations, currentAccountName)) {
-                AlertDialog.Builder(this)
-                    .setTitle("Advertencia: Terminal potencialmente irreparable")
-                    .setMessage(
-                        "Las fallas seleccionadas indican que este terminal podría ser irreparable:\n\n" +
-                                "${observations?.joinToString(", ")}\n\n" +
-                                "¿Estás seguro que querés enviarlo a reparación técnica en lugar de marcarlo como Irreparable?"
-                    )
-                    .setPositiveButton("Sí, enviar a reparación") { _, _ -> executeComplete(serial, role, chip, tvResult, btnComplete, observations) }
-                    .setNegativeButton("Cancelar", null)
-                    .show()
-            } else {
-                executeComplete(serial, role, chip, tvResult, btnComplete, observations)
-            }
+            val observations = null
+            executeComplete(serial, role, chip, tvResult, btnComplete, observations)
         }
         // ===== FIN COMPLETE =====
     }
