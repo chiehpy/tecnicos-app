@@ -10,6 +10,7 @@ import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
 import com.enofir.tecnicos_app.model.PrintLabelResponse
+import com.enofir.tecnicos_app.model.QaNotifyRequest
 import com.enofir.tecnicos_app.model.RecoveryPatchRequest
 import com.enofir.tecnicos_app.model.TerminalEventRequest
 import com.enofir.tecnicos_app.model.TerminalEventResponse
@@ -362,6 +363,13 @@ object ApiClient {
         val s = serial.trim()
         require(s.isNotEmpty()) { "serial vacío" }
         return api().vmCheck(s)
+    }
+
+    fun qaNotify(serial: String, missing: List<String>): Call<TerminalEventResponse> {
+        val s = serial.trim()
+        require(s.isNotEmpty()) { "serial vacío" }
+        require(missing.isNotEmpty()) { "missing vacío" }
+        return api().qaNotify(QaNotifyRequest(serial = s, missing = missing))
     }
 
     /**

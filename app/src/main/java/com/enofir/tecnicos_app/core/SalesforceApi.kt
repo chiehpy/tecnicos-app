@@ -6,6 +6,7 @@ import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
 import com.enofir.tecnicos_app.model.PrintLabelResponse
+import com.enofir.tecnicos_app.model.QaNotifyRequest
 import com.enofir.tecnicos_app.model.RecoveryPatchRequest
 import com.enofir.tecnicos_app.model.RefreshRequest
 import com.enofir.tecnicos_app.model.RefreshResponse
@@ -58,4 +59,8 @@ interface SalesforceApi {
 
     @GET("vm/check")
     fun vmCheck(@Query("serial") serial: String): Call<VmCheckResponse>
+
+    @Headers("Content-Type: application/json")
+    @POST("terminal/notify")
+    fun qaNotify(@Body body: QaNotifyRequest): Call<TerminalEventResponse>
 }

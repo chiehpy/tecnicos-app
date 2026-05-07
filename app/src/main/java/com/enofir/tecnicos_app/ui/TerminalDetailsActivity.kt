@@ -26,6 +26,7 @@ import com.enofir.tecnicos_app.core.HistoryStore
 import com.enofir.tecnicos_app.core.PrintConfigStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.CatalogsStore
+import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.FailureObservationsCatalog
 import com.enofir.tecnicos_app.model.HistoryEntry
 import com.enofir.tecnicos_app.model.PrintLabelResponse
@@ -98,6 +99,10 @@ class TerminalDetailsActivity : BaseActivity() {
 
     // Fallas de Revisión Inicial — cargadas desde el lookup
     private var revisionInicialFailures: List<String> = emptyList()
+
+    // Estado de validacion QA (calculado en el lookup)
+    private var qaValidationPassed = false
+    private var qaConflictNotified = false
 
     private fun present(s: String?): Boolean =
         !s.isNullOrBlank() && s.trim() != "-" && s.trim().lowercase() != "null"
@@ -922,6 +927,16 @@ class TerminalDetailsActivity : BaseActivity() {
         startTimestamp = System.currentTimeMillis()
         android.util.Log.d("HistoryDebug", "onCreate: startTimestamp=$startTimestamp")
 
+        // Refrescar catálogos al abrir cada terminal (silencioso si falla)
+        ApiClient.fetchCatalogs().enqueue(object : Callback<CatalogsResponse> {
+            override fun onResponse(call: Call<CatalogsResponse>, response: Response<CatalogsResponse>) {
+                if (response.isSuccessful) {
+                    response.body()?.let { CatalogsStore.save(it, this@TerminalDetailsActivity) }
+                }
+            }
+            override fun onFailure(call: Call<CatalogsResponse>, t: Throwable) { /* usa caché o defaults */ }
+        })
+
         val chronometer = findViewById<Chronometer>(R.id.chronometer)
         val chronometerVisible = SessionManager(this).getChronometerVisible()
         if (chronometerVisible) {
@@ -949,6 +964,8 @@ class TerminalDetailsActivity : BaseActivity() {
 
         val qaRejectCountRow = findViewById<View>(R.id.qaRejectCountRow)
         val tvQaRejectCountValue = findViewById<TextView>(R.id.tvQaRejectCountValue)
+        val qaConflictRow = findViewById<View>(R.id.qaConflictRow)
+        val tvQaConflictItems = findViewById<TextView>(R.id.tvQaConflictItems)
 
         // Nuevos campos de técnicos
         val finalDiagnosisRow = findViewById<View>(R.id.finalDiagnosisRow)
@@ -1036,6 +1053,7 @@ class TerminalDetailsActivity : BaseActivity() {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
             btnComplete.text = "APROBAR TERMINAL"
+            btnComplete.isEnabled = false
             btnChangeState.text = "RECHAZAR TERMINAL"
             // Botones de impresión se muestran solo para N910 (ver lookup)
 
@@ -1266,8 +1284,37 @@ class TerminalDetailsActivity : BaseActivity() {
                         tvDismantledByValue.text = it
                     }
 
+                    if (isQa) {
+                        val missing = mutableListOf<String>()
+                        if (cs?.appOk != true) missing.add("Faltan apps")
+                        if (cs?.firmwareOk != true) missing.add("Falta firmware")
+                        if (cs?.llaveOk != true) missing.add("Falta llave")
+                        if (!present(cs?.cleanedBy)) missing.add("Falta limpieza")
+
+                        if (missing.isEmpty()) {
+                            qaValidationPassed = true
+                            btnComplete.isEnabled = true
+                            qaConflictRow.visibility = View.GONE
+                        } else {
+                            qaValidationPassed = false
+                            btnComplete.isEnabled = false
+                            StatusChip.apply(chip, ChipState.ERROR, "CONFLICTO")
+                            qaConflictRow.visibility = View.VISIBLE
+                            tvQaConflictItems.text = missing.joinToString("\n") { "- $it" }
+                            tvResult.text = "No se puede aprobar: faltan campos requeridos."
+
+                            if (!qaConflictNotified) {
+                                qaConflictNotified = true
+                                ApiClient.qaNotify(serial, missing).enqueue(object : Callback<TerminalEventResponse> {
+                                    override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {}
+                                    override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {}
+                                })
+                            }
+                        }
+                    }
+
                     csId = cs?.id
-                    tvResult.text = ""
+                    if (!isQa || qaValidationPassed) tvResult.text = ""
                     if (status != null && !isVerificarApps) btnChangeState.isEnabled = true
                     if (isVerificarApps) btnChangeState.isEnabled = true
                 }
@@ -1597,6 +1644,16 @@ class TerminalDetailsActivity : BaseActivity() {
                         executeComplete(serial, role, chip, tvResult, btnComplete, observations)
                     }
                 }
+                return@setOnClickListener
+            }
+
+            if (isQa) {
+                if (!qaValidationPassed) {
+                    StatusChip.apply(chip, ChipState.ERROR, "CONFLICTO")
+                    tvResult.text = "No se puede aprobar: faltan campos requeridos."
+                    return@setOnClickListener
+                }
+                executeComplete(serial, role, chip, tvResult, btnComplete)
                 return@setOnClickListener
             }
 

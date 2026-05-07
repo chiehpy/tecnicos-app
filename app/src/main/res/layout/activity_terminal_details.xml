@@ -197,6 +197,34 @@
 
             <!-- DIAGNÓSTICO FINAL -->
             <LinearLayout
+                android:id="@+id/qaConflictRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:padding="10dp"
+                android:background="#FFEDED"
+                android:visibility="gone">
+
+                <TextView
+                    android:text="En conflicto:"
+                    android:textStyle="bold"
+                    android:textColor="#CC0000"
+                    android:textSize="14sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvQaConflictItems"
+                    android:textColor="#CC0000"
+                    android:textSize="13sp"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- DIAGNOSTICO FINAL -->
+            <LinearLayout
                 android:id="@+id/finalDiagnosisRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

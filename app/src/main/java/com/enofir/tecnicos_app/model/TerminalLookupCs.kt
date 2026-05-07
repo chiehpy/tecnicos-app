@@ -52,5 +52,15 @@ data class TerminalLookupCs(
     val receivedBy: String? = null,
 
     @SerializedName("repairTechnician")
-    val repairTechnician: String? = null
+    val repairTechnician: String? = null,
+
+    // Campos de validacion QA
+    @SerializedName("appOk")
+    val appOk: Boolean? = null,
+
+    @SerializedName("firmwareOk")
+    val firmwareOk: Boolean? = null,
+
+    @SerializedName("llaveOk")
+    val llaveOk: Boolean? = null
 )
