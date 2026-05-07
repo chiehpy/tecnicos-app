@@ -1285,11 +1285,15 @@ class TerminalDetailsActivity : BaseActivity() {
                     }
 
                     if (isQa) {
+                        // N910 → solo firmware, llave y limpieza (sin apps)
+                        // N950 y otros → los 4 campos
+                        val isN910 = currentModelRaw.trim().equals("N910", ignoreCase = true)
+
                         val missing = mutableListOf<String>()
-                        if (cs?.appOk != true) missing.add("Faltan apps")
-                        if (cs?.firmwareOk != true) missing.add("Falta firmware")
-                        if (cs?.llaveOk != true) missing.add("Falta llave")
-                        if (!present(cs?.cleanedBy)) missing.add("Falta limpieza")
+                        if (!isN910 && cs?.appOk != true)    missing.add("Faltan apps")
+                        if (cs?.firmwareOk != true)          missing.add("Falta firmware")
+                        if (cs?.llaveOk != true)             missing.add("Falta llave")
+                        if (!present(cs?.cleanedBy))         missing.add("Falta limpieza")
 
                         if (missing.isEmpty()) {
                             qaValidationPassed = true
