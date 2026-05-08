@@ -25,13 +25,15 @@ object FailureObservationsCatalog {
             "Tapa de bateria rayada",
             "Tapa de bateria golpeada",
             "Tapa de bateria rota",
-            "Tapa de bateria desgastada"
+            "Tapa de bateria desgastada",
+            "Sin tapa de bateria"
         )),
         FallaCategory("Tapa de impresora", listOf(
             "Tapa de impresora rayada",
             "Tapa de impresora golpeada",
             "Tapa de impresora rota",
-            "Tapa de impresora desgastada"
+            "Tapa de impresora desgastada",
+            "Sin tapa de impresora"
         )),
         FallaCategory("Display", listOf(
             "Display rayado",

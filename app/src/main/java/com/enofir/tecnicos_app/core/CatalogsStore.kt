@@ -35,7 +35,7 @@ object CatalogsStore {
             "Pin de carga dañado", "Boton home", "USB sucio", "Lectora chip IC sucio",
             "Lectora chip IC dañada", "No comunica", "No bootea", "Tamper",
             "Falla lector magnetico", "Falla lector NFC",
-            "No carga USB", "No da video"
+            "No carga USB", "No da video", "Terminal sobrecalienta", "Sin rodillo"
         ),
         qaOptions = listOf(
             "Falta de limpieza: Carcasa posterior", "Falta de limpieza: Carcasa frontal",
