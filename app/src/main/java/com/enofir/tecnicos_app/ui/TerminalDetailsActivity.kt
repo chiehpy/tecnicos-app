@@ -655,9 +655,16 @@ class TerminalDetailsActivity : BaseActivity() {
     }
 
     private fun showQaRejectDialog(onConfirm: (qaObsStringForMdw: String, qaObsStringForUi: String) -> Unit) {
-        val qaSelected = BooleanArray(qaOptions.size) { false }
+        // Opciones base + extras por modelo
+        val isN950 = currentModelRaw.trim().startsWith("N950", ignoreCase = true)
+        val effectiveOptions = if (isN950)
+            qaOptions + listOf("Botón de inicio defectuoso")
+        else
+            qaOptions
 
-        val items: Array<CharSequence> = qaOptions.toTypedArray()
+        val qaSelected = BooleanArray(effectiveOptions.size) { false }
+
+        val items: Array<CharSequence> = effectiveOptions.toTypedArray()
 
         val dialog = AlertDialog.Builder(this)
             .setTitle("Observaciones QA (obligatorio)")
@@ -671,7 +678,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
                 val selectedVals = mutableListOf<String>()
                 for (i in qaSelected.indices) {
-                    if (qaSelected[i]) selectedVals.add(qaOptions[i])
+                    if (qaSelected[i]) selectedVals.add(effectiveOptions[i])
                 }
 
                 if (selectedVals.isEmpty()) {
