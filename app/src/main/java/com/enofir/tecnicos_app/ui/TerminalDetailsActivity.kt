@@ -1319,7 +1319,8 @@ class TerminalDetailsActivity : BaseActivity() {
 
                     csId = cs?.id
                     if (!isQa || qaValidationPassed) tvResult.text = ""
-                    if (status != null && !isVerificarApps) btnChangeState.isEnabled = true
+                    if (isQa) btnChangeState.isEnabled = true  // RECHAZAR siempre habilitado al cargar
+                    else if (status != null && !isVerificarApps) btnChangeState.isEnabled = true
                     if (isVerificarApps) btnChangeState.isEnabled = true
                 }
 
