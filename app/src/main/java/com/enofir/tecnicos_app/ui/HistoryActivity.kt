@@ -78,11 +78,12 @@ class HistoryActivity : BaseActivity() {
     }
 
     private fun showTerminalsHistory() {
-        val today = HistoryStore.getToday(this)
+        val all = HistoryStore.getAll(this)
             .filter { it.ok }
+            .sortedByDescending { it.ts }
 
-        tvTitle.text = "Terminales de hoy (${today.size})"
-        renderTerminalRows(today)
+        tvTitle.text = "Historial de terminales (${all.size})"
+        renderTerminalRows(all)
     }
 
     private fun showPrintsHistory() {
@@ -146,8 +147,9 @@ class HistoryActivity : BaseActivity() {
 
         if (items.isEmpty()) {
             val empty = TextView(this).apply {
-                text = "Todavia no hay terminales procesadas hoy."
+                text = "No hay terminales procesadas."
                 textSize = 14f
+                setPadding(8, 16, 8, 16)
             }
             container.addView(empty)
             return
@@ -156,70 +158,140 @@ class HistoryActivity : BaseActivity() {
         // Encabezado de columnas
         val header = layoutInflater.inflate(R.layout.row_history, container, false)
         header.findViewById<TextView>(R.id.tvSerial).apply {
-            text = "SN"
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-            background = null
+            text = "SN"; setTypeface(typeface, android.graphics.Typeface.BOLD); background = null
         }
         header.findViewById<TextView>(R.id.tvAction).apply {
-            text = "Accion"
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            text = "Accion"; setTypeface(typeface, android.graphics.Typeface.BOLD)
         }
         header.findViewById<TextView>(R.id.tvDuration).apply {
-            text = "Dur."
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            text = "Dur."; setTypeface(typeface, android.graphics.Typeface.BOLD)
         }
         header.findViewById<TextView>(R.id.tvTime).apply {
-            text = "Hora"
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            text = "Hora"; setTypeface(typeface, android.graphics.Typeface.BOLD)
         }
         container.addView(header)
 
-        // Agrupar por rol
-        val grouped = items.groupBy { it.role }
+        val monthFmt = SimpleDateFormat("MMMM yyyy", Locale("es"))
+        val dayKeyFmt  = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val dayLabelFmt = SimpleDateFormat("dd/MM", Locale.getDefault())
 
-        grouped.forEach { (role, entries) ->
-            if (!groupCollapsed.containsKey(role)) groupCollapsed[role] = false
-            val isCollapsed = groupCollapsed[role] == true
+        // Agrupar por mes → día → rol
+        val byMonth = items.groupBy {
+            monthFmt.format(Date(it.ts)).replaceFirstChar { c -> c.uppercase() }
+        }
+        val multipleMonths = byMonth.size > 1
 
-            // Encabezado del grupo
-            val groupHeader = layoutInflater.inflate(R.layout.row_history_group_header, container, false)
-            val tvArrow = groupHeader.findViewById<TextView>(R.id.tvGroupArrow)
-            val tvRole = groupHeader.findViewById<TextView>(R.id.tvGroupRole)
-            val tvCount = groupHeader.findViewById<TextView>(R.id.tvGroupCount)
-            tvRole.text = role
-            tvCount.text = "(${entries.size})"
-            tvArrow.text = if (isCollapsed) "▶" else "▼"
+        byMonth.forEach { (month, monthEntries) ->
+            val monthKey = "m_$month"
 
-            // Contenedor de filas del grupo
-            val rowsContainer = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                visibility = if (isCollapsed) android.view.View.GONE else android.view.View.VISIBLE
-            }
+            // ── Nivel mes (solo si hay más de uno) ──────────────────────────
+            val targetDayContainer: LinearLayout
+            if (multipleMonths) {
+                if (!groupCollapsed.containsKey(monthKey)) groupCollapsed[monthKey] = false
+                val isMonthCollapsed = groupCollapsed[monthKey] == true
 
-            entries.forEach { e ->
-                val row = layoutInflater.inflate(R.layout.row_history, container, false)
-                row.findViewById<TextView>(R.id.tvSerial).apply {
-                    text = e.serial
-                    setOnClickListener { copyToClipboard(e.serial) }
+                val monthBody = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    visibility = if (isMonthCollapsed) android.view.View.GONE else android.view.View.VISIBLE
                 }
-                val actionText = getActionDisplay(e)
-                val durationText = formatDuration(e.startTs, e.ts)
-                Log.d("HistoryDebug", "Setting row: serial=${e.serial}, action=$actionText, duration=$durationText")
-                row.findViewById<TextView>(R.id.tvAction).text = actionText
-                row.findViewById<TextView>(R.id.tvDuration).text = durationText
-                row.findViewById<TextView>(R.id.tvTime).text = timeFmt.format(Date(e.ts))
-                rowsContainer.addView(row)
+
+                val tvMonth = TextView(this).apply {
+                    text = "${if (isMonthCollapsed) "▶" else "▼"}  $month"
+                    textSize = 15f
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                    setPadding(8, 20, 8, 6)
+                    setTextColor(android.graphics.Color.parseColor("#1565C0"))
+                    setOnClickListener {
+                        val col = groupCollapsed[monthKey] == true
+                        groupCollapsed[monthKey] = !col
+                        text = "${if (!col) "▶" else "▼"}  $month"
+                        monthBody.visibility = if (!col) android.view.View.GONE else android.view.View.VISIBLE
+                    }
+                }
+                container.addView(tvMonth)
+                container.addView(monthBody)
+                targetDayContainer = monthBody
+            } else {
+                targetDayContainer = container
             }
 
-            groupHeader.setOnClickListener {
-                val collapsed = groupCollapsed[role] == true
-                groupCollapsed[role] = !collapsed
-                tvArrow.text = if (!collapsed) "▶" else "▼"
-                rowsContainer.visibility = if (!collapsed) android.view.View.GONE else android.view.View.VISIBLE
-            }
+            // ── Nivel día ────────────────────────────────────────────────────
+            val byDay = monthEntries.groupBy { dayKeyFmt.format(Date(it.ts)) }
 
-            container.addView(groupHeader)
-            container.addView(rowsContainer)
+            byDay.forEach { (dayKey, dayEntries) ->
+                val dKey = "d_$dayKey"
+                if (!groupCollapsed.containsKey(dKey)) groupCollapsed[dKey] = false
+                val isDayCollapsed = groupCollapsed[dKey] == true
+
+                val dayLabel = dayLabelFmt.format(Date(dayEntries.first().ts))
+
+                val dayBody = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    visibility = if (isDayCollapsed) android.view.View.GONE else android.view.View.VISIBLE
+                }
+
+                val tvDay = TextView(this).apply {
+                    val indent = if (multipleMonths) "    " else ""
+                    text = "$indent${if (isDayCollapsed) "▶" else "▼"}  $dayLabel"
+                    textSize = 13f
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                    setPadding(if (multipleMonths) 32 else 8, 12, 8, 4)
+                    setTextColor(android.graphics.Color.parseColor("#424242"))
+                    setOnClickListener {
+                        val col = groupCollapsed[dKey] == true
+                        groupCollapsed[dKey] = !col
+                        val ind = if (multipleMonths) "    " else ""
+                        text = "$ind${if (!col) "▶" else "▼"}  $dayLabel"
+                        dayBody.visibility = if (!col) android.view.View.GONE else android.view.View.VISIBLE
+                    }
+                }
+                targetDayContainer.addView(tvDay)
+                targetDayContainer.addView(dayBody)
+
+                // ── Nivel rol ────────────────────────────────────────────────
+                val byRole = dayEntries.groupBy { it.role }
+
+                byRole.forEach { (role, roleEntries) ->
+                    val rKey = "r_${dayKey}_$role"
+                    if (!groupCollapsed.containsKey(rKey)) groupCollapsed[rKey] = false
+                    val isRoleCollapsed = groupCollapsed[rKey] == true
+
+                    val roleHeader = layoutInflater.inflate(R.layout.row_history_group_header, dayBody, false)
+                    val tvArrow = roleHeader.findViewById<TextView>(R.id.tvGroupArrow)
+                    val tvRole  = roleHeader.findViewById<TextView>(R.id.tvGroupRole)
+                    val tvCount = roleHeader.findViewById<TextView>(R.id.tvGroupCount)
+                    tvRole.text  = role
+                    tvCount.text = "(${roleEntries.size})"
+                    tvArrow.text = if (isRoleCollapsed) "▶" else "▼"
+
+                    val rowsContainer = LinearLayout(this).apply {
+                        orientation = LinearLayout.VERTICAL
+                        visibility = if (isRoleCollapsed) android.view.View.GONE else android.view.View.VISIBLE
+                    }
+
+                    roleEntries.forEach { e ->
+                        val row = layoutInflater.inflate(R.layout.row_history, rowsContainer, false)
+                        row.findViewById<TextView>(R.id.tvSerial).apply {
+                            text = e.serial
+                            setOnClickListener { copyToClipboard(e.serial) }
+                        }
+                        row.findViewById<TextView>(R.id.tvAction).text   = getActionDisplay(e)
+                        row.findViewById<TextView>(R.id.tvDuration).text = formatDuration(e.startTs, e.ts)
+                        row.findViewById<TextView>(R.id.tvTime).text     = timeFmt.format(Date(e.ts))
+                        rowsContainer.addView(row)
+                    }
+
+                    roleHeader.setOnClickListener {
+                        val col = groupCollapsed[rKey] == true
+                        groupCollapsed[rKey] = !col
+                        tvArrow.text = if (!col) "▶" else "▼"
+                        rowsContainer.visibility = if (!col) android.view.View.GONE else android.view.View.VISIBLE
+                    }
+
+                    dayBody.addView(roleHeader)
+                    dayBody.addView(rowsContainer)
+                }
+            }
         }
     }
 
