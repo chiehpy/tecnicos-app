@@ -10,6 +10,7 @@ import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
 import com.enofir.tecnicos_app.model.PrintLabelResponse
+import com.enofir.tecnicos_app.model.HistoryResponse
 import com.enofir.tecnicos_app.model.QaNotifyRequest
 import com.enofir.tecnicos_app.model.RecoveryPatchRequest
 import com.enofir.tecnicos_app.model.TerminalEventRequest
@@ -364,6 +365,8 @@ object ApiClient {
         require(s.isNotEmpty()) { "serial vacío" }
         return api().vmCheck(s)
     }
+
+    fun getHistory(): Call<HistoryResponse> = api().getHistory()
 
     fun qaNotify(serial: String, missing: List<String>): Call<TerminalEventResponse> {
         val s = serial.trim()

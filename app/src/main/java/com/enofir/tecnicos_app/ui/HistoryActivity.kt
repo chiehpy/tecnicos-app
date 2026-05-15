@@ -10,13 +10,18 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.enofir.tecnicos_app.R
+import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.HistoryStore
 import com.enofir.tecnicos_app.core.PrintHistoryStore
 import com.enofir.tecnicos_app.model.HistoryEntry
+import com.enofir.tecnicos_app.model.HistoryResponse
 import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class HistoryActivity : BaseActivity() {
 
@@ -78,11 +83,46 @@ class HistoryActivity : BaseActivity() {
     }
 
     private fun showTerminalsHistory() {
+        tvTitle.text = "Cargando historial..."
+
+        ApiClient.getHistory().enqueue(object : Callback<HistoryResponse> {
+            override fun onResponse(call: Call<HistoryResponse>, response: Response<HistoryResponse>) {
+                val body = response.body()
+                if (response.isSuccessful && body != null && body.ok && !body.data.isNullOrEmpty()) {
+                    // Convertir HistoryEntryRemote → HistoryEntry para reusar la UI existente
+                    val entries = body.data
+                        .map { r ->
+                            HistoryEntry(
+                                ts       = r.ts,
+                                serial   = r.serial,
+                                role     = r.role,
+                                action   = r.action,
+                                ok       = r.ok,
+                                message  = r.message,
+                                startTs  = r.startTs
+                            )
+                        }
+                        .sortedByDescending { it.ts }
+                    tvTitle.text = "Historial de terminales (${entries.size})"
+                    renderTerminalRows(entries)
+                } else {
+                    // Fallback al historial local
+                    loadLocalHistory()
+                }
+            }
+
+            override fun onFailure(call: Call<HistoryResponse>, t: Throwable) {
+                // Sin conexión: fallback al local
+                loadLocalHistory()
+            }
+        })
+    }
+
+    private fun loadLocalHistory() {
         val all = HistoryStore.getAll(this)
             .filter { it.ok }
             .sortedByDescending { it.ts }
-
-        tvTitle.text = "Historial de terminales (${all.size})"
+        tvTitle.text = "Historial local (${all.size})"
         renderTerminalRows(all)
     }
 
