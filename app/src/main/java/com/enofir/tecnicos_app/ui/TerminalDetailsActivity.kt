@@ -713,7 +713,7 @@ class TerminalDetailsActivity : BaseActivity() {
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
         tvResult.text = "Enviando REJECT (QA)..."
 
-        ApiClient.reject(serial, ROLE_QA, qaObsStringForMdw).enqueue(object : Callback<TerminalEventResponse> {
+        ApiClient.reject(serial, ROLE_QA, qaObsStringForMdw, getTechnicianNameFromJwt()).enqueue(object : Callback<TerminalEventResponse> {
 
             override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                 val body = response.body()
@@ -771,6 +771,7 @@ class TerminalDetailsActivity : BaseActivity() {
         tvResult.text = "Cambiando estado..."
 
         val techName = getTechnicianNameFromJwt()
+        val activeRole = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty().takeIf { it.isNotEmpty() }
 
         if (technicianNameRequired && techName.isNullOrBlank()) {
             StatusChip.apply(chip, ChipState.ERROR, "ERROR")
@@ -786,7 +787,8 @@ class TerminalDetailsActivity : BaseActivity() {
             technicianName = techName,
             recoveredParts = recoveredParts,
             failureObservations = failureObservations,
-            initialDiagnosis = initialDiagnosis
+            initialDiagnosis = initialDiagnosis,
+            role = activeRole
         ).enqueue(object : Callback<TerminalEventResponse> {
 
             override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
@@ -875,7 +877,8 @@ class TerminalDetailsActivity : BaseActivity() {
 
         val isVerificarAppsRole = role == ROLE_VERIFICAR_APPS
         val appOkValue = if (isVerificarAppsRole) true else appOk
-        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis).enqueue(object : Callback<TerminalEventResponse> {
+        val techName = getTechnicianNameFromJwt()
+        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis, technicianName = techName).enqueue(object : Callback<TerminalEventResponse> {
 
             override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                 val body = response.body()
@@ -1347,7 +1350,7 @@ class TerminalDetailsActivity : BaseActivity() {
                 StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
                 tvResult.text = "Enviando SIN APPS..."
 
-                ApiClient.complete(serial, role, null, appOk = false).enqueue(object : Callback<TerminalEventResponse> {
+                ApiClient.complete(serial, role, null, appOk = false, technicianName = getTechnicianNameFromJwt()).enqueue(object : Callback<TerminalEventResponse> {
                     override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                         val body = response.body()
                         if (!response.isSuccessful || body == null) {

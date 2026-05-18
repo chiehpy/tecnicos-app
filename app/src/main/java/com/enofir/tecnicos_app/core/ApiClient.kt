@@ -203,7 +203,8 @@ object ApiClient {
         spareParts: List<String>? = null,
         caseId: String? = null,
         repairTime: String? = null,
-        initialDiagnosis: List<String>? = null
+        initialDiagnosis: List<String>? = null,
+        technicianName: String? = null
     ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val r = role.trim()
@@ -215,7 +216,7 @@ object ApiClient {
             action = "COMPLETE",
             serial = s,
             role = r,
-            technicianName = null,
+            technicianName = technicianName?.trim()?.takeIf { it.isNotEmpty() },
             failureObservations = failureObservations?.takeIf { it.isNotEmpty() },
             appOk = appOk,
             firmwareOk = firmwareOk,
@@ -250,18 +251,13 @@ object ApiClient {
         technicianName: String? = null,
         recoveredParts: String? = null,
         failureObservations: List<String>? = null,
-        initialDiagnosis: List<String>? = null
+        initialDiagnosis: List<String>? = null,
+        role: String? = null
     ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val ts = targetStatus.trim()
         val tss = targetSubstatus?.trim()?.takeIf { it.isNotEmpty() }
-
-        // technicianName solo se permite cuando targetStatus="Pendiente de facturación"
-        val tech = if (ts == "Pendiente de facturación") {
-            technicianName?.trim()?.takeIf { it.isNotEmpty() }
-        } else {
-            null
-        }
+        val tech = technicianName?.trim()?.takeIf { it.isNotEmpty() }
 
         val parts = recoveredParts
             ?.trim()
@@ -277,6 +273,7 @@ object ApiClient {
         val payload = TerminalEventRequest(
             action = "MODIFY",
             serial = s,
+            role = role?.trim()?.takeIf { it.isNotEmpty() },
             targetStatus = ts,
             targetSubstatus = tss,
             technicianName = tech,
@@ -301,7 +298,8 @@ object ApiClient {
     fun reject(
         serial: String,
         role: String,
-        qaObservations: String
+        qaObservations: String,
+        technicianName: String? = null
     ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val r = role.trim()
@@ -315,6 +313,7 @@ object ApiClient {
             action = "REJECT",
             serial = s,
             role = r,
+            technicianName = technicianName?.trim()?.takeIf { it.isNotEmpty() },
             qaObservations = qa
         )
 

@@ -88,9 +88,8 @@ class HistoryActivity : BaseActivity() {
         ApiClient.getHistory().enqueue(object : Callback<HistoryResponse> {
             override fun onResponse(call: Call<HistoryResponse>, response: Response<HistoryResponse>) {
                 val body = response.body()
-                if (response.isSuccessful && body != null && body.ok && !body.data.isNullOrEmpty()) {
-                    // Convertir HistoryEntryRemote → HistoryEntry para reusar la UI existente
-                    val entries = body.data
+                if (response.isSuccessful && body != null && body.ok) {
+                    val entries = (body.data ?: emptyList())
                         .map { r ->
                             HistoryEntry(
                                 ts       = r.ts,
@@ -106,7 +105,6 @@ class HistoryActivity : BaseActivity() {
                     tvTitle.text = "Historial de terminales (${entries.size})"
                     renderTerminalRows(entries)
                 } else {
-                    // Fallback al historial local
                     loadLocalHistory()
                 }
             }
