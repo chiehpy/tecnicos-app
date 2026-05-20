@@ -273,6 +273,7 @@ object CatalogsStore {
     fun getRecoveredParts(serial: String): List<RecoveredPartItem> {
         val key = when {
             serial.startsWith("NCC", ignoreCase = true) -> "N950_amarilla"
+            serial.startsWith("NCD", ignoreCase = true) -> "N950_amarilla"
             serial.startsWith("NCB", ignoreCase = true) -> "N950_celeste"
             else -> "N910"
         }
@@ -284,6 +285,7 @@ object CatalogsStore {
     fun getRepairedParts(serial: String): List<RecoveredPartItem> {
         val key = when {
             serial.startsWith("NCC", ignoreCase = true) -> "N950_amarilla"
+            serial.startsWith("NCD", ignoreCase = true) -> "N950_amarilla"
             serial.startsWith("NCB", ignoreCase = true) -> "N950_celeste"
             else -> "N910"
         }

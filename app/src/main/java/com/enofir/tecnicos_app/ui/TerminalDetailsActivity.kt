@@ -599,7 +599,11 @@ class TerminalDetailsActivity : BaseActivity() {
     private fun showRepairPartsDialog(onConfirm: (selected: List<String>, noneSelected: Boolean) -> Unit) {
         val noneLabel = "No se cambiaron repuestos"
         val sortedIndices = repairedPartsOptions.indices
-            .sortedByDescending { i -> getPartUsageCount(repairedPartsOptions[i].sfId ?: repairedPartsOptions[i].pn) }
+            .sortedByDescending { i ->
+                val part = repairedPartsOptions[i]
+                // Prioridad: usage_count global del MDW; fallback al conteo local del dispositivo
+                part.usageCount ?: getPartUsageCount(part.sfId ?: part.pn)
+            }
         val sortedParts = sortedIndices.map { repairedPartsOptions[it] }
 
         val allItems = (listOf(noneLabel) + sortedParts.map { part ->
@@ -1120,24 +1124,30 @@ class TerminalDetailsActivity : BaseActivity() {
 
             // Solo selecciona y muestra. (Camino A: se envía en MODIFY al completar)
             btnSelectRecoveredParts.setOnClickListener {
-                val items: Array<CharSequence> = recoveredPartsOptions.map { it.name }.toTypedArray()
+                val sortedIndices = recoveredPartsOptions.indices
+                    .sortedByDescending { i ->
+                        val part = recoveredPartsOptions[i]
+                        part.usageCount ?: getPartUsageCount(part.sfId ?: part.pn)
+                    }
+                val sortedItems: Array<CharSequence> = sortedIndices.map { recoveredPartsOptions[it].name }.toTypedArray()
+                val sortedSelected = BooleanArray(sortedIndices.size) { pos -> recoveredPartsSelected.getOrElse(sortedIndices[pos]) { false } }
 
                 val dialog = AlertDialog.Builder(this)
                     .setTitle("Seleccionar repuestos recuperados")
-                    .setMultiChoiceItems(items, recoveredPartsSelected) { dialogInterface: DialogInterface, which: Int, checked: Boolean ->
-                        recoveredPartsSelected[which] = checked
-                        val alert = dialogInterface as? AlertDialog
-                        if (alert != null) setDialogChecksFromModel(alert, recoveredPartsSelected)
+                    .setMultiChoiceItems(sortedItems, sortedSelected) { _, which, checked ->
+                        sortedSelected[which] = checked
                     }
                     .setPositiveButton("Aceptar") { d, _ ->
                         d.dismiss()
+                        sortedIndices.forEachIndexed { sortPos, origIdx ->
+                            recoveredPartsSelected[origIdx] = sortedSelected[sortPos]
+                        }
                         renderRecoveredPartsText(tvRecoveredParts)
                     }
                     .setNegativeButton("Cancelar") { d, _ -> d.dismiss() }
                     .create()
 
                 dialog.show()
-                setDialogChecksFromModel(dialog, recoveredPartsSelected)
             }
         } else if (isVerificarApps) {
             failureObsContainer.visibility = View.GONE

@@ -6,5 +6,6 @@ data class RecoveredPartItem(
     val pn: String,
     val name: String,
     @SerializedName("sf_id") val sfId: String? = null,
-    val stock: Int? = null
+    val stock: Int? = null,
+    @SerializedName("usage_count") val usageCount: Int? = null
 )
