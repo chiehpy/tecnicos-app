@@ -298,8 +298,7 @@ object ApiClient {
     fun reject(
         serial: String,
         role: String,
-        qaObservations: String,
-        technicianName: String? = null
+        qaObservations: String
     ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val r = role.trim()
@@ -313,7 +312,6 @@ object ApiClient {
             action = "REJECT",
             serial = s,
             role = r,
-            technicianName = technicianName?.trim()?.takeIf { it.isNotEmpty() },
             qaObservations = qa
         )
 

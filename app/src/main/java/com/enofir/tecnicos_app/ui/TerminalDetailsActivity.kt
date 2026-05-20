@@ -717,7 +717,7 @@ class TerminalDetailsActivity : BaseActivity() {
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
         tvResult.text = "Enviando REJECT (QA)..."
 
-        ApiClient.reject(serial, ROLE_QA, qaObsStringForMdw, getTechnicianNameFromJwt()).enqueue(object : Callback<TerminalEventResponse> {
+        ApiClient.reject(serial, ROLE_QA, qaObsStringForMdw).enqueue(object : Callback<TerminalEventResponse> {
 
             override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                 val body = response.body()
