@@ -62,7 +62,7 @@ class TerminalDetailsActivity : BaseActivity() {
         private const val STATUS_PENDIENTE_FACTURACION = "Pendiente de facturación"
 
         // Impresora Zebra
-        private const val PRINTER_IP = "192.168.0.10"
+        private const val PRINTER_IP = "192.168.204.10"
         private const val PRINTER_PORT = 9100
     }
 
