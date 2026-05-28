@@ -1003,6 +1003,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
         val btnComplete = findViewById<Button>(R.id.btnComplete)
         val btnChangeState = findViewById<Button>(R.id.btnChangeState)
+        val btnFaltaRepuesto = findViewById<Button>(R.id.btnFaltaRepuesto)
         val btnPrintLabel = findViewById<Button>(R.id.btnPrintLabel)
         val btnPrintConfig = findViewById<Button>(R.id.btnPrintConfig)
 
@@ -1164,6 +1165,92 @@ class TerminalDetailsActivity : BaseActivity() {
             recoveryContainer.visibility = View.GONE
             btnComplete.text = "REPARAR TERMINAL"
             btnChangeState.text = "CAMBIAR ESTADO"
+            btnFaltaRepuesto.visibility = View.VISIBLE
+
+            btnFaltaRepuesto.setOnClickListener {
+                // Catálogo de repuestos según modelo (mismo que Reparación)
+                val parts = repairedPartsOptions
+                val sortedIndices = parts.indices.sortedByDescending { i ->
+                    parts[i].usageCount ?: getPartUsageCount(parts[i].sfId ?: parts[i].pn)
+                }
+                val sortedItems = sortedIndices.map { parts[it].name }.toTypedArray<CharSequence>()
+                val selected = BooleanArray(sortedItems.size) { false }
+
+                val dialog = AlertDialog.Builder(this)
+                    .setTitle("Repuestos faltantes")
+                    .setMultiChoiceItems(sortedItems, selected) { _, which, checked ->
+                        selected[which] = checked
+                    }
+                    .setPositiveButton("Confirmar") { d, _ ->
+                        d.dismiss()
+                        val chosenNames = sortedIndices
+                            .filterIndexed { pos, _ -> selected[pos] }
+                            .map { parts[it].name }
+
+                        if (chosenNames.isEmpty()) {
+                            AlertDialog.Builder(this)
+                                .setTitle("Falta seleccionar")
+                                .setMessage("Seleccioná al menos un repuesto.")
+                                .setPositiveButton("OK", null)
+                                .show()
+                            return@setPositiveButton
+                        }
+
+                        val commentsText = "Esperando repuesto: ${chosenNames.joinToString(", ")}"
+
+                        AlertDialog.Builder(this)
+                            .setTitle("Confirmar")
+                            .setMessage("Se cambiará el subestado a \"Esperando repuesto\".\n\n$commentsText")
+                            .setPositiveButton("Aceptar") { _, _ ->
+                                btnFaltaRepuesto.isEnabled = false
+                                btnComplete.isEnabled = false
+                                btnChangeState.isEnabled = false
+                                StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
+                                tvResult.text = "Enviando..."
+
+                                ApiClient.modify(
+                                    serial = serial,
+                                    targetStatus = currentStatus ?: "Reparación Técnica",
+                                    targetSubstatus = "Esperando repuesto",
+                                    technicianName = getTechnicianNameFromJwt(),
+                                    role = role,
+                                    comments = commentsText
+                                ).enqueue(object : Callback<TerminalEventResponse> {
+                                    override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
+                                        val body = response.body()
+                                        if (response.isSuccessful && body?.ok == true) {
+                                            StatusChip.apply(chip, ChipState.OK, "OK")
+                                            tvResult.text = body.message ?: "Subestado actualizado."
+                                            HistoryStore.add(this@TerminalDetailsActivity,
+                                                HistoryEntry(ts = System.currentTimeMillis(), serial = serial,
+                                                    role = role, action = "MODIFY", ok = true,
+                                                    message = commentsText, startTs = startTimestamp))
+                                            setResult(Activity.RESULT_OK)
+                                            finish()
+                                        } else {
+                                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                                            val msg = response.errorBody()?.string()?.trim() ?: body?.message ?: "Error"
+                                            tvResult.text = msg
+                                            btnFaltaRepuesto.isEnabled = true
+                                            btnComplete.isEnabled = true
+                                            btnChangeState.isEnabled = true
+                                        }
+                                    }
+                                    override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
+                                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                                        tvResult.text = "Falla de conexión: ${t.message}"
+                                        btnFaltaRepuesto.isEnabled = true
+                                        btnComplete.isEnabled = true
+                                        btnChangeState.isEnabled = true
+                                    }
+                                })
+                            }
+                            .setNegativeButton("Cancelar", null)
+                            .show()
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            }
         } else {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE

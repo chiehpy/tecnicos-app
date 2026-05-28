@@ -20,7 +20,7 @@ import urllib.request
 import urllib.error
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-MDW_BASE = "http://167.234.226.219:8000"
+MDW_BASE = "http://181.166.225.55:8000"
 PORT = 8001
 
 # ─── Catálogo de prueba ────────────────────────────────────────────────────────

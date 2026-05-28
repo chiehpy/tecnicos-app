@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
 object ApiClient {
 
     @Volatile
-    var baseUrl: String = "http://167.234.226.219:8000/"
+    var baseUrl: String = "http://181.166.225.55:8000/"
         private set
 
     @Volatile
@@ -252,7 +252,8 @@ object ApiClient {
         recoveredParts: String? = null,
         failureObservations: List<String>? = null,
         initialDiagnosis: List<String>? = null,
-        role: String? = null
+        role: String? = null,
+        comments: String? = null
     ): Call<TerminalEventResponse> {
         val s = serial.trim()
         val ts = targetStatus.trim()
@@ -279,7 +280,8 @@ object ApiClient {
             technicianName = tech,
             recoveredParts = parts,
             failureObservations = failureObservations?.takeIf { it.isNotEmpty() },
-            initialDiagnosis = initialDiagnosis?.takeIf { it.isNotEmpty() }
+            initialDiagnosis = initialDiagnosis?.takeIf { it.isNotEmpty() },
+            comments = comments?.trim()?.takeIf { it.isNotEmpty() }
         )
 
         return api().terminalEvent(payload)

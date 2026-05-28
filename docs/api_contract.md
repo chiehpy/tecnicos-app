@@ -1,6 +1,6 @@
 # Contrato API — Middleware (MDW)
 
-Base URL: `http://167.234.226.219:8000/`
+Base URL: `http://181.166.225.55:8000/`
 
 ---
 

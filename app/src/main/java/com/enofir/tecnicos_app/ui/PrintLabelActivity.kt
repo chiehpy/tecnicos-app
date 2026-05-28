@@ -31,7 +31,7 @@ import kotlin.concurrent.thread
 class PrintLabelActivity : BaseActivity() {
 
     companion object {
-        private const val PRINTER_IP = "192.168.0.10"
+        private const val PRINTER_IP = "192.168.204.10"
         private const val PRINTER_PORT = 9100
     }
 

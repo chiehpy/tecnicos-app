@@ -513,6 +513,15 @@
             android:layout_height="wrap_content" />
 
         <Button
+            android:id="@+id/btnFaltaRepuesto"
+            android:text="FALTA REPUESTO"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#FF6F00"
+            android:visibility="gone" />
+
+        <Button
             android:id="@+id/btnPrintLabel"
             android:text="IMPRIMIR ETIQUETA"
             android:layout_marginTop="8dp"

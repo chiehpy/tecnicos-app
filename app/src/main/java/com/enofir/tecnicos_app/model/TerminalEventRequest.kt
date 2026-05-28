@@ -86,5 +86,9 @@ data class TerminalEventRequest(
 
     // Fallas adicionales encontradas por el técnico de Reparación (van a InitialDiagnosis__c)
     @SerializedName("initialDiagnosis")
-    val initialDiagnosis: List<String>? = null
+    val initialDiagnosis: List<String>? = null,
+
+    // Comentarios libres (van a Comentarios__c)
+    @SerializedName("comments")
+    val comments: String? = null
 )
