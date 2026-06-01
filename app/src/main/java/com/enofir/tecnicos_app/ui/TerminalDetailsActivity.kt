@@ -56,7 +56,6 @@ class TerminalDetailsActivity : BaseActivity() {
         private const val ROLE_VERIFICAR_APPS = "Verificar Apps"
         private const val ROLE_PROGRAMADOR = "Programador (carga de firmwares)"
         private const val ROLE_REPARACION = "Reparación"
-        private const val ROLE_FILM = "Film"
 
         private const val STATUS_IRREPARABLE = "Irreparable"
         private const val STATUS_REPARACION_TECNICA = "Reparación Técnica"
@@ -1020,7 +1019,6 @@ class TerminalDetailsActivity : BaseActivity() {
         val isVerificarApps = role == ROLE_VERIFICAR_APPS
         val isProgramador = role == ROLE_PROGRAMADOR
         val isReparacion = role == ROLE_REPARACION
-        val isFilm = role == ROLE_FILM
 
         // Recovery views
         val recoveryContainer = findViewById<View>(R.id.recoveryContainer)
@@ -1161,11 +1159,6 @@ class TerminalDetailsActivity : BaseActivity() {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
             btnComplete.text = "PROGRAMAR TERMINAL"
-            btnChangeState.visibility = View.GONE
-        } else if (isFilm) {
-            failureObsContainer.visibility = View.GONE
-            recoveryContainer.visibility = View.GONE
-            btnComplete.text = "APLICAR FILM"
             btnChangeState.visibility = View.GONE
         } else if (isReparacion) {
             failureObsContainer.visibility = View.GONE
@@ -1436,26 +1429,6 @@ class TerminalDetailsActivity : BaseActivity() {
                     if (isQa) btnChangeState.isEnabled = true  // RECHAZAR siempre habilitado al cargar
                     else if (status != null && !isVerificarApps) btnChangeState.isEnabled = true
                     if (isVerificarApps) btnChangeState.isEnabled = true
-
-                    // Reparación: si el terminal llega sin subestado en Reparación Técnica, pedir uno
-                    if (isReparacion && status == STATUS_REPARACION_TECNICA) {
-                        val currentSubstatus = cs?.substatus?.trim().takeIf { present(it) }
-                        if (currentSubstatus == null) {
-                            showSubstatusDialogForReparacionTecnica { mdwSubstatus, _ ->
-                                executeChangeStatus(
-                                    serial = serial,
-                                    newStatus = STATUS_REPARACION_TECNICA,
-                                    chip = chip,
-                                    tvResult = tvResult,
-                                    tvStatusValue = tvStatusValue,
-                                    btnChangeState = btnChangeState,
-                                    finishOnSuccess = false,
-                                    substatus = mdwSubstatus,
-                                    failureObservations = null
-                                )
-                            }
-                        }
-                    }
                 }
 
                 override fun onFailure(call: Call<TerminalLookupResponse>, t: Throwable) {
