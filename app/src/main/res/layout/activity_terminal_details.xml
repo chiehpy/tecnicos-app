@@ -537,6 +537,16 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
 
+        <Button
+            android:id="@+id/btnTakePhoto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Tomar foto"
+            android:backgroundTint="#37474F"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+
         <TextView
             android:id="@+id/tvVersion"
             android:layout_width="wrap_content"

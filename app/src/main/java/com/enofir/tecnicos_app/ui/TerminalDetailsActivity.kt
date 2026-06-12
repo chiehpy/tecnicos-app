@@ -50,6 +50,7 @@ class TerminalDetailsActivity : BaseActivity() {
     companion object {
         const val EXTRA_SERIAL = "extra_serial"
         const val EXTRA_ROLE = "extra_role"
+        const val EXTRA_PREVIOUS_TECH = "extra_previous_tech"
         private const val ROLE_REVISION_INICIAL = "Revisión inicial"
         private const val ROLE_QA = "QA"
         private const val ROLE_RECOVERY = "Recovery"
@@ -62,8 +63,9 @@ class TerminalDetailsActivity : BaseActivity() {
         private const val STATUS_PENDIENTE_FACTURACION = "Pendiente de facturación"
 
         // Impresora Zebra
-        private const val PRINTER_IP = "192.168.204.10"
+        private const val PRINTER_IP = "192.168.0.10"
         private const val PRINTER_PORT = 9100
+        private const val REQ_PHOTO = 9001
     }
 
     // Failure observations (Revisión inicial)
@@ -463,19 +465,15 @@ class TerminalDetailsActivity : BaseActivity() {
      * Devuelve solo las fallas NUEVAS seleccionadas (no las de RI).
      */
     private fun showRepairFallasDialog(onConfirm: (initialDiagnosis: List<String>) -> Unit) {
-        val isMercadoLibre = currentAccountName?.trim().equals("Mercado Libre SA", ignoreCase = true)
-        val irreparableKeywords = listOf("placa", "carcasa frontal", "display", "tactil", "táctil")
         val noAdditional = "No se encontraron fallas adicionales"
 
         val lockedFallas = revisionInicialFailures.filter { it != FailureObservationsCatalog.NONE }
         val lockedSet = lockedFallas.toSet()
 
         val cats = FailureObservationsCatalog.CATEGORIES
-            .filter { cat -> !(isMercadoLibre && irreparableKeywords.any { kw -> cat.name.contains(kw, ignoreCase = true) }) }
 
         val flatOpts = FailureObservationsCatalog.FLAT_OPTIONS
             .filter { it != FailureObservationsCatalog.NONE && it !in lockedSet }
-            .filter { f -> !(isMercadoLibre && irreparableKeywords.any { kw -> f.contains(kw, ignoreCase = true) }) }
 
         val items: List<FallaDialogItem> =
             listOf(FallaDialogItem.Flat(noAdditional)) +
@@ -860,6 +858,81 @@ class TerminalDetailsActivity : BaseActivity() {
         })
     }
 
+    private var loadingDialog: android.app.ProgressDialog? = null
+    private var completeDone = false
+    private var previousTechnicianValue: String? = null
+
+    private fun showLoadingOverlay() {
+        @Suppress("DEPRECATION")
+        loadingDialog = android.app.ProgressDialog(this).apply {
+            setMessage("Validando en Salesforce...")
+            isIndeterminate = true
+            setCancelable(false)
+            show()
+        }
+    }
+
+    private fun hideLoadingOverlay() {
+        loadingDialog?.dismiss()
+        loadingDialog = null
+    }
+
+    private fun showSuccessAndFinish(caseId: String?) {
+        completeDone = true
+        val msg = if (!caseId.isNullOrBlank()) "Cargado en SF · $caseId" else "Cargado correctamente en SF"
+        android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_LONG).show()
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            setResult(Activity.RESULT_OK)
+            finish()
+        }, 1500)
+    }
+
+    private fun showErrorAlert(msg: String, onRetry: () -> Unit) {
+        AlertDialog.Builder(this)
+            .setTitle("Error de conexión")
+            .setMessage("No se pudo validar con Salesforce.\n\n$msg")
+            .setPositiveButton("Reintentar") { _, _ -> onRetry() }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        if (completeDone) {
+            super.onBackPressed()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Abandonar terminal")
+            .setMessage("¿Querés salir sin completar? Se liberará la asignación.")
+            .setPositiveButton("Abandonar") { _, _ ->
+                sendRelease()
+            }
+            .setNegativeButton("Continuar trabajando", null)
+            .show()
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_PHOTO && resultCode == android.app.Activity.RESULT_OK) {
+            android.widget.Toast.makeText(this, "Foto subida al caso", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun sendRelease() {
+        val role = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty()
+        val prevValue = previousTechnicianValue
+        ApiClient.release(serial, role, prevValue).enqueue(object : Callback<TerminalEventResponse> {
+            override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
+                finish()
+            }
+            override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
+                finish()
+            }
+        })
+    }
+
     private fun executeComplete(
         serial: String,
         role: String,
@@ -878,60 +951,58 @@ class TerminalDetailsActivity : BaseActivity() {
         btnComplete.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
         tvResult.text = "Enviando COMPLETE..."
+        showLoadingOverlay()
 
         val isVerificarAppsRole = role == ROLE_VERIFICAR_APPS
         val appOkValue = if (isVerificarAppsRole) true else appOk
         val techName = getTechnicianNameFromJwt()
-        ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis, technicianName = techName).enqueue(object : Callback<TerminalEventResponse> {
 
-            override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
-                val body = response.body()
+        fun doComplete() {
+            ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis, technicianName = techName).enqueue(object : Callback<TerminalEventResponse> {
 
-                if (!response.isSuccessful || body == null) {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    val raw = response.errorBody()?.string()?.trim().orEmpty()
-                    val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
-                    tvResult.text = "HTTP ${response.code()} - $msg"
-                    btnComplete.isEnabled = true
-                    return
-                }
+                override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
+                    hideLoadingOverlay()
+                    val body = response.body()
 
-                if (body.ok) {
-                    StatusChip.apply(chip, ChipState.OK, "OK")
-                    tvResult.text = "Datos enviados correctamente. ${body.message}"
+                    if (!response.isSuccessful || body == null) {
+                        val raw = response.errorBody()?.string()?.trim().orEmpty()
+                        val msg = if (raw.isNotEmpty()) raw else "HTTP ${response.code()}"
+                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                        tvResult.text = msg
+                        showErrorAlert(msg) { btnComplete.isEnabled = true }
+                        return
+                    }
 
-                    spareParts?.forEach { partId -> incrementPartUsageCount(partId) }
-
-                    val endTs = System.currentTimeMillis()
-                    android.util.Log.d("HistoryDebug", "Saving COMPLETE: startTimestamp=$startTimestamp, endTs=$endTs")
-                    HistoryStore.add(
-                        this@TerminalDetailsActivity,
-                        HistoryEntry(
-                            ts = endTs,
-                            serial = serial,
-                            role = role,
-                            action = if (isVerificarAppsRole) "APPS_OK" else "COMPLETE",
-                            ok = true,
-                            message = body.message,
-                            startTs = startTimestamp
+                    if (body.ok) {
+                        StatusChip.apply(chip, ChipState.OK, "OK")
+                        spareParts?.forEach { partId -> incrementPartUsageCount(partId) }
+                        val endTs = System.currentTimeMillis()
+                        HistoryStore.add(
+                            this@TerminalDetailsActivity,
+                            HistoryEntry(
+                                ts = endTs, serial = serial, role = role,
+                                action = if (isVerificarAppsRole) "APPS_OK" else "COMPLETE",
+                                ok = true, message = body.message, startTs = startTimestamp
+                            )
                         )
-                    )
-
-                    setResult(Activity.RESULT_OK)
-                    finish()
-                } else {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    tvResult.text = body.message ?: "Error"
-                    btnComplete.isEnabled = true
+                        showSuccessAndFinish(body.salesforceId)
+                    } else {
+                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                        tvResult.text = body.message ?: "Error"
+                        showErrorAlert(body.message ?: "Error desconocido") { btnComplete.isEnabled = true }
+                    }
                 }
-            }
 
-            override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
-                StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                tvResult.text = "Falla de conexión: ${t.message}"
-                btnComplete.isEnabled = true
-            }
-        })
+                override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
+                    hideLoadingOverlay()
+                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+                    val msg = "Sin conexión: ${t.message}"
+                    tvResult.text = msg
+                    showErrorAlert(msg) { btnComplete.isEnabled = true }
+                }
+            })
+        }
+        doComplete()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -1006,6 +1077,7 @@ class TerminalDetailsActivity : BaseActivity() {
         val btnFaltaRepuesto = findViewById<Button>(R.id.btnFaltaRepuesto)
         val btnPrintLabel = findViewById<Button>(R.id.btnPrintLabel)
         val btnPrintConfig = findViewById<Button>(R.id.btnPrintConfig)
+        val btnTakePhoto = findViewById<Button>(R.id.btnTakePhoto)
 
         val failureObsContainer = findViewById<View>(R.id.failureObsContainer)
         val btnFailureObs = findViewById<Button>(R.id.btnFailureObs)
@@ -1013,6 +1085,7 @@ class TerminalDetailsActivity : BaseActivity() {
 
         serial = intent.getStringExtra(EXTRA_SERIAL)?.trim().orEmpty()
         val role = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty()
+        previousTechnicianValue = intent.getStringExtra(EXTRA_PREVIOUS_TECH)
         val isRevisionInicial = role == ROLE_REVISION_INICIAL
         val isQa = role == ROLE_QA
         val isRecovery = role == ROLE_RECOVERY
@@ -1057,6 +1130,14 @@ class TerminalDetailsActivity : BaseActivity() {
 
         StatusChip.apply(chip, ChipState.OK, "LISTO")
         tvResult.text = ""
+
+        // Foto: disponible para todos los roles
+        btnTakePhoto.setOnClickListener {
+            val intent = android.content.Intent(this, PhotoCaptureActivity::class.java)
+            intent.putExtra(PhotoCaptureActivity.EXTRA_SERIAL, serial)
+            @Suppress("DEPRECATION")
+            startActivityForResult(intent, REQ_PHOTO)
+        }
 
         if (isRevisionInicial) {
             failureObsContainer.visibility = View.GONE

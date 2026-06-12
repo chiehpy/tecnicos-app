@@ -90,5 +90,9 @@ data class TerminalEventRequest(
 
     // Comentarios libres (van a Comentarios__c)
     @SerializedName("comments")
-    val comments: String? = null
+    val comments: String? = null,
+
+    // Valor anterior del técnico (para RELEASE)
+    @SerializedName("previousValue")
+    val previousValue: String? = null
 )

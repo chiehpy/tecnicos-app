@@ -4,6 +4,8 @@ import com.enofir.tecnicos_app.model.AppVersionResponse
 import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
+import com.enofir.tecnicos_app.model.PhotoUploadRequest
+import com.enofir.tecnicos_app.model.PhotoUploadResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
 import com.enofir.tecnicos_app.model.PrintLabelResponse
 import com.enofir.tecnicos_app.model.HistoryResponse
@@ -67,4 +69,8 @@ interface SalesforceApi {
 
     @GET("terminal/history")
     fun getHistory(): Call<HistoryResponse>
+
+    @Headers("Content-Type: application/json")
+    @POST("terminal/photo")
+    fun uploadPhoto(@Body body: PhotoUploadRequest): Call<PhotoUploadResponse>
 }

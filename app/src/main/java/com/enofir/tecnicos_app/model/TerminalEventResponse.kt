@@ -13,5 +13,8 @@ data class TerminalEventResponse(
     val salesforceId: String? = null,
 
     @SerializedName("error_code")
-    val errorCode: String? = null
+    val errorCode: String? = null,
+
+    @SerializedName("previous_technician")
+    val previousTechnician: String? = null
 )

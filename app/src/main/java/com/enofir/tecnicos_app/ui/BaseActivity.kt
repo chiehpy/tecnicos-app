@@ -4,8 +4,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -35,10 +39,29 @@ abstract class BaseActivity : AppCompatActivity() {
     override fun setContentView(layoutResID: Int) {
         super.setContentView(layoutResID)
         updateVersionText()
+        if (BuildConfig.IS_UAT) showUatBanner()
     }
 
     private fun updateVersionText() {
         findViewById<TextView>(R.id.tvVersion)?.text = "v${BuildConfig.VERSION_NAME}"
+    }
+
+    private fun showUatBanner() {
+        val root = findViewById<ViewGroup>(android.R.id.content) ?: return
+        val banner = TextView(this).apply {
+            text = "⚠ MODO PRUEBA — UAT"
+            setBackgroundColor(Color.parseColor("#FF6600"))
+            setTextColor(Color.WHITE)
+            textSize = 11f
+            gravity = Gravity.CENTER
+            setPadding(0, 6, 0, 6)
+        }
+        val params = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.TOP
+        )
+        root.addView(banner, params)
     }
 
     override fun onDestroy() {

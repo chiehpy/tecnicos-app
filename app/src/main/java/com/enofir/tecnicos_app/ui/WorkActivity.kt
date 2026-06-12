@@ -162,6 +162,7 @@ class WorkActivity : BaseActivity() {
                             val intent = Intent(this@WorkActivity, TerminalDetailsActivity::class.java).apply {
                                 putExtra(TerminalDetailsActivity.EXTRA_SERIAL, serial)
                                 putExtra(TerminalDetailsActivity.EXTRA_ROLE, activeRole)
+                                putExtra(TerminalDetailsActivity.EXTRA_PREVIOUS_TECH, body.previousTechnician)
                             }
                             detailsLauncher.launch(intent)
                         } else {

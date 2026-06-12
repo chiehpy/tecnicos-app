@@ -8,6 +8,8 @@ import com.enofir.tecnicos_app.model.AppVersionResponse
 import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.LoginResponse
+import com.enofir.tecnicos_app.model.PhotoUploadRequest
+import com.enofir.tecnicos_app.model.PhotoUploadResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
 import com.enofir.tecnicos_app.model.PrintLabelResponse
 import com.enofir.tecnicos_app.model.HistoryResponse
@@ -17,6 +19,7 @@ import com.enofir.tecnicos_app.model.TerminalEventRequest
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.model.TerminalLookupResponse
 import com.enofir.tecnicos_app.model.VmCheckResponse
+import com.enofir.tecnicos_app.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -27,7 +30,7 @@ import java.util.concurrent.TimeUnit
 object ApiClient {
 
     @Volatile
-    var baseUrl: String = "http://181.166.225.55:8000/"
+    var baseUrl: String = BuildConfig.BASE_URL
         private set
 
     @Volatile
@@ -190,6 +193,16 @@ object ApiClient {
             technicianName = t
         )
 
+        return api().terminalEvent(payload)
+    }
+
+    fun release(serial: String, role: String, previousValue: String?): Call<TerminalEventResponse> {
+        val payload = TerminalEventRequest(
+            action = "RELEASE",
+            serial = serial.trim(),
+            role = role.trim(),
+            previousValue = previousValue
+        )
         return api().terminalEvent(payload)
     }
 
@@ -366,6 +379,14 @@ object ApiClient {
     }
 
     fun getHistory(): Call<HistoryResponse> = api().getHistory()
+
+    fun uploadPhoto(serial: String, base64: String, filename: String): Call<PhotoUploadResponse> {
+        val s = serial.trim()
+        require(s.isNotEmpty()) { "serial vacío" }
+        require(base64.isNotEmpty()) { "base64 vacío" }
+        val fn = filename.ifEmpty { "foto_${s}.jpg" }
+        return api().uploadPhoto(PhotoUploadRequest(serial = s, base64 = base64, filename = fn))
+    }
 
     fun qaNotify(serial: String, missing: List<String>): Call<TerminalEventResponse> {
         val s = serial.trim()

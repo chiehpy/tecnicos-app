@@ -106,9 +106,21 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
+            buildConfigField("String", "BASE_URL", "\"http://181.166.225.55:8000/\"")
+            buildConfigField("Boolean", "IS_UAT", "false")
+        }
+        create("uat") {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
+            buildConfigField("String", "BASE_URL", "\"http://181.166.225.55:8001/\"")
+            buildConfigField("Boolean", "IS_UAT", "true")
+            applicationIdSuffix = ".uat"
+            versionNameSuffix = "-UAT"
         }
         debug {
             isMinifyEnabled = false
+            buildConfigField("String", "BASE_URL", "\"http://181.166.225.55:8000/\"")
+            buildConfigField("Boolean", "IS_UAT", "false")
         }
     }
 

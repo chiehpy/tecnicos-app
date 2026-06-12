@@ -55,6 +55,10 @@
             android:screenOrientation="landscape" />
         <activity android:name=".ui.SettingsActivity" />
         <activity android:name=".ui.HistoryActivity" />
+        <activity
+            android:name=".ui.PhotoCaptureActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <!-- Pantalla inicial -->
         <activity

@@ -143,6 +143,7 @@ class HistoryActivity : BaseActivity() {
                     entry.role.contains("Recovery", ignoreCase = true) -> "Recovery OK"
                     entry.role.contains("Revisión", ignoreCase = true) ||
                     entry.role.contains("Revision", ignoreCase = true) -> "Rev. Inicial OK"
+                    entry.role.equals("Film", ignoreCase = true) -> "Film OK"
                     else -> "Completado"
                 }
             }
