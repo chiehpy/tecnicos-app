@@ -56,7 +56,8 @@ class TerminalDetailsActivity : BaseActivity() {
         private const val ROLE_RECOVERY = "Recovery"
         private const val ROLE_VERIFICAR_APPS = "Verificar Apps"
         private const val ROLE_PROGRAMADOR = "Programador (carga de firmwares)"
-        private const val ROLE_REPARACION = "Reparación"
+        private const val ROLE_LIMPIEZA    = "Limpieza"
+        private const val ROLE_REPARACION  = "Reparación"
 
         private const val STATUS_IRREPARABLE = "Irreparable"
         private const val STATUS_REPARACION_TECNICA = "Reparación Técnica"
@@ -703,6 +704,47 @@ class TerminalDetailsActivity : BaseActivity() {
         setDialogChecksFromModel(dialog, qaSelected)
     }
 
+    private fun showRejectWithFailuresDialog(
+        onConfirm: (failures: List<String>, destStatus: String, destSubstatus: String?) -> Unit
+    ) {
+        val options = FailureObservationsCatalog.OPTIONS
+        val selected = BooleanArray(options.size)
+
+        AlertDialog.Builder(this)
+            .setTitle("Motivo del rechazo")
+            .setMultiChoiceItems(options.toTypedArray(), selected) { _, which, checked ->
+                selected[which] = checked
+            }
+            .setPositiveButton("Continuar") { d, _ ->
+                d.dismiss()
+                val failures = options.filterIndexed { i, _ -> selected[i] }
+                if (failures.isEmpty()) {
+                    AlertDialog.Builder(this)
+                        .setTitle("Seleccioná al menos un motivo")
+                        .setPositiveButton("OK", null)
+                        .show()
+                    return@setPositiveButton
+                }
+                val safeStatuses = StatusCatalog.OPTIONS.filter { it != STATUS_IRREPARABLE }
+                AlertDialog.Builder(this)
+                    .setTitle("Enviar terminal a...")
+                    .setItems(safeStatuses.toTypedArray()) { _, which ->
+                        val destStatus = safeStatuses[which]
+                        if (destStatus == STATUS_REPARACION_TECNICA) {
+                            showSubstatusDialogForReparacionTecnica { mdwSubstatus, _ ->
+                                onConfirm(failures, destStatus, mdwSubstatus)
+                            }
+                        } else {
+                            onConfirm(failures, destStatus, null)
+                        }
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
     private fun executeRejectQa(
         serial: String,
         qaObsStringForMdw: String,
@@ -1091,7 +1133,8 @@ class TerminalDetailsActivity : BaseActivity() {
         val isRecovery = role == ROLE_RECOVERY
         val isVerificarApps = role == ROLE_VERIFICAR_APPS
         val isProgramador = role == ROLE_PROGRAMADOR
-        val isReparacion = role == ROLE_REPARACION
+        val isLimpieza    = role == ROLE_LIMPIEZA
+        val isReparacion  = role == ROLE_REPARACION
 
         // Recovery views
         val recoveryContainer = findViewById<View>(R.id.recoveryContainer)
@@ -1240,7 +1283,16 @@ class TerminalDetailsActivity : BaseActivity() {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
             btnComplete.text = "PROGRAMAR TERMINAL"
-            btnChangeState.visibility = View.GONE
+            btnChangeState.text = "RECHAZAR TERMINAL"
+            btnChangeState.isEnabled = true
+            btnChangeState.alpha = 1.0f
+        } else if (isLimpieza) {
+            failureObsContainer.visibility = View.GONE
+            recoveryContainer.visibility = View.GONE
+            btnComplete.text = "LIMPIEZA COMPLETADA"
+            btnChangeState.text = "RECHAZAR TERMINAL"
+            btnChangeState.isEnabled = true
+            btnChangeState.alpha = 1.0f
         } else if (isReparacion) {
             failureObsContainer.visibility = View.GONE
             recoveryContainer.visibility = View.GONE
@@ -1570,6 +1622,35 @@ class TerminalDetailsActivity : BaseActivity() {
                         btnComplete.isEnabled = true
                     }
                 })
+                return@setOnClickListener
+            }
+
+            // Programador / Limpieza: rechazo con catálogo de fallas → initialDiagnosis
+            if (isProgramador || isLimpieza) {
+                showRejectWithFailuresDialog { failures, destStatus, destSubstatus ->
+                    val rejectionStr = "Rechazado por: ${failures.joinToString(", ")}"
+                    AlertDialog.Builder(this)
+                        .setTitle("Confirmar rechazo")
+                        .setMessage(
+                            "$rejectionStr\n\nEnviar a: $destStatus" +
+                            if (destSubstatus != null) " ($destSubstatus)" else ""
+                        )
+                        .setPositiveButton("Confirmar") { _, _ ->
+                            executeChangeStatus(
+                                serial = serial,
+                                newStatus = destStatus,
+                                chip = chip,
+                                tvResult = tvResult,
+                                tvStatusValue = tvStatusValue,
+                                btnChangeState = btnChangeState,
+                                finishOnSuccess = true,
+                                substatus = destSubstatus,
+                                initialDiagnosis = listOf(rejectionStr)
+                            )
+                        }
+                        .setNegativeButton("Cancelar", null)
+                        .show()
+                }
                 return@setOnClickListener
             }
 
