@@ -328,6 +328,23 @@ class TerminalDetailsActivity : BaseActivity() {
         )
     }
 
+    /**
+     * Form 2 del flujo de Revisión inicial COMPLETE — versión de firmware.
+     * Pregunta obligatoria SÍ/NO; el booleano se envía como firmwareBelow230 y el
+     * Apex lo traduce a un string que anexa a Comentarios__c.
+     * - SÍ  => true  => "Firmware menor a 2.3.0"
+     * - NO  => false => "Firmware 2.3.0 o superior" (incluye 2.3.0 y superiores)
+     */
+    private fun showFirmwareVersionDialog(onAnswered: (firmwareBelow230: Boolean) -> Unit) {
+        AlertDialog.Builder(this)
+            .setTitle("Versión de firmware")
+            .setMessage("¿El firmware es menor a 2.3.0?")
+            .setCancelable(false)
+            .setPositiveButton("SÍ") { _, _ -> onAnswered(true) }
+            .setNegativeButton("NO") { _, _ -> onAnswered(false) }
+            .show()
+    }
+
     private sealed class FallaDialogItem {
         data class Flat(val label: String) : FallaDialogItem()
         data class Cat(val cat: FailureObservationsCatalog.FallaCategory) : FallaDialogItem()
@@ -988,7 +1005,8 @@ class TerminalDetailsActivity : BaseActivity() {
         spareParts: List<String>? = null,
         caseId: String? = null,
         repairTime: String? = null,
-        initialDiagnosis: List<String>? = null
+        initialDiagnosis: List<String>? = null,
+        firmwareBelow230: Boolean? = null
     ) {
         btnComplete.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
@@ -1000,7 +1018,7 @@ class TerminalDetailsActivity : BaseActivity() {
         val techName = getTechnicianNameFromJwt()
 
         fun doComplete() {
-            ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis, technicianName = techName).enqueue(object : Callback<TerminalEventResponse> {
+            ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis, technicianName = techName, firmwareBelow230 = firmwareBelow230).enqueue(object : Callback<TerminalEventResponse> {
 
                 override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
                     hideLoadingOverlay()
@@ -1903,6 +1921,16 @@ class TerminalDetailsActivity : BaseActivity() {
                     showPlacaDanada = false,
                     requireSelection = true
                 ) { observations ->
+                    // Form 2: versión de firmware → COMPLETE (el booleano va a Comentarios__c en SF)
+                    val proceedWithFirmware = {
+                        showFirmwareVersionDialog { firmwareBelow230 ->
+                            executeComplete(
+                                serial, role, chip, tvResult, btnComplete,
+                                observations,
+                                firmwareBelow230 = firmwareBelow230
+                            )
+                        }
+                    }
                     if (IrreparableChecker.isIrreparable(observations, currentAccountName)) {
                         AlertDialog.Builder(this)
                             .setTitle("Advertencia: Terminal potencialmente irreparable")
@@ -1911,11 +1939,11 @@ class TerminalDetailsActivity : BaseActivity() {
                                         "${observations.joinToString(", ")}\n\n" +
                                         "¿Estás seguro que querés enviarlo a reparación técnica en lugar de marcarlo como Irreparable?"
                             )
-                            .setPositiveButton("Sí, enviar a reparación") { _, _ -> executeComplete(serial, role, chip, tvResult, btnComplete, observations) }
+                            .setPositiveButton("Sí, enviar a reparación") { _, _ -> proceedWithFirmware() }
                             .setNegativeButton("Cancelar", null)
                             .show()
                     } else {
-                        executeComplete(serial, role, chip, tvResult, btnComplete, observations)
+                        proceedWithFirmware()
                     }
                 }
                 return@setOnClickListener

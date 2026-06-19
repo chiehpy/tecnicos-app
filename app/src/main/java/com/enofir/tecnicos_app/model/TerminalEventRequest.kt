@@ -92,6 +92,13 @@ data class TerminalEventRequest(
     @SerializedName("comments")
     val comments: String? = null,
 
+    // ===== COMPLETE (Revisión inicial) =====
+    // Pregunta de pre-test: ¿el firmware es menor a 2.3.0?
+    // true = menor a 2.3.0, false = 2.3.0 o superior, null = omitido.
+    // El Apex traduce este booleano a un string y lo anexa a Comentarios__c.
+    @SerializedName("firmwareBelow230")
+    val firmwareBelow230: Boolean? = null,
+
     // Valor anterior del técnico (para RELEASE)
     @SerializedName("previousValue")
     val previousValue: String? = null
