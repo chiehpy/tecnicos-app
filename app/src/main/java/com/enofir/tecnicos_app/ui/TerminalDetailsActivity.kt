@@ -335,6 +335,7 @@ class TerminalDetailsActivity : BaseActivity() {
      * - SÍ  => true  => "Firmware menor a 2.3.0"
      * - NO  => false => "Firmware 2.3.0 o superior" (incluye 2.3.0 y superiores)
      */
+    @Suppress("unused")  // form de firmware deshabilitado; se conserva por si se reactiva
     private fun showFirmwareVersionDialog(onAnswered: (firmwareBelow230: Boolean) -> Unit) {
         AlertDialog.Builder(this)
             .setTitle("Versión de firmware")
@@ -1921,15 +1922,12 @@ class TerminalDetailsActivity : BaseActivity() {
                     showPlacaDanada = false,
                     requireSelection = true
                 ) { observations ->
-                    // Form 2: versión de firmware → COMPLETE (el booleano va a Comentarios__c en SF)
-                    val proceedWithFirmware = {
-                        showFirmwareVersionDialog { firmwareBelow230 ->
-                            executeComplete(
-                                serial, role, chip, tvResult, btnComplete,
-                                observations,
-                                firmwareBelow230 = firmwareBelow230
-                            )
-                        }
+                    // Form de firmware DESHABILITADO: COMPLETE directo sin preguntar versión de firmware.
+                    val proceedComplete = {
+                        executeComplete(
+                            serial, role, chip, tvResult, btnComplete,
+                            observations
+                        )
                     }
                     if (IrreparableChecker.isIrreparable(observations, currentAccountName)) {
                         AlertDialog.Builder(this)
@@ -1939,11 +1937,11 @@ class TerminalDetailsActivity : BaseActivity() {
                                         "${observations.joinToString(", ")}\n\n" +
                                         "¿Estás seguro que querés enviarlo a reparación técnica en lugar de marcarlo como Irreparable?"
                             )
-                            .setPositiveButton("Sí, enviar a reparación") { _, _ -> proceedWithFirmware() }
+                            .setPositiveButton("Sí, enviar a reparación") { _, _ -> proceedComplete() }
                             .setNegativeButton("Cancelar", null)
                             .show()
                     } else {
-                        proceedWithFirmware()
+                        proceedComplete()
                     }
                 }
                 return@setOnClickListener
