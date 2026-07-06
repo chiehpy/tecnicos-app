@@ -330,19 +330,19 @@ class TerminalDetailsActivity : BaseActivity() {
 
     /**
      * Form 2 del flujo de Revisión inicial COMPLETE — versión de firmware.
-     * Pregunta obligatoria SÍ/NO; el booleano se envía como firmwareBelow230 y el
-     * Apex lo traduce a un string que anexa a Comentarios__c.
-     * - SÍ  => true  => "Firmware menor a 2.3.0"
-     * - NO  => false => "Firmware 2.3.0 o superior" (incluye 2.3.0 y superiores)
+     * Diálogo de una opción; el resultado se envía como firmwareBelow230 en el payload
+     * del COMPLETE y el Apex lo traduce a un string que anexa a Comentarios__c.
+     * - "2.3.0 o mayor" => onAnswered(false) => "Firmware 2.3.0 o superior" (incluye 2.3.0)
+     * - "Menor a 2.3.0" => onAnswered(true)  => "Firmware menor a 2.3.0"
+     * - "Cancelar"      => NO invoca el callback => se aborta el COMPLETE (no se envía nada al MDW)
      */
-    @Suppress("unused")  // form de firmware deshabilitado; se conserva por si se reactiva
     private fun showFirmwareVersionDialog(onAnswered: (firmwareBelow230: Boolean) -> Unit) {
+        // índice 0 = "2.3.0 o mayor" (firmwareBelow230 = false), índice 1 = "Menor a 2.3.0" (true)
+        val opciones = arrayOf("2.3.0 o mayor", "Menor a 2.3.0")
         AlertDialog.Builder(this)
-            .setTitle("Versión de firmware")
-            .setMessage("¿El firmware es menor a 2.3.0?")
-            .setCancelable(false)
-            .setPositiveButton("SÍ") { _, _ -> onAnswered(true) }
-            .setNegativeButton("NO") { _, _ -> onAnswered(false) }
+            .setTitle("¿Qué versión de firmware es?")
+            .setItems(opciones) { _, which -> onAnswered(which == 1) }
+            .setNegativeButton("Cancelar", null)
             .show()
     }
 
@@ -1922,12 +1922,15 @@ class TerminalDetailsActivity : BaseActivity() {
                     showPlacaDanada = false,
                     requireSelection = true
                 ) { observations ->
-                    // Form de firmware DESHABILITADO: COMPLETE directo sin preguntar versión de firmware.
-                    val proceedComplete = {
-                        executeComplete(
-                            serial, role, chip, tvResult, btnComplete,
-                            observations
-                        )
+                    // Form 2: versión de firmware → COMPLETE (el booleano va como firmwareBelow230 → Comentarios__c en SF)
+                    val proceedWithFirmware = {
+                        showFirmwareVersionDialog { firmwareBelow230 ->
+                            executeComplete(
+                                serial, role, chip, tvResult, btnComplete,
+                                observations,
+                                firmwareBelow230 = firmwareBelow230
+                            )
+                        }
                     }
                     if (IrreparableChecker.isIrreparable(observations, currentAccountName)) {
                         AlertDialog.Builder(this)
@@ -1937,11 +1940,11 @@ class TerminalDetailsActivity : BaseActivity() {
                                         "${observations.joinToString(", ")}\n\n" +
                                         "¿Estás seguro que querés enviarlo a reparación técnica en lugar de marcarlo como Irreparable?"
                             )
-                            .setPositiveButton("Sí, enviar a reparación") { _, _ -> proceedComplete() }
+                            .setPositiveButton("Sí, enviar a reparación") { _, _ -> proceedWithFirmware() }
                             .setNegativeButton("Cancelar", null)
                             .show()
                     } else {
-                        proceedComplete()
+                        proceedWithFirmware()
                     }
                 }
                 return@setOnClickListener
