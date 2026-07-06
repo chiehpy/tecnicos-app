@@ -44,6 +44,21 @@ Base URL: `http://181.166.225.55:8000/`
 ```
 - `failureObservations`: opcional, puede ser string o array. Solo aplica para `Revisión inicial`.
 - `technicianName`: **NO debe enviarse** en COMPLETE (el MDW lo rechaza con 422).
+- `firmwareBelow230`: opcional, boolean. **Solo `Revisión inicial`.** Versión de firmware relevada por el técnico al finalizar el diagnóstico. El Apex lo traduce a un string que anexa a `Comentarios__c`:
+  - `true` → firmware **menor a 2.3.0** → anexa `"Firmware menor a 2.3.0"`.
+  - `false` → firmware **2.3.0 o superior** (incluye 2.3.0) → anexa `"Firmware 2.3.0 o superior"`.
+  - omitido / `null` → no se anexa nada (el técnico canceló el diálogo de versión).
+
+Ejemplo COMPLETE de `Revisión inicial` con versión de firmware:
+```json
+{
+  "action": "COMPLETE",
+  "serial": "SN123456789",
+  "role": "Revisión inicial",
+  "failureObservations": ["Batería defectuosa"],
+  "firmwareBelow230": true
+}
+```
 
 #### MODIFY
 ```json
