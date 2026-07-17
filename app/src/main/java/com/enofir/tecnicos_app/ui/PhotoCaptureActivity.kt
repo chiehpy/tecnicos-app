@@ -75,6 +75,7 @@ class PhotoCaptureActivity : AppCompatActivity(), TextureView.SurfaceTextureList
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo_capture)
+        attachCountdownOverlay()
         serial = intent.getStringExtra(EXTRA_SERIAL) ?: ""
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
         bindViews()

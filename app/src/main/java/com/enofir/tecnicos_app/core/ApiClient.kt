@@ -141,6 +141,7 @@ object ApiClient {
 
             val client = OkHttpClient.Builder()
                 .addInterceptor(authInterceptor)
+                .addInterceptor(ServerTimeInterceptor())
                 .addInterceptor(logger)
                 .authenticator(tokenAuthenticator)
                 .connectTimeout(10, TimeUnit.SECONDS)
