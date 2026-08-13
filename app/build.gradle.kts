@@ -116,6 +116,9 @@ android {
             buildConfigField("Boolean", "IS_UAT", "true")
             applicationIdSuffix = ".uat"
             versionNameSuffix = "-UAT"
+            // Nombre distinto en el launcher: un tecnico puede tener las dos apps
+            // instaladas y no debe poder trabajar en la equivocada sin darse cuenta.
+            resValue("string", "app_name", "TechFlow UAT")
         }
         debug {
             isMinifyEnabled = false

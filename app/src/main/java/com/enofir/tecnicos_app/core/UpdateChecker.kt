@@ -32,8 +32,19 @@ object UpdateChecker {
     /**
      * Verifica si hay una versión más nueva disponible.
      * Llama al endpoint /app/version y compara con la versión instalada.
+     *
+     * En la build **UAT no corre**: el endpoint devuelve el último release de
+     * producción, que siempre es "más nuevo" que la UAT, y el APK que ofrece
+     * descargar apunta a `:8000`. Un técnico del piloto que aceptara la
+     * actualización se saldría del piloto sin enterarse.
      */
     fun check(activity: Activity, showNoUpdateMessage: Boolean = false) {
+        if (BuildConfig.IS_UAT) {
+            if (showNoUpdateMessage) {
+                showMessage(activity, "Build UAT: las actualizaciones están desactivadas")
+            }
+            return
+        }
         ApiClient.getAppVersion().enqueue(object : Callback<AppVersionResponse> {
             override fun onResponse(call: Call<AppVersionResponse>, response: Response<AppVersionResponse>) {
                 val body = response.body()
