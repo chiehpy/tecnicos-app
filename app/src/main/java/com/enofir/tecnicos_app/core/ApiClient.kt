@@ -6,7 +6,10 @@ import android.os.Handler
 import android.os.Looper
 import com.enofir.tecnicos_app.model.AppVersionResponse
 import com.enofir.tecnicos_app.model.CatalogsResponse
+import com.enofir.tecnicos_app.model.DespacharRequest
+import com.enofir.tecnicos_app.model.DespacharResponse
 import com.enofir.tecnicos_app.model.LoginRequest
+import com.enofir.tecnicos_app.model.MisPendientesResponse
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.PhotoUploadRequest
 import com.enofir.tecnicos_app.model.PhotoUploadResponse
@@ -396,6 +399,24 @@ object ApiClient {
         require(s.isNotEmpty()) { "serial vacío" }
         require(missing.isNotEmpty()) { "missing vacío" }
         return api().qaNotify(QaNotifyRequest(serial = s, missing = missing))
+    }
+
+    // --- Verificación E2E (Feature 3) ---
+
+    fun misPendientes(): Call<MisPendientesResponse> = api().misPendientes()
+
+    fun despacharPendiente(
+        id: Int,
+        reasonCode: String,
+        detail: String? = null,
+    ): Call<DespacharResponse> {
+        require(id > 0) { "id de pendiente inválido" }
+        val code = reasonCode.trim()
+        require(code.isNotEmpty()) { "reasonCode vacío" }
+        return api().despacharPendiente(
+            id,
+            DespacharRequest(reasonCode = code, detail = detail?.trim()?.takeIf { it.isNotEmpty() }),
+        )
     }
 
     /**

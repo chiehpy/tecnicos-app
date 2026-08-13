@@ -9,6 +9,7 @@ import androidx.appcompat.widget.PopupMenu
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.EventVerifier
+import com.enofir.tecnicos_app.core.PendingGate
 import com.enofir.tecnicos_app.core.CatalogsStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.UpdateChecker
@@ -177,6 +178,10 @@ class WorkActivity : BaseActivity() {
         val role = session.getRole()?.trim().orEmpty()
         val displayRole = if (role == "Recovery") "Parts Recovery" else role
         tvActiveRole?.text = "Rol activo: ${if (role.isEmpty()) "(no configurado)" else displayRole}"
+
+        // Gate de verificación E2E: si quedó una actualización sin confirmar, la pantalla
+        // vuelve a aparecer acá aunque la app se haya cerrado (la lleva el MDW, no la app).
+        PendingGate.checkOnResume(this)
     }
 
     private fun showMenu(anchor: ImageButton) {

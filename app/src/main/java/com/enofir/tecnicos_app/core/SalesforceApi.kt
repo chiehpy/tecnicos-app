@@ -2,7 +2,10 @@ package com.enofir.tecnicos_app.core
 
 import com.enofir.tecnicos_app.model.AppVersionResponse
 import com.enofir.tecnicos_app.model.CatalogsResponse
+import com.enofir.tecnicos_app.model.DespacharRequest
+import com.enofir.tecnicos_app.model.DespacharResponse
 import com.enofir.tecnicos_app.model.LoginRequest
+import com.enofir.tecnicos_app.model.MisPendientesResponse
 import com.enofir.tecnicos_app.model.LoginResponse
 import com.enofir.tecnicos_app.model.PhotoUploadRequest
 import com.enofir.tecnicos_app.model.PhotoUploadResponse
@@ -73,4 +76,18 @@ interface SalesforceApi {
     @Headers("Content-Type: application/json")
     @POST("terminal/photo")
     fun uploadPhoto(@Body body: PhotoUploadRequest): Call<PhotoUploadResponse>
+
+    // --- Verificación E2E (Feature 3) ---
+
+    /** Pendientes que todavía bloquean al técnico del token. Gate al reabrir la app. */
+    @GET("app/mis-pendientes")
+    fun misPendientes(): Call<MisPendientesResponse>
+
+    /** El técnico no pudo resolverla: desbloquea la app. La pendiente sigue abierta en el MDW. */
+    @Headers("Content-Type: application/json")
+    @POST("app/mis-pendientes/{id}/despachar")
+    fun despacharPendiente(
+        @Path("id") id: Int,
+        @Body body: DespacharRequest,
+    ): Call<DespacharResponse>
 }

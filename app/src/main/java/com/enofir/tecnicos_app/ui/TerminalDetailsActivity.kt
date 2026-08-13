@@ -24,6 +24,7 @@ import android.widget.SeekBar
 import com.enofir.tecnicos_app.core.ApiClient
 import com.enofir.tecnicos_app.core.EventVerifier
 import com.enofir.tecnicos_app.core.HistoryStore
+import com.enofir.tecnicos_app.core.PendingGate
 import com.enofir.tecnicos_app.core.PrintConfigStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.CatalogsStore
@@ -783,6 +784,18 @@ class TerminalDetailsActivity : BaseActivity() {
             visibility = View.VISIBLE
             isEnabled = true
         }
+        // Pantalla bloqueante con la salida del gate: reintentar, o declarar que no se
+        // pudo resolver (queda registrado en el MDW y recién ahí se desbloquea).
+        PendingGate.showAfterFailure(
+            activity = this,
+            serial = serial,
+            message = message,
+            onRetry = { findViewById<Button>(R.id.btnRetry)?.performClick() },
+            onDespachada = {
+                hideRetry()
+                tvResult.text = "Sin confirmar — registrado. Podés continuar."
+            },
+        )
     }
 
     private fun hideRetry() {
