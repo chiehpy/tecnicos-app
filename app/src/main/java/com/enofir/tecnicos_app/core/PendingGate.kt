@@ -270,22 +270,27 @@ object PendingGate {
                         onDone()
                         return
                     }
-                    // El MDW rechazó el despacho: no se puede desbloquear en silencio.
-                    retryDespachar(activity, pendiente, reasonCode, detail, onDone,
-                        "El sistema no aceptó el despacho (HTTP ${response.code()}).")
+                    if (response.code() == 404) {
+                        // La pendiente ya no existe en el MDW: no hay nada que registrar,
+                        // reintentar seria un loop sin salida.
+                        onDone()
+                        return
+                    }
+                    retryDespachar(activity, pendiente, reasonCode, detail, onDone)
                 }
 
                 override fun onFailure(call: Call<DespacharResponse>, t: Throwable) {
                     if (activity.isFinishing || activity.isDestroyed) return
-                    retryDespachar(activity, pendiente, reasonCode, detail, onDone,
-                        "Sin conexión con el sistema: ${t.message}")
+                    Log.w(TAG, "despachar id=${pendiente.id} fallo: $t")
+                    retryDespachar(activity, pendiente, reasonCode, detail, onDone)
                 }
             })
     }
 
     /**
-     * Si el despacho no llegó al MDW, el técnico sigue bloqueado: desbloquear en
-     * local dejaría al MDW sin registro y la pendiente reaparecería al reabrir.
+     * Si el despacho no llegó al MDW, el técnico sigue bloqueado y sólo puede
+     * reintentar: desbloquear en local dejaría al MDW sin registro y la pendiente
+     * reaparecería al reabrir la app.
      */
     private fun retryDespachar(
         activity: Activity,
@@ -293,12 +298,11 @@ object PendingGate {
         reasonCode: String,
         detail: String?,
         onDone: () -> Unit,
-        message: String,
     ) {
         show(
             AlertDialog.Builder(activity)
                 .setTitle("No se pudo registrar")
-                .setMessage("$message\n\nHay que registrarlo para poder continuar.")
+                .setMessage("No llegó al sistema. Reintentá.")
                 .setCancelable(false)
                 .setPositiveButton("Reintentar") { d, _ ->
                     d.dismiss()

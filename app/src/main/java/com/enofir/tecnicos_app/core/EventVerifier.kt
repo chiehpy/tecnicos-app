@@ -140,7 +140,7 @@ object EventVerifier {
             val lookup = try {
                 ApiClient.lookup(serial).execute()
             } catch (e: Exception) {
-                return AttemptResult(false, "No se pudo re-consultar el estado en Salesforce: ${e.message}", body, retryable = true)
+                return AttemptResult(false, "No se pudo re-consultar el estado en Salesforce", body, retryable = true)
             }
             val actual = lookup.body()?.data?.cs?.status
             if (actual.isNullOrBlank()) {
