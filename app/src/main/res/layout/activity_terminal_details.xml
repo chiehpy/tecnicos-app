@@ -521,6 +521,19 @@
             android:backgroundTint="#FF6F00"
             android:visibility="gone" />
 
+        <!-- Verificación E2E (Feature 3): aparece sólo cuando una actualización no se
+             pudo confirmar en Salesforce. Mientras está visible bloquea Finalizar /
+             Cambiar estado / FALTA REPUESTO. -->
+        <Button
+            android:id="@+id/btnRetry"
+            android:text="REINTENTAR"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#C62828"
+            android:textColor="#FFFFFF"
+            android:visibility="gone" />
+
         <Button
             android:id="@+id/btnPrintLabel"
             android:text="IMPRIMIR ETIQUETA"

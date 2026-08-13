@@ -16,5 +16,13 @@ data class TerminalEventResponse(
     val errorCode: String? = null,
 
     @SerializedName("previous_technician")
-    val previousTechnician: String? = null
+    val previousTechnician: String? = null,
+
+    // Verificación E2E (Feature 3): read-back que hace el MDW (null en versiones viejas del MDW)
+    @SerializedName("verified")
+    val verified: Boolean? = null,
+
+    // Estado resultante persistido que reporta el MDW (para la 2da barrera de la app)
+    @SerializedName("status")
+    val status: String? = null
 )

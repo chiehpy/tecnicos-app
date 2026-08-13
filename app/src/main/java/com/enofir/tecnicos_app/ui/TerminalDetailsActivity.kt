@@ -22,6 +22,7 @@ import com.enofir.tecnicos_app.R
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import com.enofir.tecnicos_app.core.ApiClient
+import com.enofir.tecnicos_app.core.EventVerifier
 import com.enofir.tecnicos_app.core.HistoryStore
 import com.enofir.tecnicos_app.core.PrintConfigStore
 import com.enofir.tecnicos_app.core.SessionManager
@@ -763,6 +764,35 @@ class TerminalDetailsActivity : BaseActivity() {
             .show()
     }
 
+    // --- Verificación E2E (Feature 3): reintento bloqueante ---
+    private var pendingRetryAction: (() -> Unit)? = null
+    private var retryPrevEnabled: Map<Int, Boolean>? = null
+    private val retryBlockedButtonIds = intArrayOf(R.id.btnComplete, R.id.btnChangeState, R.id.btnFaltaRepuesto)
+
+    private fun showRetry(chip: TextView, tvResult: TextView, message: String, retry: () -> Unit) {
+        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+        tvResult.text = message
+        pendingRetryAction = retry
+        // Bloqueante: hasta reintentar con éxito, solo "Reintentar" queda disponible.
+        // Guardamos el estado previo real (solo la 1ra vez) para restaurarlo al resolver.
+        if (retryPrevEnabled == null) {
+            retryPrevEnabled = retryBlockedButtonIds.associateWith { findViewById<Button>(it)?.isEnabled ?: false }
+        }
+        retryBlockedButtonIds.forEach { findViewById<Button>(it)?.isEnabled = false }
+        findViewById<Button>(R.id.btnRetry)?.apply {
+            visibility = View.VISIBLE
+            isEnabled = true
+        }
+    }
+
+    private fun hideRetry() {
+        pendingRetryAction = null
+        findViewById<Button>(R.id.btnRetry)?.visibility = View.GONE
+        // Restaurar el estado previo de los botones bloqueados
+        retryPrevEnabled?.forEach { (id, wasEnabled) -> findViewById<Button>(id)?.isEnabled = wasEnabled }
+        retryPrevEnabled = null
+    }
+
     private fun executeRejectQa(
         serial: String,
         qaObsStringForMdw: String,
@@ -775,37 +805,26 @@ class TerminalDetailsActivity : BaseActivity() {
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
         tvResult.text = "Enviando REJECT (QA)..."
 
-        ApiClient.reject(serial, ROLE_QA, qaObsStringForMdw).enqueue(object : Callback<TerminalEventResponse> {
-
-            override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
-                val body = response.body()
-
-                if (!response.isSuccessful || body == null) {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    val raw = response.errorBody()?.string()?.trim().orEmpty()
-                    val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
-                    tvResult.text = "REJECT falló: HTTP ${response.code()} - $msg"
-                    btnChangeState.isEnabled = true
-                    return
-                }
-
-                if (body.ok) {
+        EventVerifier.run(
+            serial = serial,
+            expectedStatus = null,   // REJECT → el estado resultante lo reporta el MDW (updates.Status)
+            callFactory = { ApiClient.reject(serial, ROLE_QA, qaObsStringForMdw) },
+        ) { result ->
+            when (result) {
+                is EventVerifier.Result.Success -> {
+                    hideRetry()
                     StatusChip.apply(chip, ChipState.OK, "OK")
-                    tvResult.text = body.message ?: "REJECT OK"
+                    tvResult.text = result.response.message ?: "REJECT OK"
                     onSuccess()
-                } else {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    tvResult.text = body.message ?: "REJECT falló"
-                    btnChangeState.isEnabled = true
+                }
+                is EventVerifier.Result.Failed -> {
+                    showRetry(
+                        chip, tvResult,
+                        "REJECT no confirmado tras ${result.attempts} intento(s): ${result.lastMessage}",
+                    ) { executeRejectQa(serial, qaObsStringForMdw, chip, tvResult, btnChangeState, onSuccess) }
                 }
             }
-
-            override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
-                StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                tvResult.text = "REJECT falló: ${t.message}"
-                btnChangeState.isEnabled = true
-            }
-        })
+        }
     }
 
     /**
@@ -826,6 +845,7 @@ class TerminalDetailsActivity : BaseActivity() {
         recoveredParts: String? = null,
         technicianNameRequired: Boolean = false,
         saveHistory: Boolean = true,
+        comments: String? = null,
         onOk: (() -> Unit)? = null
     ) {
         btnChangeState.isEnabled = false
@@ -842,30 +862,27 @@ class TerminalDetailsActivity : BaseActivity() {
             return
         }
 
-        ApiClient.modify(
+        EventVerifier.run(
             serial = serial,
-            targetStatus = newStatus,
-            targetSubstatus = substatus,
-            technicianName = techName,
-            recoveredParts = recoveredParts,
-            failureObservations = failureObservations,
-            initialDiagnosis = initialDiagnosis,
-            role = activeRole
-        ).enqueue(object : Callback<TerminalEventResponse> {
-
-            override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
-                val body = response.body()
-
-                if (!response.isSuccessful || body == null) {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    val raw = response.errorBody()?.string()?.trim().orEmpty()
-                    val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
-                    tvResult.text = "HTTP ${response.code()} - $msg"
-                    btnChangeState.isEnabled = true
-                    return
-                }
-
-                if (body.ok) {
+            expectedStatus = newStatus,   // MODIFY: la app conoce el destino
+            callFactory = {
+                ApiClient.modify(
+                    serial = serial,
+                    targetStatus = newStatus,
+                    targetSubstatus = substatus,
+                    technicianName = techName,
+                    recoveredParts = recoveredParts,
+                    failureObservations = failureObservations,
+                    initialDiagnosis = initialDiagnosis,
+                    role = activeRole,
+                    comments = comments
+                )
+            },
+        ) { result ->
+            when (result) {
+                is EventVerifier.Result.Success -> {
+                    hideRetry()
+                    val body = result.response
                     StatusChip.apply(chip, ChipState.OK, "OK")
                     tvResult.text = body.message ?: "Estado cambiado correctamente."
                     tvStatusValue.text = newStatus
@@ -903,19 +920,21 @@ class TerminalDetailsActivity : BaseActivity() {
                         if (onOk == null) btnChangeState.isEnabled = true
                         onOk?.invoke()
                     }
-                } else {
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    tvResult.text = body.message ?: "Error al cambiar estado."
-                    btnChangeState.isEnabled = true
+                }
+                is EventVerifier.Result.Failed -> {
+                    showRetry(
+                        chip, tvResult,
+                        "No se pudo confirmar el cambio tras ${result.attempts} intento(s): ${result.lastMessage}",
+                    ) {
+                        executeChangeStatus(
+                            serial, newStatus, chip, tvResult, tvStatusValue, btnChangeState,
+                            finishOnSuccess, substatus, failureObservations, initialDiagnosis,
+                            recoveredParts, technicianNameRequired, saveHistory, comments, onOk
+                        )
+                    }
                 }
             }
-
-            override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
-                StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                tvResult.text = "Falla de conexión: ${t.message}"
-                btnChangeState.isEnabled = true
-            }
-        })
+        }
     }
 
     private var loadingDialog: android.app.ProgressDialog? = null
@@ -1012,29 +1031,25 @@ class TerminalDetailsActivity : BaseActivity() {
         btnComplete.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
         tvResult.text = "Enviando COMPLETE..."
-        showLoadingOverlay()
 
         val isVerificarAppsRole = role == ROLE_VERIFICAR_APPS
         val appOkValue = if (isVerificarAppsRole) true else appOk
         val techName = getTechnicianNameFromJwt()
 
         fun doComplete() {
-            ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis, technicianName = techName, firmwareBelow230 = firmwareBelow230).enqueue(object : Callback<TerminalEventResponse> {
-
-                override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
-                    hideLoadingOverlay()
-                    val body = response.body()
-
-                    if (!response.isSuccessful || body == null) {
-                        val raw = response.errorBody()?.string()?.trim().orEmpty()
-                        val msg = if (raw.isNotEmpty()) raw else "HTTP ${response.code()}"
-                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                        tvResult.text = msg
-                        showErrorAlert(msg) { btnComplete.isEnabled = true }
-                        return
-                    }
-
-                    if (body.ok) {
+            showLoadingOverlay()
+            EventVerifier.run(
+                serial = serial,
+                expectedStatus = null,   // COMPLETE: el estado resultante lo decide el Apex (lo reporta el MDW)
+                callFactory = {
+                    ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis, technicianName = techName, firmwareBelow230 = firmwareBelow230)
+                },
+            ) { result ->
+                hideLoadingOverlay()
+                when (result) {
+                    is EventVerifier.Result.Success -> {
+                        hideRetry()
+                        val body = result.response
                         StatusChip.apply(chip, ChipState.OK, "OK")
                         spareParts?.forEach { partId -> incrementPartUsageCount(partId) }
                         val endTs = System.currentTimeMillis()
@@ -1047,21 +1062,16 @@ class TerminalDetailsActivity : BaseActivity() {
                             )
                         )
                         showSuccessAndFinish(body.salesforceId)
-                    } else {
+                    }
+                    is EventVerifier.Result.Failed -> {
                         StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                        tvResult.text = body.message ?: "Error"
-                        showErrorAlert(body.message ?: "Error desconocido") { btnComplete.isEnabled = true }
+                        showRetry(
+                            chip, tvResult,
+                            "COMPLETE no confirmado tras ${result.attempts} intento(s): ${result.lastMessage}",
+                        ) { doComplete() }
                     }
                 }
-
-                override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
-                    hideLoadingOverlay()
-                    StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                    val msg = "Sin conexión: ${t.message}"
-                    tvResult.text = msg
-                    showErrorAlert(msg) { btnComplete.isEnabled = true }
-                }
-            })
+            }
         }
         doComplete()
     }
@@ -1199,6 +1209,13 @@ class TerminalDetailsActivity : BaseActivity() {
             intent.putExtra(PhotoCaptureActivity.EXTRA_SERIAL, serial)
             @Suppress("DEPRECATION")
             startActivityForResult(intent, REQ_PHOTO)
+        }
+
+        // Reintento de verificación E2E (Feature 3): re-ejecuta la última acción no confirmada
+        findViewById<Button>(R.id.btnRetry).setOnClickListener {
+            val action = pendingRetryAction
+            hideRetry()
+            action?.invoke()
         }
 
         if (isRevisionInicial) {
@@ -1354,48 +1371,18 @@ class TerminalDetailsActivity : BaseActivity() {
                             .setTitle("Confirmar")
                             .setMessage("Se cambiará el subestado a \"Esperando repuesto\".\n\n$commentsText")
                             .setPositiveButton("Aceptar") { _, _ ->
-                                btnFaltaRepuesto.isEnabled = false
-                                btnComplete.isEnabled = false
-                                btnChangeState.isEnabled = false
-                                StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
-                                tvResult.text = "Enviando..."
-
-                                ApiClient.modify(
+                                // Ruteo por la verificación E2E (mismo camino que el resto de los MODIFY)
+                                executeChangeStatus(
                                     serial = serial,
-                                    targetStatus = currentStatus ?: "Reparación Técnica",
-                                    targetSubstatus = "Esperando repuesto",
-                                    technicianName = getTechnicianNameFromJwt(),
-                                    role = role,
+                                    newStatus = currentStatus ?: "Reparación Técnica",
+                                    chip = chip,
+                                    tvResult = tvResult,
+                                    tvStatusValue = tvStatusValue,
+                                    btnChangeState = btnChangeState,
+                                    finishOnSuccess = true,
+                                    substatus = "Esperando repuesto",
                                     comments = commentsText
-                                ).enqueue(object : Callback<TerminalEventResponse> {
-                                    override fun onResponse(call: Call<TerminalEventResponse>, response: Response<TerminalEventResponse>) {
-                                        val body = response.body()
-                                        if (response.isSuccessful && body?.ok == true) {
-                                            StatusChip.apply(chip, ChipState.OK, "OK")
-                                            tvResult.text = body.message ?: "Subestado actualizado."
-                                            HistoryStore.add(this@TerminalDetailsActivity,
-                                                HistoryEntry(ts = System.currentTimeMillis(), serial = serial,
-                                                    role = role, action = "MODIFY", ok = true,
-                                                    message = commentsText, startTs = startTimestamp))
-                                            setResult(Activity.RESULT_OK)
-                                            finish()
-                                        } else {
-                                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                                            val msg = response.errorBody()?.string()?.trim() ?: body?.message ?: "Error"
-                                            tvResult.text = msg
-                                            btnFaltaRepuesto.isEnabled = true
-                                            btnComplete.isEnabled = true
-                                            btnChangeState.isEnabled = true
-                                        }
-                                    }
-                                    override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
-                                        StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                                        tvResult.text = "Falla de conexión: ${t.message}"
-                                        btnFaltaRepuesto.isEnabled = true
-                                        btnComplete.isEnabled = true
-                                        btnChangeState.isEnabled = true
-                                    }
-                                })
+                                )
                             }
                             .setNegativeButton("Cancelar", null)
                             .show()

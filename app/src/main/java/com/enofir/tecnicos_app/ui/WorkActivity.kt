@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
 import com.enofir.tecnicos_app.R
 import com.enofir.tecnicos_app.core.ApiClient
+import com.enofir.tecnicos_app.core.EventVerifier
 import com.enofir.tecnicos_app.core.CatalogsStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.UpdateChecker
@@ -135,55 +136,39 @@ class WorkActivity : BaseActivity() {
             StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
             tvResult.text = "Procesando terminal"
 
-            ApiClient.assign(serial, activeRole, technicianName)
-                .enqueue(object : Callback<TerminalEventResponse> {
+            // Verificación E2E (Feature 3): 3 reintentos automáticos + read-back.
+            // En esta pantalla el reintento manual es volver a tocar "Procesar".
+            EventVerifier.run(
+                serial = serial,
+                expectedStatus = null,   // ASSIGN no cambia Status; el MDW confirma éxito (verified)
+                callFactory = { ApiClient.assign(serial, activeRole, technicianName) },
+            ) { result ->
+                // Rehabilitar controles
+                btnProcess.isEnabled = true
+                btnScan.isEnabled = true
 
-                    override fun onResponse(
-                        call: Call<TerminalEventResponse>,
-                        response: Response<TerminalEventResponse>
-                    ) {
-                        // Rehabilitar controles
-                        btnProcess.isEnabled = true
-                        btnScan.isEnabled = true
+                when (result) {
+                    is EventVerifier.Result.Success -> {
+                        val body = result.response
+                        StatusChip.apply(chip, ChipState.OK, "OK")
+                        tvResult.text = body.message
 
-                        val body = response.body()
-                        if (!response.isSuccessful || body == null) {
-                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                            val raw = response.errorBody()?.string()?.trim().orEmpty()
-                            val msg = if (raw.isNotEmpty()) raw else "Error en respuesta"
-                            tvResult.text = "HTTP ${response.code()} - $msg"
-                            return
+                        val intent = Intent(this@WorkActivity, TerminalDetailsActivity::class.java).apply {
+                            putExtra(TerminalDetailsActivity.EXTRA_SERIAL, serial)
+                            putExtra(TerminalDetailsActivity.EXTRA_ROLE, activeRole)
+                            putExtra(TerminalDetailsActivity.EXTRA_PREVIOUS_TECH, body.previousTechnician)
                         }
-
-                        if (body.ok) {
-                            StatusChip.apply(chip, ChipState.OK, "OK")
-                            tvResult.text = body.message
-
-                            val intent = Intent(this@WorkActivity, TerminalDetailsActivity::class.java).apply {
-                                putExtra(TerminalDetailsActivity.EXTRA_SERIAL, serial)
-                                putExtra(TerminalDetailsActivity.EXTRA_ROLE, activeRole)
-                                putExtra(TerminalDetailsActivity.EXTRA_PREVIOUS_TECH, body.previousTechnician)
-                            }
-                            detailsLauncher.launch(intent)
-                        } else {
-                            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                            // Mensaje amigable para errores conocidos
-                            tvResult.text = when (body.errorCode) {
-                                "SF_NOT_FOUND" -> "La terminal no se encuentra cargada en Salesforce"
-                                else -> body.message
-                            }
-                        }
+                        detailsLauncher.launch(intent)
                     }
-
-                    override fun onFailure(call: Call<TerminalEventResponse>, t: Throwable) {
-                        // Rehabilitar controles
-                        btnProcess.isEnabled = true
-                        btnScan.isEnabled = true
-
+                    is EventVerifier.Result.Failed -> {
                         StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                        tvResult.text = "Falla de conexión: ${t.message}"
+                        tvResult.text = when (result.lastResponse?.errorCode) {
+                            "SF_NOT_FOUND" -> "La terminal no se encuentra cargada en Salesforce"
+                            else -> "No se pudo confirmar (${result.attempts} intento(s)): ${result.lastMessage}"
+                        }
                     }
-                })
+                }
+            }
         }
     }
 
