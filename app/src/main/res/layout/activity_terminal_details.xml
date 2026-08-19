@@ -158,8 +158,11 @@
                 android:layout_marginTop="12dp"
                 android:visibility="gone">
 
+                <!-- Sigue leyendo QAObservations__c, pero el rotulo ya no dice "QA":
+                     desde el catalogo dinamico 2.0 el rebote de Programador y Limpieza
+                     tambien escribe ahi, asi que el campo dejo de ser exclusivo de QA. -->
                 <TextView
-                    android:text="Observaciones QA"
+                    android:text="Se rechaza por"
                     android:textStyle="bold"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
