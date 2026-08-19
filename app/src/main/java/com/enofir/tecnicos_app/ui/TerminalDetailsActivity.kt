@@ -28,6 +28,7 @@ import com.enofir.tecnicos_app.core.PendingGate
 import com.enofir.tecnicos_app.core.PrintConfigStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.CatalogsStore
+import com.enofir.tecnicos_app.core.FailureMatrix
 import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.FailureObservationsCatalog
 import com.enofir.tecnicos_app.model.HistoryEntry
@@ -320,12 +321,16 @@ class TerminalDetailsActivity : BaseActivity() {
     }
 
     private fun showFailureObsDialogForIrreparable(onConfirm: (failureObs: List<String>) -> Unit) {
+        // Criterio de irreparabilidad: lo define el MDW por rol (pre-test solo puede
+        // declarar lo medible sin abrir; Reparacion, todo el criterio del canon).
+        val rol = SessionManager(this).getRole().orEmpty()
         showFailureTreeDialog(
             title = "Seleccionar fallas (obligatorio)",
             positiveLabel = "Continuar",
             showPlacaDanada = true,
             requireSelection = true,
             irreparableOnly = true,
+            corresponden = FailureMatrix.irreparable(rol),
             onConfirm = onConfirm
         )
     }
@@ -360,18 +365,40 @@ class TerminalDetailsActivity : BaseActivity() {
         showPlacaDanada: Boolean,
         requireSelection: Boolean,
         irreparableOnly: Boolean = false,
+        /** Fallas que corresponden a este par (rol, destino) segun la matriz del MDW.
+         *  Vacio = sin matriz (MDW viejo o celda sin definir) -> se muestra todo, que es
+         *  el comportamiento anterior. */
+        corresponden: List<String> = emptyList(),
+        /** "Sin falla" no aplica cuando el dialogo pide un MOTIVO (rebote, irreparable). */
+        incluirSinFalla: Boolean = true,
         onConfirm: (List<String>) -> Unit
     ) {
         val noneLabel = FailureObservationsCatalog.NONE
-        val cats = FailureObservationsCatalog.CATEGORIES
-            .filter { showPlacaDanada || it.name != "Placa dañada" }
-        val flatOpts = FailureObservationsCatalog.FLAT_OPTIONS
-            .filter { it != noneLabel }
-            .filter { !irreparableOnly || it != noneLabel }
 
-        val items: List<FallaDialogItem> = (if (irreparableOnly) emptyList() else listOf(FallaDialogItem.Flat(noneLabel))) +
-                cats.map { FallaDialogItem.Cat(it) } +
-                flatOpts.map { FallaDialogItem.Flat(it) }
+        // El universo del dialogo: el catalogo completo menos "Sin falla" cuando no aplica.
+        val universo = FailureObservationsCatalog.OPTIONS.filter { it != noneLabel }
+
+        // La matriz manda. Los flags showPlacaDanada/irreparableOnly quedan solo como
+        // respaldo para cuando el MDW no la sirve: son la version hardcodeada de la
+        // misma regla ("el diagnostico de placa solo camino a Irreparable").
+        val enCelda = when {
+            corresponden.isNotEmpty() -> corresponden
+            irreparableOnly -> universo.filter { it.startsWith("Placa dañada") || it.startsWith("Display") || it.startsWith("Carcasa frontal") }
+            !showPlacaDanada -> universo.filter { !it.startsWith("Placa dañada") }
+            else -> emptyList()
+        }
+
+        val arbol = FailureMatrix.construirArbol(enCelda, universo)
+        val items: List<FallaDialogItem> =
+            (if (irreparableOnly || !incluirSinFalla) emptyList()
+             else listOf(FallaDialogItem.Flat(noneLabel))) +
+            arbol.map {
+                when (it) {
+                    is FailureMatrix.Item.Grupo ->
+                        FallaDialogItem.Cat(FailureObservationsCatalog.FallaCategory(it.nombre, it.miembros))
+                    is FailureMatrix.Item.Falla -> FallaDialogItem.Flat(it.nombre)
+                }
+            }
 
         val listView = ListView(this)
 
@@ -724,45 +751,70 @@ class TerminalDetailsActivity : BaseActivity() {
         setDialogChecksFromModel(dialog, qaSelected)
     }
 
+    /**
+     * Rebote: **primero el destino, después el motivo**.
+     *
+     * El orden está invertido respecto de como era antes, y no es un capricho: las
+     * razones válidas dependen del PAR (rol origen, destino) —a Limpieza no se le manda
+     * "carcasa rota" ni al Programador "film dañado"— así que no se pueden filtrar antes
+     * de saber a dónde va la terminal.
+     *
+     * Si el MDW no sirve la matriz, la lista de motivos sale sin filtrar y el flujo queda
+     * equivalente al anterior.
+     */
     private fun showRejectWithFailuresDialog(
         onConfirm: (failures: List<String>, destStatus: String, destSubstatus: String?) -> Unit
     ) {
-        val options = FailureObservationsCatalog.OPTIONS
-        val selected = BooleanArray(options.size)
+        val session = SessionManager(this)
+        val rol = session.getRole().orEmpty()
+        val safeStatuses = StatusCatalog.OPTIONS.filter { it != STATUS_IRREPARABLE }
 
         AlertDialog.Builder(this)
-            .setTitle("Motivo del rechazo")
-            .setMultiChoiceItems(options.toTypedArray(), selected) { _, which, checked ->
-                selected[which] = checked
-            }
-            .setPositiveButton("Continuar") { d, _ ->
-                d.dismiss()
-                val failures = options.filterIndexed { i, _ -> selected[i] }
-                if (failures.isEmpty()) {
-                    AlertDialog.Builder(this)
-                        .setTitle("Seleccioná al menos un motivo")
-                        .setPositiveButton("OK", null)
-                        .show()
-                    return@setPositiveButton
-                }
-                val safeStatuses = StatusCatalog.OPTIONS.filter { it != STATUS_IRREPARABLE }
-                AlertDialog.Builder(this)
-                    .setTitle("Enviar terminal a...")
-                    .setItems(safeStatuses.toTypedArray()) { _, which ->
-                        val destStatus = safeStatuses[which]
-                        if (destStatus == STATUS_REPARACION_TECNICA) {
-                            showSubstatusDialogForReparacionTecnica { mdwSubstatus, _ ->
-                                onConfirm(failures, destStatus, mdwSubstatus)
-                            }
-                        } else {
-                            onConfirm(failures, destStatus, null)
-                        }
+            .setTitle("Enviar terminal a...")
+            .setItems(safeStatuses.toTypedArray()) { _, which ->
+                val destStatus = safeStatuses[which]
+                if (destStatus == STATUS_REPARACION_TECNICA) {
+                    // El subestado define a QUÉ ROL va: "Reparación" al técnico de
+                    // Reparación, "Carga de firmware + Inyección" al Programador.
+                    showSubstatusDialogForReparacionTecnica { mdwSubstatus, _ ->
+                        pedirMotivoDelRebote(rol, destStatus, mdwSubstatus, onConfirm)
                     }
-                    .setNegativeButton("Cancelar", null)
-                    .show()
+                } else {
+                    pedirMotivoDelRebote(rol, destStatus, null, onConfirm)
+                }
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    /** Segundo paso del rebote: el motivo, ya filtrado por el destino elegido. */
+    private fun pedirMotivoDelRebote(
+        rol: String,
+        destStatus: String,
+        destSubstatus: String?,
+        onConfirm: (failures: List<String>, destStatus: String, destSubstatus: String?) -> Unit,
+    ) {
+        val session = SessionManager(this)
+        val corresponden = FailureMatrix.rebote(
+            rol, destStatus, destSubstatus,
+            progLlaves = session.isProgrammerLlaves(),
+            progFirmware = session.isProgrammerFirmware(),
+        )
+        val rolDestino = FailureMatrix.rolDestino(destStatus, destSubstatus)
+        val titulo = if (rolDestino != null) "Motivo — enviar a $rolDestino" else "Motivo del rechazo"
+
+        // Se reusa el mismo arbol que el resto de los dialogos: agrupa por los grupos del
+        // MDW y manda el resto a "Otras fallas".
+        showFailureTreeDialog(
+            title = titulo,
+            positiveLabel = "Confirmar",
+            showPlacaDanada = true,          // lo decide la matriz, no este flag
+            requireSelection = true,
+            corresponden = corresponden,
+            incluirSinFalla = false,         // un rebote siempre lleva motivo
+        ) { seleccionadas ->
+            onConfirm(seleccionadas, destStatus, destSubstatus)
+        }
     }
 
     // --- Verificación E2E (Feature 3): reintento bloqueante ---
@@ -1920,7 +1972,9 @@ class TerminalDetailsActivity : BaseActivity() {
                     title = "Fallas encontradas (obligatorio)",
                     positiveLabel = "Enviar a reparación",
                     showPlacaDanada = false,
-                    requireSelection = true
+                    requireSelection = true,
+                    // Pre-test reporta fallas de LLEGADA: la matriz las acota.
+                    corresponden = FailureMatrix.diagnostico(ROLE_REVISION_INICIAL)
                 ) { observations ->
                     // Form 2: versión de firmware → COMPLETE (el booleano va como firmwareBelow230 → Comentarios__c en SF)
                     val proceedWithFirmware = {

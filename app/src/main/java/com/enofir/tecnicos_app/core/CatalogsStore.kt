@@ -2,6 +2,8 @@ package com.enofir.tecnicos_app.core
 
 import android.content.Context
 import com.enofir.tecnicos_app.model.CatalogsResponse
+import com.enofir.tecnicos_app.model.DestinoInfo
+import com.enofir.tecnicos_app.model.FailureGroup
 import com.enofir.tecnicos_app.model.RecoveredPartItem
 import com.google.gson.Gson
 
@@ -293,4 +295,19 @@ object CatalogsStore {
         val map = _cached?.repairedParts ?: defaults.repairedParts
         return map?.get(key) ?: map?.get("N910") ?: emptyList()
     }
+
+    // ── Catálogo dinámico 2.0 ────────────────────────────────────────────────
+    // Sin fallback local A PROPOSITO: si el MDW no las manda (MDW viejo), quedan null y
+    // FailureMatrix cae al comportamiento anterior — lista completa, sin filtrar. Poner
+    // un default hardcodeado acá reintroduciría el problema que este trabajo vino a
+    // resolver: reglas de negocio congeladas dentro del APK.
+    val catalogVersion: Int? get() = _cached?.catalogVersion
+    val failureGroups: List<FailureGroup>? get() = _cached?.failureGroups
+    val failureFamilies: Map<String, List<String>>? get() = _cached?.failureFamilies
+    val failureDiagnostico: Map<String, List<String>>? get() = _cached?.failureDiagnostico
+    val failureRebote: Map<String, Map<String, List<String>>>? get() = _cached?.failureRebote
+    val failureRebotePorRama: Map<String, Map<String, List<String>>>?
+        get() = _cached?.failureRebotePorRama
+    val failureIrreparable: Map<String, List<String>>? get() = _cached?.failureIrreparable
+    val destinos: Map<String, DestinoInfo>? get() = _cached?.destinos
 }
