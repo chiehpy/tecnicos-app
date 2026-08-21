@@ -509,7 +509,8 @@ class TerminalDetailsActivity : BaseActivity() {
      * Form 1 del flujo de Reparación COMPLETE — árbol de fallas.
      * - "No se encontraron fallas adicionales" al tope (exclusivo con el resto)
      * - Fallas de Revisión Inicial: pre-chequeadas y bloqueadas (grises)
-     * - Categorías con sub-opciones + fallas planas, filtrando irreparables para ML N950
+     * - El resto del árbol lo arma la matriz del MDW; lo que queda afuera de la celda
+     *   sigue disponible en `Otras fallas →`
      * Devuelve solo las fallas NUEVAS seleccionadas (no las de RI).
      */
     private fun showRepairFallasDialog(onConfirm: (initialDiagnosis: List<String>) -> Unit) {
@@ -518,16 +519,30 @@ class TerminalDetailsActivity : BaseActivity() {
         val lockedFallas = revisionInicialFailures.filter { it != FailureObservationsCatalog.NONE }
         val lockedSet = lockedFallas.toSet()
 
-        val cats = FailureObservationsCatalog.CATEGORIES
-
-        val flatOpts = FailureObservationsCatalog.FLAT_OPTIONS
+        // El arbol lo arma la matriz, igual que el resto de los dialogos. Este era el unico
+        // que no la consultaba: recibia el catalogo entero y lo agrupaba con CATEGORIES, la
+        // constante del APK. Por eso ofrecia las de `Placa dañada` (motivo de irreparable) y
+        // las de `Falta limpieza:` (motivo de rechazo a Limpieza) como si fueran cosas que un
+        // tecnico repara. Lo que la celda deja afuera sigue accesible en `Otras fallas`.
+        //
+        // Las de Revision inicial salen del universo: van arriba, bloqueadas. Si ademas
+        // entraran al arbol el tecnico las veria dos veces, y la copia si seria desmarcable.
+        val rol = SessionManager(this).getRole().orEmpty()
+        val universo = FailureObservationsCatalog.OPTIONS
             .filter { it != FailureObservationsCatalog.NONE && it !in lockedSet }
+        val arbol = FailureMatrix.construirArbol(FailureMatrix.diagnostico(rol), universo)
 
         val items: List<FallaDialogItem> =
             listOf(FallaDialogItem.Flat(noAdditional)) +
             lockedFallas.map { FallaDialogItem.Locked(it) } +
-            cats.map { FallaDialogItem.Cat(it) } +
-            flatOpts.map { FallaDialogItem.Flat(it) }
+            arbol.map {
+                when (it) {
+                    is FailureMatrix.Item.Grupo ->
+                        FallaDialogItem.Cat(
+                            FailureObservationsCatalog.FallaCategory(it.nombre, it.miembros))
+                    is FailureMatrix.Item.Falla -> FallaDialogItem.Flat(it.nombre)
+                }
+            }
 
         val newSelected = mutableSetOf<String>()
         var noAdditionalSelected = false
