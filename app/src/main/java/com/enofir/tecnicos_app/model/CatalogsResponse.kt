@@ -1,5 +1,6 @@
 package com.enofir.tecnicos_app.model
 
+import com.google.gson.JsonElement
 import com.google.gson.annotations.SerializedName
 
 data class CatalogsResponse(
@@ -36,6 +37,9 @@ data class CatalogsResponse(
 
     /** claveDestino -> {estado, subestado, rol}. La clave incluye el subestado. */
     val destinos: Map<String, DestinoInfo>? = null,
+
+    /** Repuestos sugeridos por falla (aditivo). Se guarda crudo y se parsea tolerante en RepuestosSugeridos. */
+    @SerializedName("parts_suggestions") val partsSuggestions: JsonElement? = null,
 )
 
 /** Grupo del árbol de fallas. El MDW garantiza que los grupos son disjuntos. */

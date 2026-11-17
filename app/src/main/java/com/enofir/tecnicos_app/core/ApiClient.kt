@@ -143,7 +143,7 @@ object ApiClient {
                 onAuthFailed = { notifyAuthFailed() }
             )
 
-            val client = OkHttpClient.Builder()
+            val clientBuilder = OkHttpClient.Builder()
                 .addInterceptor(authInterceptor)
                 .addInterceptor(ServerTimeInterceptor())
                 .addInterceptor(logger)
@@ -151,7 +151,13 @@ object ApiClient {
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
-                .build()
+
+            // DEMO: último de la cadena, contesta todo con datos de ejemplo y no sale a la red.
+            if (BuildConfig.DEMO) {
+                val ctx = appContext ?: throw IllegalStateException("ApiClient no inicializado")
+                clientBuilder.addInterceptor(DemoInterceptor(ctx))
+            }
+            val client = clientBuilder.build()
 
             val created = Retrofit.Builder()
                 .baseUrl(baseUrl)

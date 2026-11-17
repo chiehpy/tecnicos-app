@@ -39,6 +39,7 @@ object UpdateChecker {
      * actualización se saldría del piloto sin enterarse.
      */
     fun check(activity: Activity, showNoUpdateMessage: Boolean = false) {
+        if (BuildConfig.DEMO) return   // demo: sin red, nada que actualizar
         if (BuildConfig.IS_UAT) {
             if (showNoUpdateMessage) {
                 showMessage(activity, "Build UAT: las actualizaciones están desactivadas")

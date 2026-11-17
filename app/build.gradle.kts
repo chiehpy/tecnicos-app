@@ -108,22 +108,36 @@ android {
             signingConfig = signingConfigs.getByName("release")
             buildConfigField("String", "BASE_URL", "\"http://181.166.225.55:8000/\"")
             buildConfigField("Boolean", "IS_UAT", "false")
+            buildConfigField("Boolean", "DEMO", "false")
         }
         create("uat") {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
             buildConfigField("String", "BASE_URL", "\"http://181.166.225.55:8001/\"")
             buildConfigField("Boolean", "IS_UAT", "true")
+            buildConfigField("Boolean", "DEMO", "false")
             applicationIdSuffix = ".uat"
             versionNameSuffix = "-UAT"
             // Nombre distinto en el launcher: un tecnico puede tener las dos apps
             // instaladas y no debe poder trabajar en la equivocada sin darse cuenta.
             resValue("string", "app_name", "TechFlow UAT")
         }
+        // Demo para mostrar la app en vivo: SIN red, todo con datos de ejemplo (ver core/DemoInterceptor.kt).
+        create("demo") {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
+            buildConfigField("String", "BASE_URL", "\"http://demo.invalid/\"")
+            buildConfigField("Boolean", "IS_UAT", "false")
+            buildConfigField("Boolean", "DEMO", "true")
+            applicationIdSuffix = ".demo"
+            versionNameSuffix = "-DEMO"
+            resValue("string", "app_name", "TechFlow DEMO")
+        }
         debug {
             isMinifyEnabled = false
             buildConfigField("String", "BASE_URL", "\"http://181.166.225.55:8000/\"")
             buildConfigField("Boolean", "IS_UAT", "false")
+            buildConfigField("Boolean", "DEMO", "false")
         }
     }
 

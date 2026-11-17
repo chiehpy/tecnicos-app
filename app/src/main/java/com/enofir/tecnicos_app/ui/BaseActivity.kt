@@ -40,6 +40,7 @@ abstract class BaseActivity : AppCompatActivity() {
         super.setContentView(layoutResID)
         updateVersionText()
         if (BuildConfig.IS_UAT) showUatBanner()
+        if (BuildConfig.DEMO) DemoBanner.attach(this)
         attachCountdownOverlay()
     }
 

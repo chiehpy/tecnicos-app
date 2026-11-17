@@ -310,4 +310,16 @@ object CatalogsStore {
         get() = _cached?.failureRebotePorRama
     val failureIrreparable: Map<String, List<String>>? get() = _cached?.failureIrreparable
     val destinos: Map<String, DestinoInfo>? get() = _cached?.destinos
+
+    /** Repuestos sugeridos por falla; null si el MDW no los manda o vienen mal. */
+    val partsSuggestions: RepuestosSugeridos.Sugerencias?
+        get() = RepuestosSugeridos.parse(_cached?.partsSuggestions)
+
+    /** Clave de catálogo de repuestos según serial (N910 | N950_amarilla | N950_celeste). */
+    fun catalogKey(serial: String): String = when {
+        serial.startsWith("NCC", ignoreCase = true) -> "N950_amarilla"
+        serial.startsWith("NCD", ignoreCase = true) -> "N950_amarilla"
+        serial.startsWith("NCB", ignoreCase = true) -> "N950_celeste"
+        else -> "N910"
+    }
 }
