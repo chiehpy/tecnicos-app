@@ -41,8 +41,9 @@ object FailureObservationsCatalog {
             "Display roto"
         )),
         FallaCategory("Placa dañada", listOf(
-            "Placa dañada - no bootea",
-            "Placa dañada - no enciende",
+            // Retiradas del catalogo (dueño, 02-10-2026): no dicen la causa.
+            // "Placa dañada - no bootea",
+            // "Placa dañada - no enciende",
             "Placa dañada - no anda impresora",
             "Placa dañada - sobrecalienta",
             "Placa dañada - sulfatada",

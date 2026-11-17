@@ -30,7 +30,7 @@ object CatalogsStore {
             "Tapa de impresora rayada", "Tapa de impresora golpeada",
             "Tapa de impresora rota", "Tapa de impresora desgastada",
             "No enciende", "Cucarachas en placa principal",
-            "Placa dañada - no bootea", "Placa dañada - no enciende",
+            // "Placa dañada - no bootea", "Placa dañada - no enciende",  // retiradas del catalogo (dueño, 02-10-2026): no dicen la causa
             "Placa dañada - no anda impresora", "Placa dañada - sobrecalienta",
             "Placa dañada - sulfatada", "Placa dañada - tamper permanente",
             "Camara frontal rota", "Camara trasera rota", "Entrada USB dañada",

@@ -56,6 +56,8 @@ class TerminalDetailsActivity : BaseActivity() {
         const val EXTRA_PREVIOUS_TECH = "extra_previous_tech"
         private const val ROLE_REVISION_INICIAL = "Revisión inicial"
         private const val ROLE_QA = "QA"
+        // Account.Name de BBVA en SF (Id 001Vr00000lIi17IAC)
+        private const val BBVA_ACCOUNT_NAME = "Banco BBVA Argentina S.A"
         private const val ROLE_RECOVERY = "Recovery"
         private const val ROLE_VERIFICAR_APPS = "Verificar Apps"
         private const val ROLE_PROGRAMADOR = "Programador (carga de firmwares)"
@@ -100,6 +102,11 @@ class TerminalDetailsActivity : BaseActivity() {
     private var currentStatus: String? = null
     private var csId: String? = null
     private var currentAccountName: String? = null
+
+    // BBVA: 0 repuestos (decisión de negocio). Se identifica por Account.Name que manda el lookup;
+    // el MDW y el Apex (Enofir_CaseSparepartsAPI) también rechazan repuestos para esta cuenta.
+    private fun isBbvaAccount(): Boolean =
+        currentAccountName?.trim().equals(BBVA_ACCOUNT_NAME, ignoreCase = true)
     private var currentModelRaw: String = ""
     private var startTimestamp: Long = 0
 
@@ -1108,6 +1115,12 @@ class TerminalDetailsActivity : BaseActivity() {
         initialDiagnosis: List<String>? = null,
         firmwareBelow230: Boolean? = null
     ) {
+        if (isBbvaAccount() && !spareParts.isNullOrEmpty()) {
+            // Defensa: nunca mandar repuestos para BBVA aunque algún flujo los arme
+            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
+            tvResult.text = "BBVA: no se registran repuestos."
+            return
+        }
         btnComplete.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
         tvResult.text = "Enviando COMPLETE..."
@@ -1417,6 +1430,14 @@ class TerminalDetailsActivity : BaseActivity() {
             btnFaltaRepuesto.visibility = View.VISIBLE
 
             btnFaltaRepuesto.setOnClickListener {
+                if (isBbvaAccount()) {
+                    AlertDialog.Builder(this)
+                        .setTitle("Sin repuestos")
+                        .setMessage("Las terminales de BBVA se reparan sin repuestos.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                    return@setOnClickListener
+                }
                 // Catálogo de repuestos según modelo (mismo que Reparación)
                 val parts = repairedPartsOptions
                 val sortedIndices = parts.indices.sortedByDescending { i ->
@@ -1918,6 +1939,19 @@ class TerminalDetailsActivity : BaseActivity() {
 
                 // Form 1: fallas encontradas
                 showRepairFallasDialog { nuevasFallas ->
+                    if (isBbvaAccount()) {
+                        // BBVA: 0 repuestos — sin Form 2, COMPLETE sin spareParts
+                        val totalSeconds = ((System.currentTimeMillis() - startTimestamp) / 1000).toInt()
+                        val repairTime = "%02d:%02d:%02d".format(totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60)
+                        executeComplete(
+                            serial, role, chip, tvResult, btnComplete,
+                            spareParts = null,
+                            caseId = csId,
+                            repairTime = repairTime,
+                            initialDiagnosis = nuevasFallas.ifEmpty { null }
+                        )
+                        return@showRepairFallasDialog
+                    }
                     // Form 2: repuestos utilizados
                     showRepairPartsDialog { selected, noneSelected ->
                         val nowTs = System.currentTimeMillis()
