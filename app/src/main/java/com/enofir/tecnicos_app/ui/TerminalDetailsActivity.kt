@@ -5,6 +5,11 @@ import android.content.Context
 import android.content.DialogInterface
 import android.graphics.Color
 import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Base64
@@ -17,6 +22,7 @@ import android.widget.CheckBox
 import android.widget.Chronometer
 import android.widget.ListView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.enofir.tecnicos_app.R
 import android.widget.LinearLayout
@@ -32,7 +38,9 @@ import com.enofir.tecnicos_app.core.FailureMatrix
 import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.FailureObservationsCatalog
 import com.enofir.tecnicos_app.model.HistoryEntry
+import com.enofir.tecnicos_app.model.MochilaResponse
 import com.enofir.tecnicos_app.model.PrintLabelResponse
+import com.enofir.tecnicos_app.model.RecoveredPartItem
 import com.enofir.tecnicos_app.model.StatusCatalog
 import com.enofir.tecnicos_app.model.TerminalEventResponse
 import com.enofir.tecnicos_app.model.TerminalLookupResponse
@@ -88,6 +96,41 @@ class TerminalDetailsActivity : BaseActivity() {
     private val repairedPartsOptions get() = CatalogsStore.getRepairedParts(serial)
     private val repairedPartsSelected: BooleanArray by lazy { BooleanArray(repairedPartsOptions.size) { false } }
     private var repairedPartsNoneSelected = false
+
+    // Mochila del técnico (saldo por repuesto, clave = Id de Repuesto__c de 15 caracteres).
+    // null = sin mochila activa, o la consulta falló: la pantalla funciona como antes y el
+    // control real lo hace Salesforce al declarar.
+    private var mochilaSaldo: Map<String, Int>? = null
+    // Repuestos que Salesforce no controla por mochila (ej. film): se muestran y se eligen como antes.
+    private var mochilaSinControl: Set<String> = emptySet()
+
+    private fun mochilaKey(id: String?): String? = id?.trim()?.take(15)?.takeIf { it.length == 15 }
+
+    /** Unidades en la mochila de ese repuesto (0 si no figura), o null si no hay mochila que mostrar. */
+    private fun mochilaDisponible(part: RecoveredPartItem): Int? {
+        val saldo = mochilaSaldo ?: return null
+        val key = mochilaKey(part.sfId) ?: return 0
+        if (key in mochilaSinControl) return null
+        return saldo[key] ?: 0
+    }
+
+    /** Pide la mochila al MDW. Silencioso si falla o si el técnico no tiene mochila activa. */
+    private fun refreshMochila() {
+        ApiClient.fetchMochila().enqueue(object : Callback<MochilaResponse> {
+            override fun onResponse(call: Call<MochilaResponse>, response: Response<MochilaResponse>) {
+                if (!response.isSuccessful) return   // error del MDW/SF: se deja lo ultimo que se sabia
+                val body = response.body() ?: return
+                mochilaSinControl = body.sinControl.orEmpty().mapNotNull { mochilaKey(it) }.toSet()
+                mochilaSaldo = if (body.tieneMochila && body.activa) {
+                    body.items
+                        .mapNotNull { item -> mochilaKey(item.repuestoId)?.let { it to item.cantidad } }
+                        .groupBy({ it.first }, { it.second })
+                        .mapValues { (_, qtys) -> qtys.sum() }
+                } else null
+            }
+            override fun onFailure(call: Call<MochilaResponse>, t: Throwable) { /* sin red: igual que hoy */ }
+        })
+    }
 
     // Substatus UI -> valor real MDW
     private data class SubOpt(val label: String, val mdwValue: String)
@@ -660,17 +703,42 @@ class TerminalDetailsActivity : BaseActivity() {
     private fun showRepairPartsDialog(onConfirm: (selected: List<String>, noneSelected: Boolean) -> Unit) {
         val noneLabel = "No se cambiaron repuestos"
         val sortedIndices = repairedPartsOptions.indices
-            .sortedByDescending { i ->
+            .sortedWith(compareByDescending<Int> { i ->
+                // Con mochila: primero lo que el técnico tiene (saldo > 0).
+                (mochilaDisponible(repairedPartsOptions[i]) ?: 1) > 0
+            }.thenByDescending { i ->
                 val part = repairedPartsOptions[i]
                 // Prioridad: usage_count global del MDW; fallback al conteo local del dispositivo
                 part.usageCount ?: getPartUsageCount(part.sfId ?: part.pn)
-            }
+            })
         val sortedParts = sortedIndices.map { repairedPartsOptions[it] }
 
-        val allItems = (listOf(noneLabel) + sortedParts.map { part ->
+        val allItems: Array<CharSequence> = (listOf<CharSequence>(noneLabel) + sortedParts.map { part ->
             val usadoSuffix = if (part.pn.endsWith("UND") || part.pn.endsWith("U")) " - USADO" else ""
-            val stockSuffix = if ((part.stock ?: 0) > 0) " (${part.stock})" else ""
-            "${part.name}$usadoSuffix$stockSuffix"
+            val enMochila = mochilaDisponible(part)
+            if (enMochila == null) {
+                val stockSuffix = if ((part.stock ?: 0) > 0) " (${part.stock})" else ""
+                "${part.name}$usadoSuffix$stockSuffix"
+            } else {
+                // Con mochila activa manda el saldo del técnico: segunda línea destacada,
+                // y lo que no tiene queda en gris para que se distinga de un vistazo.
+                val sb = SpannableStringBuilder("${part.name}$usadoSuffix")
+                val ini = sb.length + 1
+                sb.append(if (enMochila > 0) "\nEn tu mochila: $enMochila" else "\nNo está en tu mochila")
+                sb.setSpan(RelativeSizeSpan(0.85f), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                if (enMochila > 0) {
+                    sb.setSpan(StyleSpan(Typeface.BOLD), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    sb.setSpan(ForegroundColorSpan(Color.parseColor("#2E7D32")), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                } else {
+                    sb.setSpan(ForegroundColorSpan(Color.parseColor("#9E9E9E")), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                // Tercera línea en gris: stock total de Salesforce (TotalStock__c, incluye mochilas).
+                val iniStock = sb.length + 1
+                sb.append("\nEn stock: ${part.stock ?: 0}")
+                sb.setSpan(RelativeSizeSpan(0.8f), iniStock, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                sb.setSpan(ForegroundColorSpan(Color.parseColor("#9E9E9E")), iniStock, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                sb
+            }
         }).toTypedArray()
 
         val dialogSelected = BooleanArray(allItems.size) { false }
@@ -682,22 +750,58 @@ class TerminalDetailsActivity : BaseActivity() {
             }
         }
 
+        // Lista propia (no setMultiChoiceItems) para que el tilde quede a la derecha:
+        // simple_list_item_multiple_choice pone el checkMark al final del renglón.
+        val thumbPx = (44 * resources.displayMetrics.density).toInt()
+        val gapPx = (12 * resources.displayMetrics.density).toInt()
+        val partsAdapter = object : android.widget.ArrayAdapter<CharSequence>(
+            this, android.R.layout.simple_list_item_multiple_choice, allItems
+        ) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val v = super.getView(position, convertView, parent) as TextView
+                // Renglón 0 = "No se cambiaron repuestos". Sin foto en el equipo: sin miniatura.
+                val bmp = if (position == 0) null
+                    else com.enofir.tecnicos_app.core.FotosRepuestos.get(context, sortedParts[position - 1].sfId)
+                val d = bmp?.let { android.graphics.drawable.BitmapDrawable(resources, it).apply { setBounds(0, 0, thumbPx, thumbPx) } }
+                if (d != null && (mochilaDisponible(sortedParts[position - 1]) ?: 1) <= 0) d.alpha = 110
+                v.setCompoundDrawablesRelative(d, null, null, null)
+                v.compoundDrawablePadding = if (d != null) gapPx else 0
+                return v
+            }
+        }
         val partsDialog = AlertDialog.Builder(this)
             .setTitle("Repuestos utilizados")
-            .setMultiChoiceItems(allItems, dialogSelected) { _, which, checked ->
-                if (which == 0) {
-                    dialogSelected.fill(false)
-                    dialogSelected[0] = checked
-                } else {
-                    dialogSelected[0] = false
-                    dialogSelected[which] = checked
-                }
-            }
+            .setAdapter(partsAdapter, null)
             .setPositiveButton("Aceptar", null)
             .setNegativeButton("Cancelar", null)
             .create()
 
         partsDialog.show()
+
+        val partsList = partsDialog.listView
+        partsList.choiceMode = ListView.CHOICE_MODE_MULTIPLE
+        dialogSelected.forEachIndexed { i, sel -> partsList.setItemChecked(i, sel) }
+        partsList.setOnItemClickListener { _, _, which, _ ->
+            val checked = partsList.isItemChecked(which)
+            if (which == 0) {
+                dialogSelected.fill(false)
+                dialogSelected[0] = checked
+                if (checked) for (i in 1 until allItems.size) partsList.setItemChecked(i, false)
+            } else if (checked && (mochilaDisponible(sortedParts[which - 1]) ?: 1) <= 0) {
+                // Sin saldo en la mochila: no se puede elegir (Salesforce lo rechazaría igual).
+                dialogSelected[which] = false
+                partsList.setItemChecked(which, false)
+                Toast.makeText(
+                    this,
+                    "No tenés \"${sortedParts[which - 1].name}\" en tu mochila. Pedilo al pañol.",
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                dialogSelected[0] = false
+                partsList.setItemChecked(0, false)
+                dialogSelected[which] = checked
+            }
+        }
 
         partsDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val anySelected = dialogSelected.any { it }
@@ -1132,6 +1236,7 @@ class TerminalDetailsActivity : BaseActivity() {
                         val body = result.response
                         StatusChip.apply(chip, ChipState.OK, "OK")
                         spareParts?.forEach { partId -> incrementPartUsageCount(partId) }
+                        if (!spareParts.isNullOrEmpty()) refreshMochila()
                         val endTs = System.currentTimeMillis()
                         HistoryStore.add(
                             this@TerminalDetailsActivity,
@@ -1145,10 +1250,32 @@ class TerminalDetailsActivity : BaseActivity() {
                     }
                     is EventVerifier.Result.Failed -> {
                         StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-                        showRetry(
-                            chip, tvResult,
-                            "COMPLETE no confirmado tras ${result.attempts} intento(s): ${result.lastMessage}",
-                        ) { doComplete() }
+                        // Rechazo de Salesforce al registrar repuestos (p. ej. "La mochila de X no tiene ..."):
+                        // el mensaje ya esta en español y explica la causa, se muestra tal cual.
+                        val rechazoMsg = result.lastResponse
+                            ?.takeIf { it.errorCode == "SF_PARTS_ERROR" }
+                            ?.message?.takeIf { it.isNotBlank() }
+                        if (!spareParts.isNullOrEmpty()) refreshMochila()
+                        if (rechazoMsg != null) {
+                            // Rechazo de negocio: reenviar lo mismo vuelve a fallar y el MDW no abre
+                            // pendiente. Se libera la pantalla para que el tecnico cambie los
+                            // repuestos (o los pida al pañol) y complete de nuevo.
+                            hideRetry()
+                            tvResult.text = rechazoMsg
+                            btnComplete.isEnabled = true
+                            if (!isFinishing && !isDestroyed) {
+                                AlertDialog.Builder(this@TerminalDetailsActivity)
+                                    .setTitle("No se registraron los repuestos")
+                                    .setMessage("$rechazoMsg\n\nLa terminal no avanzó. Revisá los repuestos elegidos y volvé a completar.")
+                                    .setPositiveButton("Entendido", null)
+                                    .show()
+                            }
+                        } else {
+                            showRetry(
+                                chip, tvResult,
+                                "COMPLETE no confirmado tras ${result.attempts} intento(s): ${result.lastMessage}",
+                            ) { doComplete() }
+                        }
                     }
                 }
             }
@@ -1244,6 +1371,7 @@ class TerminalDetailsActivity : BaseActivity() {
         val isProgramador = role == ROLE_PROGRAMADOR
         val isLimpieza    = role == ROLE_LIMPIEZA
         val isReparacion  = role == ROLE_REPARACION
+        if (isReparacion) { refreshMochila(); com.enofir.tecnicos_app.core.FotosRepuestos.refresh(this) }
 
         // Recovery views
         val recoveryContainer = findViewById<View>(R.id.recoveryContainer)
