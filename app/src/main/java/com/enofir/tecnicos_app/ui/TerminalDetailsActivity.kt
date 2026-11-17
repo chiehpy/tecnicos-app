@@ -35,6 +35,7 @@ import com.enofir.tecnicos_app.core.PrintConfigStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.CatalogsStore
 import com.enofir.tecnicos_app.core.FailureMatrix
+import com.enofir.tecnicos_app.core.RepuestosSugeridos
 import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.FailureObservationsCatalog
 import com.enofir.tecnicos_app.model.HistoryEntry
@@ -707,17 +708,22 @@ class TerminalDetailsActivity : BaseActivity() {
     }
 
     /** Form 2 del flujo de Reparación COMPLETE — selección de repuestos utilizados. */
-    private fun showRepairPartsDialog(onConfirm: (selected: List<String>, noneSelected: Boolean) -> Unit) {
+    private fun showRepairPartsDialog(
+        fallasNuevas: List<String> = emptyList(),
+        onConfirm: (selected: List<String>, noneSelected: Boolean) -> Unit
+    ) {
         val noneLabel = "No se cambiaron repuestos"
-        val sortedIndices = repairedPartsOptions.indices
-            .sortedWith(compareByDescending<Int> { i ->
-                // Con mochila: primero lo que el técnico tiene (saldo > 0).
-                (mochilaDisponible(repairedPartsOptions[i]) ?: 1) > 0
-            }.thenByDescending { i ->
-                val part = repairedPartsOptions[i]
-                // Prioridad: usage_count global del MDW; fallback al conteo local del dispositivo
-                part.usageCount ?: getPartUsageCount(part.sfId ?: part.pn)
-            })
+        // Orden de hoy (mochila + usage_count) con los sugeridos por falla arriba; sin sugerencias = igual que antes.
+        val resultado = RepuestosSugeridos.calcular(
+            partes = repairedPartsOptions,
+            claveCatalogo = CatalogsStore.catalogKey(serial),
+            fallas = RepuestosSugeridos.fallasDelCaso(revisionInicialFailures, fallasNuevas),
+            sugerencias = CatalogsStore.partsSuggestions,
+            usageCount = { part -> part.usageCount ?: getPartUsageCount(part.sfId ?: part.pn) },
+            saldoDe = { part -> mochilaDisponible(part) },
+            tieneSeleccionPrevia = repairedPartsNoneSelected || repairedPartsSelected.any { it },
+        )
+        val sortedIndices = resultado.orden
         val sortedParts = sortedIndices.map { repairedPartsOptions[it] }
 
         val allItems: Array<CharSequence> = (listOf<CharSequence>(noneLabel) + sortedParts.map { part ->
@@ -753,7 +759,8 @@ class TerminalDetailsActivity : BaseActivity() {
             dialogSelected[0] = true
         } else {
             sortedIndices.forEachIndexed { sortPos, origIdx ->
-                dialogSelected[sortPos + 1] = repairedPartsSelected.getOrElse(origIdx) { false }
+                dialogSelected[sortPos + 1] = repairedPartsSelected.getOrElse(origIdx) { false } ||
+                    origIdx in resultado.pretildar
             }
         }
 
@@ -761,11 +768,30 @@ class TerminalDetailsActivity : BaseActivity() {
         // simple_list_item_multiple_choice pone el checkMark al final del renglón.
         val thumbPx = (44 * resources.displayMetrics.density).toInt()
         val gapPx = (12 * resources.displayMetrics.density).toInt()
+        val padVPx = (10 * resources.displayMetrics.density).toInt()
         val partsAdapter = object : android.widget.ArrayAdapter<CharSequence>(
             this, android.R.layout.simple_list_item_multiple_choice, allItems
         ) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val v = super.getView(position, convertView, parent) as TextView
+                // Renglón propio: el layout de Android (simple_list_item_multiple_choice) tiene
+                // alto fijo de una línea y con nombre + mochila + stock se cortaba. Éste crece
+                // con el texto y no arrastra medidas de renglones reciclados.
+                val v = (convertView as? android.widget.CheckedTextView)
+                    ?: android.widget.CheckedTextView(parent.context).apply {
+                        layoutParams = android.widget.AbsListView.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        minHeight = (56 * resources.displayMetrics.density).toInt()
+                        gravity = android.view.Gravity.CENTER_VERTICAL
+                        textSize = 16f
+                        val padH = (20 * resources.displayMetrics.density).toInt()
+                        setPadding(padH, padVPx, padH, padVPx)
+                        val a = parent.context.obtainStyledAttributes(
+                            intArrayOf(android.R.attr.textColorPrimary, android.R.attr.listChoiceIndicatorMultiple)) // ordenados por id
+                        checkMarkDrawable = a.getDrawable(1)
+                        a.getColorStateList(0)?.let { setTextColor(it) }
+                        a.recycle()
+                    }
+                v.text = allItems[position]
                 // Renglón 0 = "No se cambiaron repuestos". Sin foto en el equipo: sin miniatura.
                 val bmp = if (position == 0) null
                     else com.enofir.tecnicos_app.core.FotosRepuestos.get(context, sortedParts[position - 1].sfId)
@@ -2081,7 +2107,7 @@ class TerminalDetailsActivity : BaseActivity() {
                         return@showRepairFallasDialog
                     }
                     // Form 2: repuestos utilizados
-                    showRepairPartsDialog { selected, noneSelected ->
+                    showRepairPartsDialog(nuevasFallas) { selected, noneSelected ->
                         val nowTs = System.currentTimeMillis()
                         val totalSeconds = ((nowTs - startTimestamp) / 1000).toInt()
                         val repairTime = "%02d:%02d:%02d".format(totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60)

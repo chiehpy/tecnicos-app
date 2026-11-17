@@ -182,6 +182,17 @@ class WorkActivity : BaseActivity() {
         // Gate de verificación E2E: si quedó una actualización sin confirmar, la pantalla
         // vuelve a aparecer acá aunque la app se haya cerrado (la lleva el MDW, no la app).
         PendingGate.checkOnResume(this)
+
+        // DEMO: la serie de prueba queda puesta y copiada para pegar (solo en la versión DEMO).
+        if (com.enofir.tecnicos_app.BuildConfig.DEMO) {
+            val demoSerial = "NCC000000001"
+            if (etSerial.text.isNullOrBlank()) {
+                etSerial.setText(demoSerial)
+                etSerial.setSelection(demoSerial.length)
+            }
+            val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            cm.setPrimaryClip(android.content.ClipData.newPlainText("Serie de prueba", demoSerial))
+        }
     }
 
     private fun showMenu(anchor: ImageButton) {

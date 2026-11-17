@@ -1,0 +1,3271 @@
+{
+ "failure_observations": [
+  "Film dañado",
+  "Carcasa frontal rota",
+  "Carcasa frontal golpeada",
+  "Carcasa frontal rayada",
+  "Carcasa frontal desgastada",
+  "Carcasa posterior rota",
+  "Carcasa posterior golpeada",
+  "Carcasa posterior rayada",
+  "Carcasa posterior desgastada",
+  "Tapa de bateria rota",
+  "Tapa de bateria rayada",
+  "Tapa de bateria golpeada",
+  "Sin tapa de bateria",
+  "Tapa de impresora rota",
+  "Tapa de impresora rayada",
+  "Tapa de impresora golpeada",
+  "Tapa de impresora desgastada",
+  "Sin tapa de impresora",
+  "Display golpeado",
+  "Display roto",
+  "Táctil roto",
+  "No da video",
+  "Impresora rota",
+  "Sin rodillo",
+  "Dientes de impresora desgastados",
+  "Silicona superior de apoyo desgastada",
+  "Silicona inferior de apoyo desgastada",
+  "Audio defectuoso",
+  "Cámara trasera rota",
+  "Cámara frontal rota",
+  "Entrada USB dañada",
+  "USB sucio",
+  "Lector de tarjetas IC dañado",
+  "Lector de tarjetas IC defectuoso",
+  "Lector de tarjetas IC sucio",
+  "Falla lector magnético",
+  "Falla lector NFC",
+  "SIM socket dañada",
+  "Botón de inicio defectuoso",
+  "Sin falla",
+  "Se tilda terminal",
+  "No bootea",
+  "No enciende",
+  "No comunica",
+  "Tamper",
+  "Precinto adulterado",
+  "Placa IO defectuosa",
+  "Placa dañada - chip IC defectuoso",
+  "Placa dañada - sulfatada",
+  "Placa dañada - no comunica",
+  "Placa dañada - tamper permanente",
+  "Placa dañada - no anda impresora",
+  "Placa dañada - no da video",
+  "Placa dañada - pista rota SIM",
+  "Placa dañada - impresion defectuosa",
+  "Placa dañada - no imprime",
+  "Placa dañada - voltaje de fuga alto",
+  "Cucarachas en placa principal",
+  "Suciedad interna",
+  "Consumo de corriente apagado",
+  "Placa dañada - no reconoce bateria",
+  "Impresion defectuosa",
+  "Tapa de bateria desgastada",
+  "Carcasa frontal diferencia de color",
+  "Carcasa posterior diferencia de color",
+  "Tapa de bateria diferencia de color",
+  "Tapa de impresora diferencia de color",
+  "Bordes internos sucios",
+  "Falla en imagen",
+  "Vinculada",
+  "No imprime",
+  "No reconoce bateria",
+  "Pista rota SIM",
+  "Casco de impresora roto",
+  "Lente trasero de camara defectuoso",
+  "Falta firmware",
+  "Falla de certificado",
+  "Faltan llaves",
+  "Mal armada",
+  "Faltan tornillos",
+  "Falta limpieza: Impresora",
+  "Falta limpieza: Carcasa frontal",
+  "Falta limpieza: Carcasa posterior",
+  "Falta limpieza: Tapa de bateria",
+  "Falta limpieza: Tapa de impresora",
+  "Pin de carga roto",
+  "Pin de carga obstruido",
+  "Pin de carga dañado",
+  "Pin de carga sucio"
+ ],
+ "qa_options": [
+  "Falta de limpieza: Carcasa posterior",
+  "Falta de limpieza: Carcasa frontal",
+  "Falta de limpieza: Tapa de bateria",
+  "Falta de limpieza: Tapa de impresora",
+  "Daño estetico: Carcasa posterior",
+  "Daño estetico: Carcasa frontal",
+  "Daño estetico: Dientes Impresora",
+  "Daño estetico: Tapa de bateria",
+  "Daño estetico: Tapa de impresora",
+  "Daño estetico: Carcasa frontal gastada (amarilla)",
+  "Daño estetico: Carcasa posterior gastada (amarilla)",
+  "Daño estetico: Tapa de bateria gastada (amarilla)",
+  "Daño estetico: Tapa de impresora (amarilla)",
+  "Carcasa frontal rota",
+  "Carcasa posterior rota",
+  "Tapa de bateria rota",
+  "Tapa de impresora rota",
+  "Faltan tornillos",
+  "Tamper",
+  "Vinculada",
+  "Film dañado",
+  "Faltan llaves",
+  "No enciende",
+  "No imprime",
+  "No bootea",
+  "Mal armada",
+  "Cámara trasera rota",
+  "Cámara frontal rota",
+  "Audio defectuoso",
+  "Display roto",
+  "Botón de inicio defectuoso",
+  "Se tilda terminal",
+  "Silicona inferior de apoyo desgastada",
+  "Silicona superior de apoyo desgastada",
+  "Falla lector magnético",
+  "Lente trasero de camara defectuoso",
+  "Falla en imagen",
+  "Lector de tarjetas IC dañado",
+  "Impresora rota",
+  "Táctil roto",
+  "Sin rodillo",
+  "Entrada USB dañada",
+  "Falla lector NFC",
+  "SIM socket dañada",
+  "No da video",
+  "No reconoce bateria original",
+  "Voltaje de fuga alto",
+  "Tamper permanente",
+  "Suciedad interna",
+  "Sin tapa de bateria",
+  "Sin tapa de impresora",
+  "Cucarachas en placa principal",
+  "Placa dañada - no anda impresora",
+  "Placa dañada - no da video",
+  "Placa dañada - no comunica",
+  "Placa dañada - sulfatada",
+  "Placa dañada - tamper permanente",
+  "Impresion defectuosa",
+  "No comunica",
+  "Pista rota SIM",
+  "Casco de impresora roto",
+  "Falta firmware",
+  "Falla de certificado"
+ ],
+ "recovered_parts": {
+  "N910": [
+   {
+    "pn": "111012496U",
+    "name": "Carcasa frontal",
+    "stock": 22,
+    "usage_count": 49
+   },
+   {
+    "pn": "300052005U",
+    "name": "Carcasa frontal + Display",
+    "stock": 22,
+    "usage_count": 21
+   },
+   {
+    "pn": "111016684U",
+    "name": "Carcasa posterior",
+    "stock": 40,
+    "usage_count": 14
+   },
+   {
+    "pn": "111016685U",
+    "name": "Tapa bateria",
+    "stock": 22,
+    "usage_count": 51
+   },
+   {
+    "pn": "111016682U",
+    "name": "Tapa impresora",
+    "stock": 3,
+    "usage_count": 51
+   },
+   {
+    "pn": "102050193U",
+    "name": "Display",
+    "stock": 3,
+    "usage_count": 52
+   },
+   {
+    "pn": "102040064U",
+    "name": "Impresora",
+    "stock": 15,
+    "usage_count": 47
+   },
+   {
+    "pn": "115080285U",
+    "name": "Rodillo",
+    "stock": 3,
+    "usage_count": 12
+   },
+   {
+    "pn": "301823114U",
+    "name": "Placa IO",
+    "stock": 22,
+    "usage_count": 31
+   },
+   {
+    "pn": "111011983U",
+    "name": "Bracket placa IO",
+    "stock": 8,
+    "usage_count": 46
+   },
+   {
+    "pn": "108010045U",
+    "name": "Lectora chip IC",
+    "stock": 0,
+    "usage_count": 1
+   },
+   {
+    "pn": "102030103U",
+    "name": "Cabezal magnetico",
+    "stock": 8,
+    "usage_count": 30
+   },
+   {
+    "pn": "102020268U",
+    "name": "Camara posterior",
+    "stock": 8,
+    "usage_count": 12
+   },
+   {
+    "pn": "102020269U",
+    "name": "Camara frontal",
+    "stock": 40,
+    "usage_count": 38
+   },
+   {
+    "pn": "115030008U",
+    "name": "Parlante",
+    "stock": 8,
+    "usage_count": 28
+   },
+   {
+    "pn": "108010078U",
+    "name": "Pin de carga",
+    "stock": 40,
+    "usage_count": 22
+   },
+   {
+    "pn": "108010143U",
+    "name": "Ficha micro USB",
+    "stock": 8,
+    "usage_count": 5
+   },
+   {
+    "pn": "111040263U",
+    "name": "Almohadilla de apoyo",
+    "stock": 3,
+    "usage_count": 6
+   }
+  ],
+  "N950_amarilla": [
+   {
+    "pn": "111018011UND",
+    "name": "Carcasa frontal (amarilla)",
+    "stock": 3,
+    "usage_count": 30
+   },
+   {
+    "pn": "111018011U",
+    "name": "Carcasa frontal + Display (amarilla)",
+    "stock": 3,
+    "usage_count": 21
+   },
+   {
+    "pn": "102050488U",
+    "name": "Display",
+    "stock": 3,
+    "usage_count": 30
+   },
+   {
+    "pn": "111018119U",
+    "name": "Carcasa posterior (amarilla)",
+    "stock": 22,
+    "usage_count": 57
+   },
+   {
+    "pn": "111018014U",
+    "name": "Tapa bateria (amarilla)",
+    "stock": 22,
+    "usage_count": 53
+   },
+   {
+    "pn": "111018010U",
+    "name": "Tapa impresora (amarilla)",
+    "stock": 0,
+    "usage_count": 30
+   },
+   {
+    "pn": "102040062U",
+    "name": "Impresora",
+    "stock": 40,
+    "usage_count": 22
+   },
+   {
+    "pn": "115080285U",
+    "name": "Rodillo",
+    "stock": 40,
+    "usage_count": 5
+   },
+   {
+    "pn": "301981004U",
+    "name": "Placa IO",
+    "stock": 40,
+    "usage_count": 7
+   },
+   {
+    "pn": "112030145U",
+    "name": "PET MESH",
+    "stock": 15,
+    "usage_count": 50
+   },
+   {
+    "pn": "112020225U",
+    "name": "Flex BEyF",
+    "stock": 40,
+    "usage_count": 48
+   },
+   {
+    "pn": "111050508U",
+    "name": "Botones",
+    "stock": 3,
+    "usage_count": 30
+   },
+   {
+    "pn": "11011314UMP",
+    "name": "Zebra bar frame",
+    "stock": 3,
+    "usage_count": 27
+   },
+   {
+    "pn": "102020377U",
+    "name": "Camara posterior",
+    "stock": 40,
+    "usage_count": 21
+   },
+   {
+    "pn": "102020263U",
+    "name": "Camara frontal",
+    "stock": 0,
+    "usage_count": 51
+   }
+  ],
+  "N950_celeste": [
+   {
+    "pn": "111017208UND",
+    "name": "Carcasa frontal (blanca)",
+    "stock": 40,
+    "usage_count": 25
+   },
+   {
+    "pn": "111017208U",
+    "name": "Carcasa frontal + Display (blanca)",
+    "stock": 15,
+    "usage_count": 25
+   },
+   {
+    "pn": "102050488U",
+    "name": "Display",
+    "stock": 40,
+    "usage_count": 60
+   },
+   {
+    "pn": "111017890U",
+    "name": "Carcasa posterior (blanca)",
+    "stock": 0,
+    "usage_count": 46
+   },
+   {
+    "pn": "111017042U",
+    "name": "Tapa bateria (blanca)",
+    "stock": 3,
+    "usage_count": 10
+   },
+   {
+    "pn": "111017052U",
+    "name": "Tapa impresora (celeste)",
+    "stock": 3,
+    "usage_count": 1
+   },
+   {
+    "pn": "102040062U",
+    "name": "Impresora",
+    "stock": 3,
+    "usage_count": 37
+   },
+   {
+    "pn": "115080285U",
+    "name": "Rodillo",
+    "stock": 15,
+    "usage_count": 51
+   },
+   {
+    "pn": "301981004U",
+    "name": "Placa IO",
+    "stock": 40,
+    "usage_count": 9
+   },
+   {
+    "pn": "112030145U",
+    "name": "PET MESH",
+    "stock": 22,
+    "usage_count": 52
+   },
+   {
+    "pn": "112020225U",
+    "name": "Flex BEyF",
+    "stock": 22,
+    "usage_count": 30
+   },
+   {
+    "pn": "111050508U",
+    "name": "Botones",
+    "stock": 40,
+    "usage_count": 59
+   },
+   {
+    "pn": "11011314UMP",
+    "name": "Zebra bar frame",
+    "stock": 8,
+    "usage_count": 9
+   },
+   {
+    "pn": "102020377U",
+    "name": "Camara posterior",
+    "stock": 22,
+    "usage_count": 35
+   },
+   {
+    "pn": "102020263U",
+    "name": "Camara frontal",
+    "stock": 3,
+    "usage_count": 1
+   }
+  ]
+ },
+ "statuses": [
+  "Revisión inicial",
+  "Reparación Técnica",
+  "Limpieza",
+  "Testeo",
+  "Irreparable"
+ ],
+ "substatus_reparacion": [
+  "Carga de firmware",
+  "Reparación",
+  "Carga de firmware + Inyección"
+ ],
+ "repaired_parts": {
+  "N910": [
+   {
+    "pn": "111012496U",
+    "name": "Carcasa frontal",
+    "sf_id": "a03Vr00000rHEQPIA4",
+    "stock": 8,
+    "usage_count": 60
+   },
+   {
+    "pn": "300052005U",
+    "name": "Carcasa frontal + Display",
+    "sf_id": "a03Vr00000lGEHIIA4",
+    "stock": 3,
+    "usage_count": 25
+   },
+   {
+    "pn": "111016684U",
+    "name": "Carcasa posterior",
+    "sf_id": "a03Vr00000lGEHKIA4",
+    "stock": 40,
+    "usage_count": 3
+   },
+   {
+    "pn": "111016685U",
+    "name": "Tapa bateria",
+    "sf_id": "a03Vr00000lGEHLIA4",
+    "stock": 0,
+    "usage_count": 52
+   },
+   {
+    "pn": "111016682U",
+    "name": "Tapa impresora",
+    "sf_id": "a03Vr00000lGEHJIA4",
+    "stock": 22,
+    "usage_count": 6
+   },
+   {
+    "pn": "102050193U",
+    "name": "Display",
+    "sf_id": "a03Vr00000rHEQOIA4",
+    "stock": 8,
+    "usage_count": 37
+   },
+   {
+    "pn": "102040064U",
+    "name": "Impresora",
+    "sf_id": "a03Vr00000lGEHRIA4",
+    "stock": 0,
+    "usage_count": 58
+   },
+   {
+    "pn": "115080285U",
+    "name": "Rodillo",
+    "sf_id": "a03Vr00000lGEHqIAO",
+    "stock": 22,
+    "usage_count": 13
+   },
+   {
+    "pn": "301823114U",
+    "name": "Placa IO",
+    "sf_id": "a03Vr00000lGEHMIA4",
+    "stock": 0,
+    "usage_count": 5
+   },
+   {
+    "pn": "111011983U",
+    "name": "Bracket placa IO",
+    "sf_id": "a03Vr00000uUpcmIAC",
+    "stock": 15,
+    "usage_count": 26
+   },
+   {
+    "pn": "108010045U",
+    "name": "Lectora chip IC",
+    "sf_id": "a03Vr00000lGEHSIA4",
+    "stock": 0,
+    "usage_count": 15
+   },
+   {
+    "pn": "102030103U",
+    "name": "Cabezal magnetico",
+    "sf_id": "a03Vr00000lGEHQIA4",
+    "stock": 0,
+    "usage_count": 35
+   },
+   {
+    "pn": "102020268U",
+    "name": "Camara posterior",
+    "sf_id": "a03Vr00000lGEHOIA4",
+    "stock": 15,
+    "usage_count": 3
+   },
+   {
+    "pn": "102020269U",
+    "name": "Camara frontal",
+    "sf_id": "a03Vr00000lGEHPIA4",
+    "stock": 22,
+    "usage_count": 7
+   },
+   {
+    "pn": "115030008U",
+    "name": "Parlante",
+    "sf_id": "a03Vr00000lGEHTIA4",
+    "stock": 3,
+    "usage_count": 40
+   },
+   {
+    "pn": "108010078U",
+    "name": "Pin de carga",
+    "sf_id": "a03Vr00000lGEHYIA4",
+    "stock": 40,
+    "usage_count": 37
+   },
+   {
+    "pn": "108010143U",
+    "name": "Ficha micro USB",
+    "sf_id": "a03Vr00000lGEHZIA4",
+    "stock": 0,
+    "usage_count": 36
+   },
+   {
+    "pn": "111040263U",
+    "name": "Almohadilla de apoyo",
+    "sf_id": "a03Vr00000lGEHUIA4",
+    "stock": 22,
+    "usage_count": 25
+   },
+   {
+    "pn": "111012496",
+    "name": "Carcasa frontal",
+    "sf_id": "a03Vr00000sIqKRIA0",
+    "stock": 0,
+    "usage_count": 14
+   },
+   {
+    "pn": "300052005",
+    "name": "Carcasa frontal + Display",
+    "sf_id": "a03Vr00000lAFNqIAO",
+    "stock": 0,
+    "usage_count": 35
+   },
+   {
+    "pn": "111016684",
+    "name": "Carcasa posterior",
+    "sf_id": "a03Vr00000lAFNwIAO",
+    "stock": 3,
+    "usage_count": 18
+   },
+   {
+    "pn": "111016685",
+    "name": "Tapa bateria",
+    "sf_id": "a03Vr00000lAFNxIAO",
+    "stock": 15,
+    "usage_count": 9
+   },
+   {
+    "pn": "111016682",
+    "name": "Tapa impresora",
+    "sf_id": "a03Vr00000lAFNvIAO",
+    "stock": 22,
+    "usage_count": 7
+   },
+   {
+    "pn": "102050193",
+    "name": "Display",
+    "sf_id": "a03Vr00000sIqKQIA0",
+    "stock": 22,
+    "usage_count": 19
+   },
+   {
+    "pn": "102040064",
+    "name": "Impresora",
+    "sf_id": "a03Vr00000lAFO5IAO",
+    "stock": 22,
+    "usage_count": 52
+   },
+   {
+    "pn": "115080285",
+    "name": "Rodillo",
+    "sf_id": "a03Vr00000lAFODIA4",
+    "stock": 40,
+    "usage_count": 11
+   },
+   {
+    "pn": "301823114",
+    "name": "Placa IO",
+    "sf_id": "a03Vr00000lAFO0IAO",
+    "stock": 0,
+    "usage_count": 37
+   },
+   {
+    "pn": "111011983",
+    "name": "Bracket placa IO",
+    "sf_id": "a03Vr00000lAFNrIAO",
+    "stock": 22,
+    "usage_count": 40
+   },
+   {
+    "pn": "108010045",
+    "name": "Lectora chip IC",
+    "sf_id": "a03Vr00000lAFO8IAO",
+    "stock": 3,
+    "usage_count": 23
+   },
+   {
+    "pn": "102030103",
+    "name": "Cabezal magnetico",
+    "sf_id": "a03Vr00000lAFO4IAO",
+    "stock": 0,
+    "usage_count": 35
+   },
+   {
+    "pn": "102020268",
+    "name": "Camara posterior",
+    "sf_id": "a03Vr00000lAFO2IAO",
+    "stock": 40,
+    "usage_count": 4
+   },
+   {
+    "pn": "102020269",
+    "name": "Camara frontal",
+    "sf_id": "a03Vr00000lAFO3IAO",
+    "stock": 22,
+    "usage_count": 3
+   },
+   {
+    "pn": "115030008",
+    "name": "Parlante",
+    "sf_id": "a03Vr00000lAFOCIA4",
+    "stock": 22,
+    "usage_count": 13
+   },
+   {
+    "pn": "108010078",
+    "name": "Pin de carga",
+    "sf_id": "a03Vr00000lAFOYIA4",
+    "stock": 15,
+    "usage_count": 43
+   },
+   {
+    "pn": "108010143",
+    "name": "Ficha micro USB",
+    "sf_id": "a03Vr00000lAFOZIA4",
+    "stock": 22,
+    "usage_count": 27
+   },
+   {
+    "pn": "111040263",
+    "name": "Almohadilla de apoyo",
+    "sf_id": "a03Vr00000lAFOOIA4",
+    "stock": 8,
+    "usage_count": 29
+   },
+   {
+    "pn": "113010034",
+    "name": "Pila CR2025 - 034",
+    "sf_id": "a03Vr00000lAFO6IAO",
+    "stock": 22,
+    "usage_count": 59
+   },
+   {
+    "pn": "113010025",
+    "name": "Pila CR2025 - 025",
+    "sf_id": "a03Vr00000lAFO7IAO",
+    "stock": 15,
+    "usage_count": 23
+   },
+   {
+    "pn": "112030084",
+    "name": "PET MESH",
+    "sf_id": "a03Vr00001OhIkvIAF",
+    "stock": 8,
+    "usage_count": 15
+   }
+  ],
+  "N950_amarilla": [
+   {
+    "pn": "111018011U",
+    "name": "Carcasa frontal + Display (amarilla)",
+    "sf_id": "a03Vr00000lGEHbIAO",
+    "stock": 3,
+    "usage_count": 44
+   },
+   {
+    "pn": "111018119U",
+    "name": "Carcasa posterior (amarilla)",
+    "sf_id": "a03Vr00000lGEHkIAO",
+    "stock": 3,
+    "usage_count": 5
+   },
+   {
+    "pn": "111018014U",
+    "name": "Tapa bateria (amarilla)",
+    "sf_id": "a03Vr00000lGEHlIAO",
+    "stock": 22,
+    "usage_count": 19
+   },
+   {
+    "pn": "111018010U",
+    "name": "Tapa impresora (amarilla)",
+    "sf_id": "a03Vr00000lGEHjIAO",
+    "stock": 22,
+    "usage_count": 31
+   },
+   {
+    "pn": "102050488U",
+    "name": "Display",
+    "sf_id": "a03Vr000012ROBFIA4",
+    "stock": 8,
+    "usage_count": 46
+   },
+   {
+    "pn": "102040062U",
+    "name": "Impresora",
+    "sf_id": "a03Vr00000lGEHdIAO",
+    "stock": 15,
+    "usage_count": 18
+   },
+   {
+    "pn": "115080285U",
+    "name": "Rodillo",
+    "sf_id": "a03Vr00000lGEHpIAO",
+    "stock": 22,
+    "usage_count": 4
+   },
+   {
+    "pn": "301981004U",
+    "name": "Placa IO",
+    "sf_id": "a03Vr00000lGEHaIAO",
+    "stock": 0,
+    "usage_count": 32
+   },
+   {
+    "pn": "112030145U",
+    "name": "PET MESH",
+    "sf_id": "a03Vr00000qSKilIAG",
+    "stock": 15,
+    "usage_count": 10
+   },
+   {
+    "pn": "112020225U",
+    "name": "Flex BEyF",
+    "sf_id": "a03Vr00000qSKinIAG",
+    "stock": 8,
+    "usage_count": 9
+   },
+   {
+    "pn": "111050508U",
+    "name": "Botones",
+    "sf_id": "a03Vr00000qSKimIAG",
+    "stock": 15,
+    "usage_count": 26
+   },
+   {
+    "pn": "11011314UMP",
+    "name": "Zebra bar frame",
+    "sf_id": "a03Vr00000qSKikIAG",
+    "stock": 0,
+    "usage_count": 42
+   },
+   {
+    "pn": "102020377U",
+    "name": "Camara posterior",
+    "sf_id": "a03Vr00000lGEHfIAO",
+    "stock": 0,
+    "usage_count": 48
+   },
+   {
+    "pn": "102020263U",
+    "name": "Camara frontal",
+    "sf_id": "a03Vr00000lGEHgIAO",
+    "stock": 22,
+    "usage_count": 36
+   },
+   {
+    "pn": "115030044U",
+    "name": "Parlante",
+    "sf_id": "a03Vr00000lGEHeIAO",
+    "stock": 8,
+    "usage_count": 21
+   },
+   {
+    "pn": "108010100U",
+    "name": "Lectora chip IC",
+    "sf_id": "a03Vr00000lGEHiIAO",
+    "stock": 40,
+    "usage_count": 22
+   },
+   {
+    "pn": "112020395U",
+    "name": "Flex carga",
+    "sf_id": "a03Vr00000qSKioIAG",
+    "stock": 22,
+    "usage_count": 31
+   },
+   {
+    "pn": "102030174U",
+    "name": "Cabezal magnetico",
+    "sf_id": "a03Vr00000qSKipIAG",
+    "stock": 22,
+    "usage_count": 51
+   },
+   {
+    "pn": "111015638U",
+    "name": "Soporte cabezal magnetico",
+    "sf_id": "a03Vr00000qSKiqIAG",
+    "stock": 15,
+    "usage_count": 4
+   },
+   {
+    "pn": "113010051U",
+    "name": "Pila",
+    "sf_id": "a03Vr00000lGEHhIAO",
+    "stock": 0,
+    "usage_count": 60
+   },
+   {
+    "pn": "111018011",
+    "name": "Carcasa frontal + Display (amarilla)",
+    "sf_id": "a03Vr00000lAFOdIAO",
+    "stock": 8,
+    "usage_count": 30
+   },
+   {
+    "pn": "111018119",
+    "name": "Carcasa posterior (amarilla)",
+    "sf_id": "a03Vr00000lAFP5IAO",
+    "stock": 40,
+    "usage_count": 42
+   },
+   {
+    "pn": "111018014",
+    "name": "Tapa bateria (amarilla)",
+    "sf_id": "a03Vr00000lAFP6IAO",
+    "stock": 0,
+    "usage_count": 3
+   },
+   {
+    "pn": "111018010",
+    "name": "Tapa impresora (amarilla)",
+    "sf_id": "a03Vr00000lAFP4IAO",
+    "stock": 40,
+    "usage_count": 44
+   },
+   {
+    "pn": "102040062",
+    "name": "Impresora",
+    "sf_id": "a03Vr00000lAFOfIAO",
+    "stock": 8,
+    "usage_count": 41
+   },
+   {
+    "pn": "115080285",
+    "name": "Rodillo",
+    "sf_id": "a03Vr00000lAFPFIA4",
+    "stock": 22,
+    "usage_count": 43
+   },
+   {
+    "pn": "301981004",
+    "name": "Placa IO",
+    "sf_id": "a03Vr00000lAFOcIAO",
+    "stock": 15,
+    "usage_count": 18
+   },
+   {
+    "pn": "112020225",
+    "name": "Flex BEyF",
+    "sf_id": "a03Vr00000lAFOkIAO",
+    "stock": 40,
+    "usage_count": 24
+   },
+   {
+    "pn": "112030145",
+    "name": "PET MESH",
+    "sf_id": "a03Vr00001OgdY8IAJ",
+    "stock": 40,
+    "usage_count": 22
+   },
+   {
+    "pn": "11011314",
+    "name": "Zebra bar frame",
+    "sf_id": "a03Vr00000lAFOyIAO",
+    "stock": 0,
+    "usage_count": 60
+   },
+   {
+    "pn": "102020377",
+    "name": "Camara posterior",
+    "sf_id": "a03Vr00000lAFOiIAO",
+    "stock": 15,
+    "usage_count": 22
+   },
+   {
+    "pn": "102020263",
+    "name": "Camara frontal",
+    "sf_id": "a03Vr00000lAFOjIAO",
+    "stock": 3,
+    "usage_count": 39
+   },
+   {
+    "pn": "115030044",
+    "name": "Parlante",
+    "sf_id": "a03Vr00000lAFOhIAO",
+    "stock": 0,
+    "usage_count": 31
+   },
+   {
+    "pn": "108010100",
+    "name": "Lectora chip IC",
+    "sf_id": "a03Vr00000lAFOrIAO",
+    "stock": 0,
+    "usage_count": 13
+   },
+   {
+    "pn": "112020395",
+    "name": "Flex carga",
+    "sf_id": "a03Vr00000lAFOoIAO",
+    "stock": 8,
+    "usage_count": 8
+   },
+   {
+    "pn": "102030174",
+    "name": "Cabezal magnetico",
+    "sf_id": "a03Vr00000lAFOgIAO",
+    "stock": 40,
+    "usage_count": 15
+   },
+   {
+    "pn": "111015638",
+    "name": "Soporte cabezal magnetico",
+    "sf_id": "a03Vr00000lAFP2IAO",
+    "stock": 15,
+    "usage_count": 25
+   },
+   {
+    "pn": "113010051",
+    "name": "Pila",
+    "sf_id": "a03Vr00000lAFOpIAO",
+    "stock": 15,
+    "usage_count": 5
+   },
+   {
+    "pn": "111018023",
+    "name": "Lente de camara (MP)",
+    "sf_id": "a03Vr00000lAFPAIA4",
+    "stock": 3,
+    "usage_count": 28
+   },
+   {
+    "pn": "111040820",
+    "name": "Goma superior",
+    "sf_id": "a03Vr00000lAFOwIAO",
+    "stock": 15,
+    "usage_count": 35
+   },
+   {
+    "pn": "111040821",
+    "name": "Goma inferior",
+    "sf_id": "a03Vr00000lAFP0IAO",
+    "stock": 8,
+    "usage_count": 56
+   },
+   {
+    "pn": "108010240",
+    "name": "SIM Card Socket",
+    "sf_id": "a03Vr00000lAFOsIAO",
+    "stock": 3,
+    "usage_count": 52
+   },
+   {
+    "pn": "108010283",
+    "name": "Ficha USB Tipo-C",
+    "sf_id": "a03Vr00000lAFOtIAO",
+    "stock": 15,
+    "usage_count": 55
+   },
+   {
+    "pn": "113030139",
+    "name": "Bateria",
+    "sf_id": "a03Vr00000lAFPGIA4",
+    "stock": 22,
+    "usage_count": 17
+   },
+   {
+    "pn": "111040631",
+    "name": "Conductive Foam",
+    "sf_id": "a03Vr00000lAFOuIAO",
+    "stock": 40,
+    "usage_count": 26
+   },
+   {
+    "pn": "111016249",
+    "name": "Soporte impresora",
+    "sf_id": "a03Vr00000lAFOxIAO",
+    "stock": 8,
+    "usage_count": 43
+   },
+   {
+    "pn": "105040360",
+    "name": "Antena 2G/3G/4G",
+    "sf_id": "a03Vr00000lAFOlIAO",
+    "stock": 15,
+    "usage_count": 14
+   },
+   {
+    "pn": "105040346",
+    "name": "Antena WIFI",
+    "sf_id": "a03Vr00000lAFOmIAO",
+    "stock": 3,
+    "usage_count": 5
+   },
+   {
+    "pn": "105040357",
+    "name": "Antena GPS",
+    "sf_id": "a03Vr00000lAFOnIAO",
+    "stock": 3,
+    "usage_count": 9
+   }
+  ],
+  "N950_celeste": [
+   {
+    "pn": "111017208U",
+    "name": "Carcasa frontal + Display (blanca)",
+    "sf_id": "a03Vr00000lGEHcIAO",
+    "stock": 3,
+    "usage_count": 42
+   },
+   {
+    "pn": "111017890U",
+    "name": "Carcasa posterior (blanca)",
+    "sf_id": "a03Vr00000lGEHnIAO",
+    "stock": 3,
+    "usage_count": 0
+   },
+   {
+    "pn": "111017042U",
+    "name": "Tapa bateria (blanca)",
+    "sf_id": "a03Vr00000lGEHoIAO",
+    "stock": 15,
+    "usage_count": 53
+   },
+   {
+    "pn": "111017052U",
+    "name": "Tapa impresora (celeste)",
+    "sf_id": "a03Vr00000lGEHmIAO",
+    "stock": 22,
+    "usage_count": 11
+   },
+   {
+    "pn": "111018011U",
+    "name": "Carcasa frontal + Display (amarilla)",
+    "sf_id": "a03Vr00000lGEHbIAO",
+    "stock": 8,
+    "usage_count": 18
+   },
+   {
+    "pn": "111018119U",
+    "name": "Carcasa posterior (amarilla)",
+    "sf_id": "a03Vr00000lGEHkIAO",
+    "stock": 0,
+    "usage_count": 9
+   },
+   {
+    "pn": "111018014U",
+    "name": "Tapa bateria (amarilla)",
+    "sf_id": "a03Vr00000lGEHlIAO",
+    "stock": 15,
+    "usage_count": 34
+   },
+   {
+    "pn": "111018010U",
+    "name": "Tapa impresora (amarilla)",
+    "sf_id": "a03Vr00000lGEHjIAO",
+    "stock": 8,
+    "usage_count": 39
+   },
+   {
+    "pn": "102050488U",
+    "name": "Display",
+    "sf_id": "a03Vr000012ROBFIA4",
+    "stock": 22,
+    "usage_count": 20
+   },
+   {
+    "pn": "102040062U",
+    "name": "Impresora",
+    "sf_id": "a03Vr00000lGEHdIAO",
+    "stock": 3,
+    "usage_count": 44
+   },
+   {
+    "pn": "115080285U",
+    "name": "Rodillo",
+    "sf_id": "a03Vr00000lGEHpIAO",
+    "stock": 22,
+    "usage_count": 60
+   },
+   {
+    "pn": "301981004U",
+    "name": "Placa IO",
+    "sf_id": "a03Vr00000lGEHaIAO",
+    "stock": 22,
+    "usage_count": 41
+   },
+   {
+    "pn": "112030145U",
+    "name": "PET MESH",
+    "sf_id": "a03Vr00000qSKilIAG",
+    "stock": 40,
+    "usage_count": 47
+   },
+   {
+    "pn": "112020225U",
+    "name": "Flex BEyF",
+    "sf_id": "a03Vr00000qSKinIAG",
+    "stock": 0,
+    "usage_count": 29
+   },
+   {
+    "pn": "111050508U",
+    "name": "Botones",
+    "sf_id": "a03Vr00000qSKimIAG",
+    "stock": 40,
+    "usage_count": 51
+   },
+   {
+    "pn": "11011314UMP",
+    "name": "Zebra bar frame",
+    "sf_id": "a03Vr00000qSKikIAG",
+    "stock": 22,
+    "usage_count": 25
+   },
+   {
+    "pn": "102020377U",
+    "name": "Camara posterior",
+    "sf_id": "a03Vr00000lGEHfIAO",
+    "stock": 15,
+    "usage_count": 25
+   },
+   {
+    "pn": "102020263U",
+    "name": "Camara frontal",
+    "sf_id": "a03Vr00000lGEHgIAO",
+    "stock": 15,
+    "usage_count": 6
+   },
+   {
+    "pn": "115030044U",
+    "name": "Parlante",
+    "sf_id": "a03Vr00000lGEHeIAO",
+    "stock": 15,
+    "usage_count": 40
+   },
+   {
+    "pn": "108010100U",
+    "name": "Lectora chip IC",
+    "sf_id": "a03Vr00000lGEHiIAO",
+    "stock": 15,
+    "usage_count": 3
+   },
+   {
+    "pn": "112020395U",
+    "name": "Flex carga",
+    "sf_id": "a03Vr00000qSKioIAG",
+    "stock": 3,
+    "usage_count": 4
+   },
+   {
+    "pn": "102030174U",
+    "name": "Cabezal magnetico",
+    "sf_id": "a03Vr00000qSKipIAG",
+    "stock": 3,
+    "usage_count": 28
+   },
+   {
+    "pn": "111015638U",
+    "name": "Soporte cabezal magnetico",
+    "sf_id": "a03Vr00000qSKiqIAG",
+    "stock": 3,
+    "usage_count": 7
+   },
+   {
+    "pn": "113010051U",
+    "name": "Pila",
+    "sf_id": "a03Vr00000lGEHhIAO",
+    "stock": 8,
+    "usage_count": 38
+   },
+   {
+    "pn": "111017208",
+    "name": "Carcasa frontal + Display (blanca)",
+    "sf_id": "a03Vr00000lAFOeIAO",
+    "stock": 0,
+    "usage_count": 6
+   },
+   {
+    "pn": "111017890",
+    "name": "Carcasa posterior (blanca)",
+    "sf_id": "a03Vr00000lAFP8IAO",
+    "stock": 0,
+    "usage_count": 36
+   },
+   {
+    "pn": "111017042",
+    "name": "Tapa bateria (blanca)",
+    "sf_id": "a03Vr00000lAFP9IAO",
+    "stock": 3,
+    "usage_count": 34
+   },
+   {
+    "pn": "111017052",
+    "name": "Tapa impresora (celeste)",
+    "sf_id": "a03Vr00000lAFP7IAO",
+    "stock": 0,
+    "usage_count": 60
+   },
+   {
+    "pn": "111018011",
+    "name": "Carcasa frontal + Display (amarilla)",
+    "sf_id": "a03Vr00000lAFOdIAO",
+    "stock": 8,
+    "usage_count": 39
+   },
+   {
+    "pn": "111018119",
+    "name": "Carcasa posterior (amarilla)",
+    "sf_id": "a03Vr00000lAFP5IAO",
+    "stock": 0,
+    "usage_count": 4
+   },
+   {
+    "pn": "111018014",
+    "name": "Tapa bateria (amarilla)",
+    "sf_id": "a03Vr00000lAFP6IAO",
+    "stock": 3,
+    "usage_count": 39
+   },
+   {
+    "pn": "111018010",
+    "name": "Tapa impresora (amarilla)",
+    "sf_id": "a03Vr00000lAFP4IAO",
+    "stock": 15,
+    "usage_count": 9
+   },
+   {
+    "pn": "102040062",
+    "name": "Impresora",
+    "sf_id": "a03Vr00000lAFOfIAO",
+    "stock": 40,
+    "usage_count": 16
+   },
+   {
+    "pn": "115080285",
+    "name": "Rodillo",
+    "sf_id": "a03Vr00000lAFPFIA4",
+    "stock": 8,
+    "usage_count": 38
+   },
+   {
+    "pn": "301981004",
+    "name": "Placa IO",
+    "sf_id": "a03Vr00000lAFOcIAO",
+    "stock": 8,
+    "usage_count": 30
+   },
+   {
+    "pn": "112020225",
+    "name": "Flex BEyF",
+    "sf_id": "a03Vr00000lAFOkIAO",
+    "stock": 0,
+    "usage_count": 7
+   },
+   {
+    "pn": "112030145",
+    "name": "PET MESH",
+    "sf_id": "a03Vr00001OgdY8IAJ",
+    "stock": 15,
+    "usage_count": 29
+   },
+   {
+    "pn": "11011314",
+    "name": "Zebra bar frame",
+    "sf_id": "a03Vr00000lAFOyIAO",
+    "stock": 15,
+    "usage_count": 30
+   },
+   {
+    "pn": "102020377",
+    "name": "Camara posterior",
+    "sf_id": "a03Vr00000lAFOiIAO",
+    "stock": 8,
+    "usage_count": 5
+   },
+   {
+    "pn": "102020263",
+    "name": "Camara frontal",
+    "sf_id": "a03Vr00000lAFOjIAO",
+    "stock": 3,
+    "usage_count": 6
+   },
+   {
+    "pn": "115030044",
+    "name": "Parlante",
+    "sf_id": "a03Vr00000lAFOhIAO",
+    "stock": 40,
+    "usage_count": 21
+   },
+   {
+    "pn": "108010100",
+    "name": "Lectora chip IC",
+    "sf_id": "a03Vr00000lAFOrIAO",
+    "stock": 40,
+    "usage_count": 16
+   },
+   {
+    "pn": "112020395",
+    "name": "Flex carga",
+    "sf_id": "a03Vr00000lAFOoIAO",
+    "stock": 15,
+    "usage_count": 53
+   },
+   {
+    "pn": "102030174",
+    "name": "Cabezal magnetico",
+    "sf_id": "a03Vr00000lAFOgIAO",
+    "stock": 40,
+    "usage_count": 10
+   },
+   {
+    "pn": "111015638",
+    "name": "Soporte cabezal magnetico",
+    "sf_id": "a03Vr00000lAFP2IAO",
+    "stock": 22,
+    "usage_count": 1
+   },
+   {
+    "pn": "113010051",
+    "name": "Pila",
+    "sf_id": "a03Vr00000lAFOpIAO",
+    "stock": 3,
+    "usage_count": 60
+   },
+   {
+    "pn": "111018023",
+    "name": "Lente de camara (MP)",
+    "sf_id": "a03Vr00000lAFPAIA4",
+    "stock": 22,
+    "usage_count": 23
+   },
+   {
+    "pn": "111040820",
+    "name": "Goma superior",
+    "sf_id": "a03Vr00000lAFOwIAO",
+    "stock": 3,
+    "usage_count": 44
+   },
+   {
+    "pn": "111040821",
+    "name": "Goma inferior",
+    "sf_id": "a03Vr00000lAFP0IAO",
+    "stock": 22,
+    "usage_count": 58
+   },
+   {
+    "pn": "108010240",
+    "name": "SIM Card Socket",
+    "sf_id": "a03Vr00000lAFOsIAO",
+    "stock": 0,
+    "usage_count": 48
+   },
+   {
+    "pn": "108010283",
+    "name": "Ficha USB Tipo-C",
+    "sf_id": "a03Vr00000lAFOtIAO",
+    "stock": 22,
+    "usage_count": 19
+   },
+   {
+    "pn": "113030139",
+    "name": "Bateria",
+    "sf_id": "a03Vr00000lAFPGIA4",
+    "stock": 40,
+    "usage_count": 55
+   },
+   {
+    "pn": "111040631",
+    "name": "Conductive Foam",
+    "sf_id": "a03Vr00000lAFOuIAO",
+    "stock": 0,
+    "usage_count": 44
+   },
+   {
+    "pn": "111016249",
+    "name": "Soporte impresora",
+    "sf_id": "a03Vr00000lAFOxIAO",
+    "stock": 8,
+    "usage_count": 33
+   },
+   {
+    "pn": "105040360",
+    "name": "Antena 2G/3G/4G",
+    "sf_id": "a03Vr00000lAFOlIAO",
+    "stock": 8,
+    "usage_count": 58
+   },
+   {
+    "pn": "105040346",
+    "name": "Antena WIFI",
+    "sf_id": "a03Vr00000lAFOmIAO",
+    "stock": 3,
+    "usage_count": 22
+   },
+   {
+    "pn": "105040357",
+    "name": "Antena GPS",
+    "sf_id": "a03Vr00000lAFOnIAO",
+    "stock": 3,
+    "usage_count": 34
+   }
+  ]
+ },
+ "parts_suggestions": {
+  "version": 1,
+  "estetico": [
+   "Carcasa",
+   "Tapa",
+   "Botones",
+   "Boton",
+   "Lente de camara",
+   "Zebra",
+   "Goma",
+   "Almohadilla"
+  ],
+  "por_falla": {
+   "N950": {
+    "Display roto": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.67,
+      "lift": 5.1,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.3,
+      "lift": 1.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de bateria rota": [
+     {
+      "name": "Tapa bateria",
+      "score": 0.89,
+      "lift": 5.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.49,
+      "lift": 2.9,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.52,
+      "lift": 2.4,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa posterior rota": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.86,
+      "lift": 3.9,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.37,
+      "lift": 2.2,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Lente de camara (MP)",
+      "score": 0.23,
+      "lift": 3.4,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de impresora rota": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.91,
+      "lift": 5.4,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.59,
+      "lift": 2.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa bateria",
+      "score": 0.37,
+      "lift": 2.3,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Vinculada": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.39,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.29,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa bateria",
+      "score": 0.26,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de batería rota": [
+     {
+      "name": "Tapa bateria",
+      "score": 0.85,
+      "lift": 5.4,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Lente de camara (MP)",
+      "score": 0.16,
+      "lift": 2.4,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa frontal rota": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.64,
+      "lift": 4.8,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.4,
+      "lift": 1.8,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.32,
+      "lift": 1.9,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Entrada USB dañada": [
+     {
+      "name": "Ficha USB Tipo-C",
+      "score": 0.3,
+      "lift": 61.0,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.35,
+      "lift": 2.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Botón de inicio defectuoso": [
+     {
+      "name": "Flex BEyF",
+      "score": 0.7,
+      "lift": 11.3,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Botones",
+      "score": 0.19,
+      "lift": 19.1,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.47,
+      "lift": 2.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Lente de cámara roto": [
+     {
+      "name": "Lente de camara (MP)",
+      "score": 0.83,
+      "lift": 12.3,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.85,
+      "lift": 3.9,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Flex BEyF",
+      "score": 0.17,
+      "lift": 2.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Impresora rota": [
+     {
+      "name": "Impresora",
+      "score": 0.56,
+      "lift": 36.7,
+      "coincide": true,
+      "tildar": true
+     }
+    ],
+    "Silicona inferior de apoyo desgastada": [
+     {
+      "name": "Goma inferior",
+      "score": 0.87,
+      "lift": 28.2,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Goma superior",
+      "score": 0.61,
+      "lift": 19.2,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Lente de camara (MP)",
+      "score": 0.47,
+      "lift": 7.0,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Cámara trasera rota": [
+     {
+      "name": "Lente de camara (MP)",
+      "score": 0.93,
+      "lift": 13.7,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Goma inferior",
+      "score": 0.26,
+      "lift": 8.4,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Goma superior",
+      "score": 0.26,
+      "lift": 8.2,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de batería sin tapa": [
+     {
+      "name": "Tapa bateria",
+      "score": 1.0,
+      "lift": 6.3,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Flex BEyF",
+      "score": 0.2,
+      "lift": 3.2,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Pin de carga dañado": [
+     {
+      "name": "Ficha USB Tipo-C",
+      "score": 0.22,
+      "lift": 45.2,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa posterior golpeada": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.79,
+      "lift": 3.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.54,
+      "lift": 3.2,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.47,
+      "lift": 3.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Audio defectuoso": [
+     {
+      "name": "Placa IO",
+      "score": 0.56,
+      "lift": 34.4,
+      "coincide": false,
+      "tildar": true
+     }
+    ],
+    "Falla lector magnético": [
+     {
+      "name": "Cabezal magnetico",
+      "score": 0.47,
+      "lift": 191.2,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.35,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de impresora golpeada": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.86,
+      "lift": 5.1,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.48,
+      "lift": 3.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.58,
+      "lift": 2.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Táctil roto": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.65,
+      "lift": 5.0,
+      "coincide": false,
+      "tildar": true
+     }
+    ],
+    "Carcasa posterior rayada": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.84,
+      "lift": 3.8,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.51,
+      "lift": 3.0,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.42,
+      "lift": 3.2,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa frontal rayada": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.79,
+      "lift": 6.0,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.62,
+      "lift": 3.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.68,
+      "lift": 3.1,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa posterior desgastada": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.85,
+      "lift": 3.9,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.6,
+      "lift": 3.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.45,
+      "lift": 3.4,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de impresora desgastada": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.96,
+      "lift": 5.7,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.8,
+      "lift": 3.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.56,
+      "lift": 4.2,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de impresora rayada": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.89,
+      "lift": 5.3,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.63,
+      "lift": 2.8,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.4,
+      "lift": 3.0,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa frontal golpeada": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.73,
+      "lift": 5.6,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.56,
+      "lift": 3.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.56,
+      "lift": 2.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Impresora defectuosa": [
+     {
+      "name": "Impresora",
+      "score": 0.17,
+      "lift": 10.9,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Lente de camara (MP)",
+      "score": 0.17,
+      "lift": 2.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de bateria rayada": [
+     {
+      "name": "Tapa bateria",
+      "score": 0.89,
+      "lift": 5.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.38,
+      "lift": 2.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.43,
+      "lift": 2.0,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de bateria desgastada": [
+     {
+      "name": "Tapa bateria",
+      "score": 0.92,
+      "lift": 5.8,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.57,
+      "lift": 3.4,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.6,
+      "lift": 2.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Lente de camara roto": [
+     {
+      "name": "Lente de camara (MP)",
+      "score": 0.97,
+      "lift": 14.4,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Goma inferior",
+      "score": 0.31,
+      "lift": 10.2,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.63,
+      "lift": 2.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa frontal desgastada": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.85,
+      "lift": 6.5,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.62,
+      "lift": 3.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.68,
+      "lift": 3.0,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "USB sucio": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.27,
+      "lift": 2.1,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.27,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Sin rodillo": [
+     {
+      "name": "Rodillo",
+      "score": 0.83,
+      "lift": 39.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.39,
+      "lift": 2.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.33,
+      "lift": 2.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Sin tapa de impresora": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.92,
+      "lift": 5.5,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Rodillo",
+      "score": 0.23,
+      "lift": 11.0,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Flex BEyF",
+      "score": 0.23,
+      "lift": 3.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Rechazado por: Film dañado": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.4,
+      "lift": 2.4,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.2,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "SIM socket dañada": [
+     {
+      "name": "SIM Card Socket",
+      "score": 0.86,
+      "lift": 158.3,
+      "coincide": false,
+      "tildar": true
+     }
+    ],
+    "Silicona superior de apoyo desgastada": [
+     {
+      "name": "Goma superior",
+      "score": 0.92,
+      "lift": 29.2,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Goma inferior",
+      "score": 0.7,
+      "lift": 22.8,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Lente de camara (MP)",
+      "score": 0.51,
+      "lift": 7.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Sin tapa de bateria": [
+     {
+      "name": "Tapa bateria",
+      "score": 0.74,
+      "lift": 4.6,
+      "coincide": true,
+      "tildar": true
+     }
+    ],
+    "Rechazado por: Carcasa posterior rota": [
+     {
+      "name": "Carcasa posterior",
+      "score": 1.0,
+      "lift": 4.5,
+      "coincide": true,
+      "tildar": true
+     }
+    ],
+    "Tapa de impresora rota.": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.8,
+      "lift": 4.7,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Impresora",
+      "score": 0.2,
+      "lift": 13.1,
+      "coincide": true,
+      "tildar": false
+     },
+     {
+      "name": "Flex BEyF",
+      "score": 0.6,
+      "lift": 9.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de bateria rota.": [
+     {
+      "name": "Tapa bateria",
+      "score": 1.0,
+      "lift": 6.3,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.8,
+      "lift": 6.1,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 1.0,
+      "lift": 4.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa frontal rota.": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 1.0,
+      "lift": 7.6,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 1.0,
+      "lift": 4.5,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa bateria",
+      "score": 0.81,
+      "lift": 5.1,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Film dañado.": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.71,
+      "lift": 5.4,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.86,
+      "lift": 3.9,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Flex BEyF",
+      "score": 0.43,
+      "lift": 6.9,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Rechazado por: Tamper": [
+     {
+      "name": "PET MESH",
+      "score": 0.2,
+      "lift": 17.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Display golpeado": [
+     {
+      "name": "PET MESH",
+      "score": 0.4,
+      "lift": 35.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 1.0,
+      "lift": 7.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.4,
+      "lift": 1.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Lente de camara roto.": [
+     {
+      "name": "Lente de camara (MP)",
+      "score": 1.0,
+      "lift": 14.8,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Goma inferior",
+      "score": 0.52,
+      "lift": 17.0,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Goma superior",
+      "score": 0.52,
+      "lift": 16.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Bordes internos sucios": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.62,
+      "lift": 4.7,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.45,
+      "lift": 2.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.45,
+      "lift": 2.1,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Dientes de impresora desgastados": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.5,
+      "lift": 3.8,
+      "coincide": false,
+      "tildar": true
+     }
+    ],
+    "Suciedad interna": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.55,
+      "lift": 3.2,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.36,
+      "lift": 2.8,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.45,
+      "lift": 2.1,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Rechazado por: Botón de inicio defectuoso": [
+     {
+      "name": "Flex BEyF",
+      "score": 1.0,
+      "lift": 16.1,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.38,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa bateria",
+      "score": 0.25,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Placa IO defectuosa": [
+     {
+      "name": "Placa IO",
+      "score": 0.92,
+      "lift": 56.4,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "PET MESH",
+      "score": 0.25,
+      "lift": 22.1,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Goma inferior",
+      "score": 0.17,
+      "lift": 5.4,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Lector de tarjetas IC sucio": [
+     {
+      "name": "Rodillo",
+      "score": 0.23,
+      "lift": 11.0,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Botones",
+      "score": 0.15,
+      "lift": 15.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.62,
+      "lift": 2.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Boton de inicio defectuoso": [
+     {
+      "name": "Botones",
+      "score": 0.33,
+      "lift": 33.9,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Flex BEyF",
+      "score": 0.67,
+      "lift": 10.8,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.5,
+      "lift": 2.3,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Impresion defectuosa": [
+     {
+      "name": "Impresora",
+      "score": 0.33,
+      "lift": 21.8,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Placa IO",
+      "score": 0.17,
+      "lift": 10.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Rodillo",
+      "score": 0.17,
+      "lift": 8.0,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Lector de tarjetas IC defectuoso": [
+     {
+      "name": "Lectora chip IC",
+      "score": 0.18,
+      "lift": 184.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.36,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.27,
+      "lift": 2.1,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Pin de carga roto": [
+     {
+      "name": "Ficha USB Tipo-C",
+      "score": 0.33,
+      "lift": 67.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Lente trasero de camara defectuoso": [
+     {
+      "name": "Lente de camara (MP)",
+      "score": 0.4,
+      "lift": 5.9,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.5,
+      "lift": 2.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.2,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ]
+   },
+   "N910": {
+    "No imprime": [
+     {
+      "name": "Impresora",
+      "score": 0.56,
+      "lift": 4.4,
+      "coincide": false,
+      "tildar": true
+     }
+    ],
+    "Display roto": [
+     {
+      "name": "Display",
+      "score": 0.3,
+      "lift": 1.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.46,
+      "lift": 1.9,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa posterior rota": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.69,
+      "lift": 1.6,
+      "coincide": true,
+      "tildar": true
+     }
+    ],
+    "Impresora rota": [
+     {
+      "name": "Impresora",
+      "score": 0.68,
+      "lift": 5.3,
+      "coincide": true,
+      "tildar": true
+     }
+    ],
+    "Tamper": [
+     {
+      "name": "Pila CR2025 - 025",
+      "score": 0.26,
+      "lift": 6.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Pila CR2025 - 034",
+      "score": 0.26,
+      "lift": 6.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Entrada USB dañada": [
+     {
+      "name": "Ficha micro USB",
+      "score": 0.35,
+      "lift": 29.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Lectora chip IC dañada": [
+     {
+      "name": "Lectora chip IC",
+      "score": 0.23,
+      "lift": 26.4,
+      "coincide": true,
+      "tildar": true
+     }
+    ],
+    "Tapa de bateria rota": [
+     {
+      "name": "Tapa bateria",
+      "score": 0.36,
+      "lift": 1.7,
+      "coincide": true,
+      "tildar": true
+     }
+    ],
+    "Sin falla": [
+     {
+      "name": "Display",
+      "score": 0.29,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa posterior rayada": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.68,
+      "lift": 1.6,
+      "coincide": true,
+      "tildar": true
+     }
+    ],
+    "Tapa de impresora golpeada": [
+     {
+      "name": "Impresora",
+      "score": 0.2,
+      "lift": 1.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Display",
+      "score": 0.4,
+      "lift": 2.1,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "PET MESH",
+      "score": 0.2,
+      "lift": 2.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa posterior desgastada": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.76,
+      "lift": 1.8,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa bateria",
+      "score": 0.35,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Impresora",
+      "score": 0.2,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa frontal golpeada": [
+     {
+      "name": "Carcasa frontal",
+      "score": 0.35,
+      "lift": 1.7,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.68,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Rodillo",
+      "score": 0.4,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de impresora desgastada": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.8,
+      "lift": 1.5,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.64,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Dientes de impresora desgastados": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.68,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Rodillo",
+      "score": 0.45,
+      "lift": 1.8,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal",
+      "score": 0.37,
+      "lift": 1.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa frontal desgastada": [
+     {
+      "name": "Carcasa frontal",
+      "score": 0.32,
+      "lift": 1.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.65,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa bateria",
+      "score": 0.37,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa posterior golpeada": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.7,
+      "lift": 1.7,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "PET MESH",
+      "score": 0.15,
+      "lift": 2.0,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Display rayado": [
+     {
+      "name": "Display",
+      "score": 0.37,
+      "lift": 2.0,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa frontal",
+      "score": 0.37,
+      "lift": 1.8,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Rodillo",
+      "score": 0.38,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Pin de carga dañado": [
+     {
+      "name": "Pin de carga",
+      "score": 0.46,
+      "lift": 29.5,
+      "coincide": true,
+      "tildar": true
+     }
+    ],
+    "Cámara frontal rota": [
+     {
+      "name": "Camara frontal",
+      "score": 0.2,
+      "lift": 42.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa frontal",
+      "score": 0.4,
+      "lift": 2.0,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "PET MESH",
+      "score": 0.2,
+      "lift": 2.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Cámara trasera rota": [
+     {
+      "name": "Camara posterior",
+      "score": 0.23,
+      "lift": 29.5,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Rodillo",
+      "score": 0.46,
+      "lift": 1.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de impresora rayada": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.84,
+      "lift": 1.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.71,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Rodillo",
+      "score": 0.44,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Carcasa frontal rayada": [
+     {
+      "name": "Carcasa frontal",
+      "score": 0.3,
+      "lift": 1.5,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.7,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.45,
+      "lift": 1.8,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de bateria desgastada": [
+     {
+      "name": "Tapa bateria",
+      "score": 0.74,
+      "lift": 3.4,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.67,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.38,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "USB sucio": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.68,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Tapa bateria",
+      "score": 0.38,
+      "lift": 1.8,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal",
+      "score": 0.35,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Silicona superior de apoyo desgastada": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.65,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": true
+     }
+    ],
+    "Sin rodillo": [
+     {
+      "name": "Rodillo",
+      "score": 0.52,
+      "lift": 2.1,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Display",
+      "score": 0.3,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal",
+      "score": 0.3,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Táctil roto": [
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.59,
+      "lift": 2.4,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Tapa bateria",
+      "score": 0.35,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Display",
+      "score": 0.28,
+      "lift": 1.5,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Botón de inicio defectuoso": [
+     {
+      "name": "Rodillo",
+      "score": 0.47,
+      "lift": 1.9,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Tapa de bateria rayada": [
+     {
+      "name": "Tapa bateria",
+      "score": 0.78,
+      "lift": 3.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.86,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa posterior",
+      "score": 0.7,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Rechazado por: Display roto": [
+     {
+      "name": "Display",
+      "score": 0.88,
+      "lift": 4.7,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Rodillo",
+      "score": 0.88,
+      "lift": 3.5,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Carcasa frontal",
+      "score": 0.75,
+      "lift": 3.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Display golpeado": [
+     {
+      "name": "Display",
+      "score": 0.6,
+      "lift": 3.2,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa frontal",
+      "score": 0.67,
+      "lift": 3.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa impresora",
+      "score": 0.87,
+      "lift": 1.7,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Rechazado por: Carcasa posterior rota": [
+     {
+      "name": "Carcasa posterior",
+      "score": 1.0,
+      "lift": 2.4,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.71,
+      "lift": 2.9,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Tapa bateria",
+      "score": 0.57,
+      "lift": 2.6,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Rechazado por: Tapa de bateria rota": [
+     {
+      "name": "Tapa bateria",
+      "score": 1.0,
+      "lift": 4.6,
+      "coincide": true,
+      "tildar": true
+     },
+     {
+      "name": "Camara posterior",
+      "score": 0.17,
+      "lift": 21.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Impresora",
+      "score": 0.5,
+      "lift": 3.9,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Placa dañada - voltaje de fuga alto": [
+     {
+      "name": "Pila CR2025 - 034",
+      "score": 0.17,
+      "lift": 4.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Pila CR2025 - 025",
+      "score": 0.17,
+      "lift": 4.3,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Lector de tarjetas IC sucio": [
+     {
+      "name": "Tapa impresora",
+      "score": 0.86,
+      "lift": 1.6,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Impresora",
+      "score": 0.29,
+      "lift": 2.2,
+      "coincide": false,
+      "tildar": false
+     }
+    ],
+    "Impresion defectuosa": [
+     {
+      "name": "Carcasa posterior",
+      "score": 0.86,
+      "lift": 2.0,
+      "coincide": false,
+      "tildar": true
+     },
+     {
+      "name": "Carcasa frontal + Display",
+      "score": 0.57,
+      "lift": 2.3,
+      "coincide": false,
+      "tildar": false
+     },
+     {
+      "name": "Impresora",
+      "score": 0.29,
+      "lift": 2.2,
+      "coincide": false,
+      "tildar": false
+     }
+    ]
+   }
+  }
+ }
+}
