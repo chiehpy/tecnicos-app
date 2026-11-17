@@ -11,6 +11,7 @@ import com.enofir.tecnicos_app.model.DespacharResponse
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.MisPendientesResponse
 import com.enofir.tecnicos_app.model.LoginResponse
+import com.enofir.tecnicos_app.model.MochilaResponse
 import com.enofir.tecnicos_app.model.PhotoUploadRequest
 import com.enofir.tecnicos_app.model.PhotoUploadResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
@@ -373,6 +374,15 @@ object ApiClient {
     fun getAppVersion(): Call<AppVersionResponse> {
         return api().getAppVersion()
     }
+
+    /** Ruta del MDW que devuelve la mochila del técnico (pasamanos de Enofir_MochilaAPI). */
+    const val MOCHILA_PATH = "app/mochila"
+
+    fun fetchMochila(): Call<MochilaResponse> = api().getMochila()
+
+    fun fetchFotosRepuestos(): Call<com.enofir.tecnicos_app.model.FotosRepuestosResponse> = api().getFotosRepuestos()
+
+    fun fetchFotoRepuesto(sfId: String): Call<okhttp3.ResponseBody> = api().getFotoRepuesto(sfId)
 
     fun fetchCatalogs(): Call<CatalogsResponse> {
         return api().getCatalogs()

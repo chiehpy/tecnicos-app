@@ -7,6 +7,9 @@ import com.enofir.tecnicos_app.model.DespacharResponse
 import com.enofir.tecnicos_app.model.LoginRequest
 import com.enofir.tecnicos_app.model.MisPendientesResponse
 import com.enofir.tecnicos_app.model.LoginResponse
+import com.enofir.tecnicos_app.model.MochilaResponse
+import com.enofir.tecnicos_app.model.FotosRepuestosResponse
+import okhttp3.ResponseBody
 import com.enofir.tecnicos_app.model.PhotoUploadRequest
 import com.enofir.tecnicos_app.model.PhotoUploadResponse
 import com.enofir.tecnicos_app.model.PrintLabelRequest
@@ -62,6 +65,18 @@ interface SalesforceApi {
 
     @GET("app/catalogs")
     fun getCatalogs(): Call<CatalogsResponse>
+
+    /** Mochila del técnico del token (saldo por repuesto). Solo Argentina; el control real lo hace Salesforce. */
+    @GET(ApiClient.MOCHILA_PATH)
+    fun getMochila(): Call<MochilaResponse>
+
+    /** Índice de fotos de repuestos: Id de 15 -> versión. */
+    @GET("app/repuestos/fotos")
+    fun getFotosRepuestos(): Call<FotosRepuestosResponse>
+
+    /** Foto (JPEG) de un repuesto. 404 si no tiene. */
+    @GET("app/repuestos/fotos/{sfId}")
+    fun getFotoRepuesto(@Path("sfId") sfId: String): Call<ResponseBody>
 
     @GET("vm/check")
     fun vmCheck(@Query("serial") serial: String): Call<VmCheckResponse>
