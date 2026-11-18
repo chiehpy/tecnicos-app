@@ -35,6 +35,8 @@ import com.enofir.tecnicos_app.core.PrintConfigStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.CatalogsStore
 import com.enofir.tecnicos_app.core.FailureMatrix
+import com.enofir.tecnicos_app.core.RepuestosDeclarados
+import com.enofir.tecnicos_app.core.RepuestosDeclarados.Renglon
 import com.enofir.tecnicos_app.core.RepuestosSugeridos
 import com.enofir.tecnicos_app.model.CatalogsResponse
 import com.enofir.tecnicos_app.model.FailureObservationsCatalog
@@ -151,6 +153,9 @@ class TerminalDetailsActivity : BaseActivity() {
     // el MDW y el Apex (Enofir_CaseSparepartsAPI) también rechazan repuestos para esta cuenta.
     private fun isBbvaAccount(): Boolean =
         currentAccountName?.trim().equals(BBVA_ACCOUNT_NAME, ignoreCase = true)
+
+    // Repuestos ya declarados en el caso (cs.declaredParts del lookup). Vacío = igual que antes.
+    private var declaredParts: List<RepuestosDeclarados.Declarado> = emptyList()
     private var currentModelRaw: String = ""
     private var startTimestamp: Long = 0
 
@@ -707,15 +712,25 @@ class TerminalDetailsActivity : BaseActivity() {
         }
     }
 
-    /** Form 2 del flujo de Reparación COMPLETE — selección de repuestos utilizados. */
+    /**
+     * Form 2 del flujo de Reparación COMPLETE: selección de repuestos utilizados.
+     *
+     * Si el caso ya tiene repuestos declarados (rebote de QA), van arriba en «Ya en la terminal»,
+     * tildados y fijos, y se reenvían siempre: cada envío borra y reinserta los repuestos del caso,
+     * y lo que no se reenvía vuelve a la mochila del técnico que lo consumió.
+     */
     private fun showRepairPartsDialog(
         fallasNuevas: List<String> = emptyList(),
         onConfirm: (selected: List<String>, noneSelected: Boolean) -> Unit
     ) {
-        val noneLabel = "No se cambiaron repuestos"
+        val catalogo = repairedPartsOptions
+        val declarados = RepuestosDeclarados.agrupar(declaredParts, catalogo)
+        val hayDeclarados = declarados.isNotEmpty()
+        // Con repuestos ya en la terminal, la opción 0 sólo dice que no se agrega nada nuevo.
+        val noneLabel = if (hayDeclarados) "Ningún repuesto nuevo" else "No se cambiaron repuestos"
         // Orden de hoy (mochila + usage_count) con los sugeridos por falla arriba; sin sugerencias = igual que antes.
         val resultado = RepuestosSugeridos.calcular(
-            partes = repairedPartsOptions,
+            partes = catalogo,
             claveCatalogo = CatalogsStore.catalogKey(serial),
             fallas = RepuestosSugeridos.fallasDelCaso(revisionInicialFailures, fallasNuevas),
             sugerencias = CatalogsStore.partsSuggestions,
@@ -723,56 +738,105 @@ class TerminalDetailsActivity : BaseActivity() {
             saldoDe = { part -> mochilaDisponible(part) },
             tieneSeleccionPrevia = repairedPartsNoneSelected || repairedPartsSelected.any { it },
         )
-        val sortedIndices = resultado.orden
-        val sortedParts = sortedIndices.map { repairedPartsOptions[it] }
+        val pretildar = RepuestosDeclarados.pretildarSinDeclarados(resultado.pretildar, catalogo, declarados)
+        val renglones = RepuestosDeclarados.renglones(declarados, resultado.orden)
 
-        val allItems: Array<CharSequence> = (listOf<CharSequence>(noneLabel) + sortedParts.map { part ->
+        fun textoParte(part: RecoveredPartItem): CharSequence {
             val usadoSuffix = if (part.pn.endsWith("UND") || part.pn.endsWith("U")) " - USADO" else ""
             val enMochila = mochilaDisponible(part)
             if (enMochila == null) {
                 val stockSuffix = if ((part.stock ?: 0) > 0) " (${part.stock})" else ""
-                "${part.name}$usadoSuffix$stockSuffix"
+                return "${part.name}$usadoSuffix$stockSuffix"
+            }
+            // Con mochila activa manda el saldo del técnico: segunda línea destacada,
+            // y lo que no tiene queda en gris para que se distinga de un vistazo.
+            val sb = SpannableStringBuilder("${part.name}$usadoSuffix")
+            val ini = sb.length + 1
+            sb.append(if (enMochila > 0) "\nEn tu mochila: $enMochila" else "\nNo está en tu mochila")
+            sb.setSpan(RelativeSizeSpan(0.85f), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            if (enMochila > 0) {
+                sb.setSpan(StyleSpan(Typeface.BOLD), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                sb.setSpan(ForegroundColorSpan(Color.parseColor("#2E7D32")), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             } else {
-                // Con mochila activa manda el saldo del técnico: segunda línea destacada,
-                // y lo que no tiene queda en gris para que se distinga de un vistazo.
-                val sb = SpannableStringBuilder("${part.name}$usadoSuffix")
-                val ini = sb.length + 1
-                sb.append(if (enMochila > 0) "\nEn tu mochila: $enMochila" else "\nNo está en tu mochila")
-                sb.setSpan(RelativeSizeSpan(0.85f), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                if (enMochila > 0) {
-                    sb.setSpan(StyleSpan(Typeface.BOLD), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    sb.setSpan(ForegroundColorSpan(Color.parseColor("#2E7D32")), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                } else {
-                    sb.setSpan(ForegroundColorSpan(Color.parseColor("#9E9E9E")), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-                // Tercera línea en gris: stock total de Salesforce (TotalStock__c, incluye mochilas).
+                sb.setSpan(ForegroundColorSpan(Color.parseColor("#9E9E9E")), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            // Tercera línea en gris: stock total de Salesforce (TotalStock__c, incluye mochilas).
+            val iniStock = sb.length + 1
+            sb.append("\nEn stock: ${part.stock ?: 0}")
+            sb.setSpan(RelativeSizeSpan(0.8f), iniStock, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.setSpan(ForegroundColorSpan(Color.parseColor("#9E9E9E")), iniStock, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            return sb
+        }
+
+        fun textoDeclarado(fila: RepuestosDeclarados.Fila): CharSequence {
+            val pn = fila.parte?.pn.orEmpty()
+            val usadoSuffix = if (pn.endsWith("UND") || pn.endsWith("U")) " - USADO" else ""
+            val cantSuffix = if (fila.qty > 1) " x${fila.qty}" else ""
+            val sb = SpannableStringBuilder("${fila.nombre}$usadoSuffix$cantSuffix")
+            val ini = sb.length + 1
+            sb.append("\n").append(RepuestosDeclarados.lineaTecnico(fila))
+            sb.setSpan(RelativeSizeSpan(0.85f), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.setSpan(StyleSpan(Typeface.BOLD), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.setSpan(ForegroundColorSpan(Color.parseColor("#1565C0")), ini, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            // Repuesto fuera del catálogo de la app: no hay stock que mostrar.
+            fila.parte?.let { part ->
                 val iniStock = sb.length + 1
                 sb.append("\nEn stock: ${part.stock ?: 0}")
                 sb.setSpan(RelativeSizeSpan(0.8f), iniStock, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 sb.setSpan(ForegroundColorSpan(Color.parseColor("#9E9E9E")), iniStock, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                sb
             }
-        }).toTypedArray()
+            return sb
+        }
 
-        val dialogSelected = BooleanArray(allItems.size) { false }
-        if (repairedPartsNoneSelected) {
-            dialogSelected[0] = true
-        } else {
-            sortedIndices.forEachIndexed { sortPos, origIdx ->
-                dialogSelected[sortPos + 1] = repairedPartsSelected.getOrElse(origIdx) { false } ||
-                    origIdx in resultado.pretildar
+        val allItems: List<CharSequence> = renglones.map { r ->
+            when (r) {
+                is Renglon.Encabezado -> r.texto
+                is Renglon.YaDeclarado -> textoDeclarado(r.fila)
+                Renglon.Ninguno -> noneLabel
+                is Renglon.Parte -> textoParte(catalogo[r.origIdx])
             }
+        }
+
+        val dialogSelected = RepuestosDeclarados.seleccionInicial(renglones, repairedPartsNoneSelected) { origIdx ->
+            repairedPartsSelected.getOrElse(origIdx) { false } || origIdx in pretildar
         }
 
         // Lista propia (no setMultiChoiceItems) para que el tilde quede a la derecha:
         // simple_list_item_multiple_choice pone el checkMark al final del renglón.
-        val thumbPx = (44 * resources.displayMetrics.density).toInt()
-        val gapPx = (12 * resources.displayMetrics.density).toInt()
-        val padVPx = (10 * resources.displayMetrics.density).toInt()
+        val density = resources.displayMetrics.density
+        val thumbPx = (44 * density).toInt()
+        val gapPx = (12 * density).toInt()
+        val padVPx = (10 * density).toInt()
+        val padHPx = (20 * density).toInt()
+        val tipoEncabezado = 0
+        val tipoDeclarado = 1
+        val tipoNormal = 2
         val partsAdapter = object : android.widget.ArrayAdapter<CharSequence>(
             this, android.R.layout.simple_list_item_multiple_choice, allItems
         ) {
+            override fun getViewTypeCount(): Int = 3
+            override fun getItemViewType(position: Int): Int = when (renglones[position]) {
+                is Renglon.Encabezado -> tipoEncabezado
+                is Renglon.YaDeclarado -> tipoDeclarado
+                else -> tipoNormal
+            }
+            override fun areAllItemsEnabled(): Boolean = false
+            override fun isEnabled(position: Int): Boolean = renglones[position] !is Renglon.Encabezado
+
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val tipo = getItemViewType(position)
+                if (tipo == tipoEncabezado) {
+                    val h = (convertView as? TextView) ?: TextView(parent.context).apply {
+                        layoutParams = android.widget.AbsListView.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        textSize = 13f
+                        setTypeface(typeface, Typeface.BOLD)
+                        setTextColor(Color.parseColor("#616161"))
+                        setPadding(padHPx, (14 * density).toInt(), padHPx, (6 * density).toInt())
+                    }
+                    h.text = allItems[position]
+                    return h
+                }
                 // Renglón propio: el layout de Android (simple_list_item_multiple_choice) tiene
                 // alto fijo de una línea y con nombre + mochila + stock se cortaba. Éste crece
                 // con el texto y no arrastra medidas de renglones reciclados.
@@ -780,23 +844,32 @@ class TerminalDetailsActivity : BaseActivity() {
                     ?: android.widget.CheckedTextView(parent.context).apply {
                         layoutParams = android.widget.AbsListView.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                        minHeight = (56 * resources.displayMetrics.density).toInt()
+                        minHeight = (56 * density).toInt()
                         gravity = android.view.Gravity.CENTER_VERTICAL
                         textSize = 16f
-                        val padH = (20 * resources.displayMetrics.density).toInt()
-                        setPadding(padH, padVPx, padH, padVPx)
+                        setPadding(padHPx, padVPx, padHPx, padVPx)
                         val a = parent.context.obtainStyledAttributes(
                             intArrayOf(android.R.attr.textColorPrimary, android.R.attr.listChoiceIndicatorMultiple)) // ordenados por id
                         checkMarkDrawable = a.getDrawable(1)
                         a.getColorStateList(0)?.let { setTextColor(it) }
                         a.recycle()
+                        if (tipo == tipoDeclarado) {
+                            // Ya en la terminal: fondo azul muy claro y tilde gris (no se puede destildar).
+                            setBackgroundColor(Color.parseColor("#E8F0FB"))
+                            checkMarkTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#9E9E9E"))
+                        }
                     }
                 v.text = allItems[position]
-                // Renglón 0 = "No se cambiaron repuestos". Sin foto en el equipo: sin miniatura.
-                val bmp = if (position == 0) null
-                    else com.enofir.tecnicos_app.core.FotosRepuestos.get(context, sortedParts[position - 1].sfId)
+                // Sin foto en el equipo (o renglón "Ninguno"): sin miniatura.
+                val r = renglones[position]
+                val sfId = when (r) {
+                    is Renglon.YaDeclarado -> r.fila.parte?.sfId ?: r.fila.sfId
+                    is Renglon.Parte -> catalogo[r.origIdx].sfId
+                    else -> null
+                }
+                val bmp = sfId?.let { com.enofir.tecnicos_app.core.FotosRepuestos.get(context, it) }
                 val d = bmp?.let { android.graphics.drawable.BitmapDrawable(resources, it).apply { setBounds(0, 0, thumbPx, thumbPx) } }
-                if (d != null && (mochilaDisponible(sortedParts[position - 1]) ?: 1) <= 0) d.alpha = 110
+                if (d != null && r is Renglon.Parte && (mochilaDisponible(catalogo[r.origIdx]) ?: 1) <= 0) d.alpha = 110
                 v.setCompoundDrawablesRelative(d, null, null, null)
                 v.compoundDrawablePadding = if (d != null) gapPx else 0
                 return v
@@ -815,30 +888,29 @@ class TerminalDetailsActivity : BaseActivity() {
         partsList.choiceMode = ListView.CHOICE_MODE_MULTIPLE
         dialogSelected.forEachIndexed { i, sel -> partsList.setItemChecked(i, sel) }
         partsList.setOnItemClickListener { _, _, which, _ ->
-            val checked = partsList.isItemChecked(which)
-            if (which == 0) {
-                dialogSelected.fill(false)
-                dialogSelected[0] = checked
-                if (checked) for (i in 1 until allItems.size) partsList.setItemChecked(i, false)
-            } else if (checked && (mochilaDisponible(sortedParts[which - 1]) ?: 1) <= 0) {
-                // Sin saldo en la mochila: no se puede elegir (Salesforce lo rechazaría igual).
-                dialogSelected[which] = false
-                partsList.setItemChecked(which, false)
-                Toast.makeText(
-                    this,
-                    "No tenés \"${sortedParts[which - 1].name}\" en tu mochila. Pedilo al pañol.",
-                    Toast.LENGTH_LONG
+            val efecto = RepuestosDeclarados.tocar(renglones, dialogSelected, which, partsList.isItemChecked(which)) { origIdx ->
+                mochilaDisponible(catalogo[origIdx])
+            }
+            dialogSelected.forEachIndexed { i, sel -> if (partsList.isItemChecked(i) != sel) partsList.setItemChecked(i, sel) }
+            when (efecto) {
+                RepuestosDeclarados.Efecto.BLOQUEADO_DECLARADO -> Toast.makeText(
+                    this, "Ya está en la terminal. Para sacarlo, pedíselo al pañol", Toast.LENGTH_LONG
                 ).show()
-            } else {
-                dialogSelected[0] = false
-                partsList.setItemChecked(0, false)
-                dialogSelected[which] = checked
+                // Sin saldo en la mochila: no se puede elegir (Salesforce lo rechazaría igual).
+                RepuestosDeclarados.Efecto.BLOQUEADO_SIN_SALDO -> {
+                    val r = renglones[which] as Renglon.Parte
+                    Toast.makeText(
+                        this,
+                        "No tenés \"${catalogo[r.origIdx].name}\" en tu mochila. Pedilo al pañol.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                RepuestosDeclarados.Efecto.OK -> Unit
             }
         }
 
         partsDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val anySelected = dialogSelected.any { it }
-            if (!anySelected) {
+            if (!RepuestosDeclarados.hayAlgoElegido(renglones, dialogSelected)) {
                 AlertDialog.Builder(this)
                     .setTitle("Falta seleccionar")
                     .setMessage("Seleccioná al menos un repuesto o \"$noneLabel\".")
@@ -846,13 +918,13 @@ class TerminalDetailsActivity : BaseActivity() {
                     .show()
                 return@setOnClickListener
             }
-            repairedPartsNoneSelected = dialogSelected[0]
-            sortedIndices.forEachIndexed { sortPos, origIdx ->
-                repairedPartsSelected[origIdx] = dialogSelected[sortPos + 1]
-            }
+            repairedPartsNoneSelected = RepuestosDeclarados.ningunoElegido(renglones, dialogSelected)
+            val tildadas = RepuestosDeclarados.partesTildadas(renglones, dialogSelected)
+            resultado.orden.forEach { origIdx -> repairedPartsSelected[origIdx] = origIdx in tildadas }
             partsDialog.dismiss()
-            val selected = getSelectedRepairedParts()
-            onConfirm(selected, repairedPartsNoneSelected)
+            // Ya declarados (una entrada por unidad) + lo nuevo: si no se reenvían, Salesforce los borra.
+            val selected = RepuestosDeclarados.armarEnvio(declarados, getSelectedRepairedParts())
+            onConfirm(selected, repairedPartsNoneSelected && !hayDeclarados)
         }
     }
 
@@ -1819,6 +1891,7 @@ class TerminalDetailsActivity : BaseActivity() {
                     }
 
                     csId = cs?.id
+                    declaredParts = RepuestosDeclarados.parse(cs?.declaredParts)
                     if (!isQa || qaValidationPassed) tvResult.text = ""
                     if (isQa) btnChangeState.isEnabled = true  // RECHAZAR siempre habilitado al cargar
                     else if (status != null && !isVerificarApps) btnChangeState.isEnabled = true
