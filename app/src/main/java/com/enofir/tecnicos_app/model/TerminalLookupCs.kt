@@ -1,5 +1,6 @@
 package com.enofir.tecnicos_app.model
 
+import com.google.gson.JsonElement
 import com.google.gson.annotations.SerializedName
 
 data class TerminalLookupCs(
@@ -62,5 +63,11 @@ data class TerminalLookupCs(
     val firmwareOk: Boolean? = null,
 
     @SerializedName("llaveOk")
-    val llaveOk: Boolean? = null
+    val llaveOk: Boolean? = null,
+
+    // Repuestos ya declarados en el caso: [{sfId, qty, tecnico}]. Aditivo: puede faltar.
+    // Se guarda crudo y se parsea tolerante en RepuestosDeclarados.parse (un formato
+    // inesperado no tiene que romper el lookup).
+    @SerializedName("declaredParts")
+    val declaredParts: JsonElement? = null
 )
