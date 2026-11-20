@@ -699,8 +699,11 @@ class TerminalDetailsActivity : BaseActivity() {
             .create()
 
         dialog.show()
+        // Si la terminal ya trae fallas (de Pre-test, tildadas y bloqueadas), el técnico puede continuar sin
+        // marcar "No se encontraron fallas adicionales" (dueño 20-11-2026): las fallas tildadas ya cuentan.
+        val hayFallasCargadas = items.any { it is FallaDialogItem.Locked }
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            if (!noAdditionalSelected && newSelected.isEmpty()) {
+            if (!noAdditionalSelected && newSelected.isEmpty() && !hayFallasCargadas) {
                 AlertDialog.Builder(this)
                     .setTitle("Falta seleccionar")
                     .setMessage("Seleccioná al menos una falla o \"$noAdditional\".")
