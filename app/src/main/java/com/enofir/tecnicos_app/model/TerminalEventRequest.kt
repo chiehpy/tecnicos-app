@@ -88,6 +88,12 @@ data class TerminalEventRequest(
     @SerializedName("initialDiagnosis")
     val initialDiagnosis: List<String>? = null,
 
+    // Fallas de Pre-test que el técnico descartó porque exigen un repuesto que no cambió
+    // (20-11-2026). El MDW las quita de FailureObservations__c / InitialDiagnosis__c.
+    // Un MDW viejo ignora el campo (pydantic sin extra=forbid).
+    @SerializedName("discardedFailures")
+    val discardedFailures: List<String>? = null,
+
     // Comentarios libres (van a Comentarios__c)
     @SerializedName("comments")
     val comments: String? = null,

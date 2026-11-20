@@ -315,6 +315,10 @@ object CatalogsStore {
     val partsSuggestions: RepuestosSugeridos.Sugerencias?
         get() = RepuestosSugeridos.parse(_cached?.partsSuggestions)
 
+    /** Regla falla -> repuesto del MDW; null si no la manda (MDW viejo): Reparación no pregunta. */
+    val failureParts: FallasSinRepuesto.Mapa?
+        get() = FallasSinRepuesto.parse(_cached?.failureParts)
+
     /** Clave de catálogo de repuestos según serial (N910 | N950_amarilla | N950_celeste). */
     fun catalogKey(serial: String): String = when {
         serial.startsWith("NCC", ignoreCase = true) -> "N950_amarilla"

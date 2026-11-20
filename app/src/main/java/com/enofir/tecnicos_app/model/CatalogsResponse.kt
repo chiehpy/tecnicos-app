@@ -40,6 +40,9 @@ data class CatalogsResponse(
 
     /** Repuestos sugeridos por falla (aditivo). Se guarda crudo y se parsea tolerante en RepuestosSugeridos. */
     @SerializedName("parts_suggestions") val partsSuggestions: JsonElement? = null,
+
+    /** Falla -> piezas que la justifican y repuesto -> pieza (aditivo, 20-11-2026). Ver FallasSinRepuesto. */
+    @SerializedName("failure_parts") val failureParts: JsonElement? = null,
 )
 
 /** Grupo del árbol de fallas. El MDW garantiza que los grupos son disjuntos. */
