@@ -35,6 +35,7 @@ import com.enofir.tecnicos_app.core.PrintConfigStore
 import com.enofir.tecnicos_app.core.SessionManager
 import com.enofir.tecnicos_app.core.CatalogsStore
 import com.enofir.tecnicos_app.core.FailureMatrix
+import com.enofir.tecnicos_app.core.FallasSinRepuesto
 import com.enofir.tecnicos_app.core.RepuestosDeclarados
 import com.enofir.tecnicos_app.core.RepuestosDeclarados.Renglon
 import com.enofir.tecnicos_app.core.RepuestosSugeridos
@@ -698,8 +699,11 @@ class TerminalDetailsActivity : BaseActivity() {
             .create()
 
         dialog.show()
+        // Si la terminal ya trae fallas (de Pre-test, tildadas y bloqueadas), el técnico puede continuar sin
+        // marcar "No se encontraron fallas adicionales" (dueño 20-11-2026): las fallas tildadas ya cuentan.
+        val hayFallasCargadas = items.any { it is FallaDialogItem.Locked }
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            if (!noAdditionalSelected && newSelected.isEmpty()) {
+            if (!noAdditionalSelected && newSelected.isEmpty() && !hayFallasCargadas) {
                 AlertDialog.Builder(this)
                     .setTitle("Falta seleccionar")
                     .setMessage("Seleccioná al menos una falla o \"$noAdditional\".")
@@ -926,6 +930,30 @@ class TerminalDetailsActivity : BaseActivity() {
             val selected = RepuestosDeclarados.armarEnvio(declarados, getSelectedRepairedParts())
             onConfirm(selected, repairedPartsNoneSelected && !hayDeclarados)
         }
+    }
+
+    /**
+     * Reparación, al completar: un diálogo por cada falla declarada que exige un repuesto que no se eligió
+     * (dueño, 20-11-2026: avisa, no bloquea). «Descartar falla» la quita y sigue con la próxima;
+     * «Registrar repuesto» vuelve a la lista de repuestos y no completa. Sin pendientes, completa directo.
+     */
+    private fun confirmarFallasSinRepuesto(
+        pendientes: List<FallasSinRepuesto.Pendiente>,
+        onDescartar: (FallasSinRepuesto.Pendiente) -> Unit,
+        onRegistrarRepuesto: () -> Unit,
+        onListo: () -> Unit,
+    ) {
+        val p = pendientes.firstOrNull() ?: return onListo()
+        AlertDialog.Builder(this)
+            .setTitle(FallasSinRepuesto.TITULO)
+            .setMessage(FallasSinRepuesto.mensaje(p))
+            .setCancelable(false)
+            .setPositiveButton(FallasSinRepuesto.BOTON_REGISTRAR) { _, _ -> onRegistrarRepuesto() }
+            .setNegativeButton(FallasSinRepuesto.BOTON_DESCARTAR) { _, _ ->
+                onDescartar(p)
+                confirmarFallasSinRepuesto(pendientes.drop(1), onDescartar, onRegistrarRepuesto, onListo)
+            }
+            .show()
     }
 
     private fun showQaRejectDialog(onConfirm: (qaObsStringForMdw: String, qaObsStringForUi: String) -> Unit) {
@@ -1315,7 +1343,8 @@ class TerminalDetailsActivity : BaseActivity() {
         caseId: String? = null,
         repairTime: String? = null,
         initialDiagnosis: List<String>? = null,
-        firmwareBelow230: Boolean? = null
+        firmwareBelow230: Boolean? = null,
+        discardedFailures: List<String>? = null
     ) {
         if (isBbvaAccount() && !spareParts.isNullOrEmpty()) {
             // Defensa: nunca mandar repuestos para BBVA aunque algún flujo los arme
@@ -1337,7 +1366,7 @@ class TerminalDetailsActivity : BaseActivity() {
                 serial = serial,
                 expectedStatus = null,   // COMPLETE: el estado resultante lo decide el Apex (lo reporta el MDW)
                 callFactory = {
-                    ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis, technicianName = techName, firmwareBelow230 = firmwareBelow230)
+                    ApiClient.complete(serial, role, observations, appOk = appOkValue, firmwareOk = firmwareOk, llaveOk = llaveOk, spareParts = spareParts, caseId = caseId, repairTime = repairTime, initialDiagnosis = initialDiagnosis, technicianName = techName, firmwareBelow230 = firmwareBelow230, discardedFailures = discardedFailures)
                 },
             ) { result ->
                 hideLoadingOverlay()
@@ -2179,20 +2208,39 @@ class TerminalDetailsActivity : BaseActivity() {
                         )
                         return@showRepairFallasDialog
                     }
-                    // Form 2: repuestos utilizados
-                    showRepairPartsDialog(nuevasFallas) { selected, noneSelected ->
-                        val nowTs = System.currentTimeMillis()
-                        val totalSeconds = ((nowTs - startTimestamp) / 1000).toInt()
-                        val repairTime = "%02d:%02d:%02d".format(totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60)
+                    // Form 2: repuestos utilizados -> confirmar fallas sin su repuesto -> COMPLETE.
+                    // Las decisiones de «Descartar falla» se conservan si el técnico vuelve a los repuestos,
+                    // salvo que ahora haya elegido la pieza: entonces la falla vuelve a ser válida.
+                    val descartadas = mutableListOf<FallasSinRepuesto.Pendiente>()
+                    fun pedirRepuestos() {
+                        showRepairPartsDialog(nuevasFallas) { selected, _ ->
+                            val sinPieza = FallasSinRepuesto.detectar(
+                                CatalogsStore.failureParts, revisionInicialFailures, nuevasFallas, selected,
+                            )
+                            descartadas.retainAll { d -> sinPieza.any { it.falla == d.falla } }
+                            val pendientes = sinPieza.filter { p -> descartadas.none { it.falla == p.falla } }
+                            confirmarFallasSinRepuesto(
+                                pendientes,
+                                onDescartar = { descartadas.add(it) },
+                                onRegistrarRepuesto = { pedirRepuestos() },
+                            ) {
+                                val envio = FallasSinRepuesto.aplicar(nuevasFallas, descartadas)
+                                val nowTs = System.currentTimeMillis()
+                                val totalSeconds = ((nowTs - startTimestamp) / 1000).toInt()
+                                val repairTime = "%02d:%02d:%02d".format(totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60)
 
-                        executeComplete(
-                            serial, role, chip, tvResult, btnComplete,
-                            spareParts = selected.ifEmpty { null },
-                            caseId = csId,
-                            repairTime = repairTime,
-                            initialDiagnosis = nuevasFallas.ifEmpty { null }
-                        )
+                                executeComplete(
+                                    serial, role, chip, tvResult, btnComplete,
+                                    spareParts = selected.ifEmpty { null },
+                                    caseId = csId,
+                                    repairTime = repairTime,
+                                    initialDiagnosis = envio.initialDiagnosis.ifEmpty { null },
+                                    discardedFailures = envio.discardedFailures.ifEmpty { null }
+                                )
+                            }
+                        }
                     }
+                    pedirRepuestos()
                 }
                 return@setOnClickListener
             }

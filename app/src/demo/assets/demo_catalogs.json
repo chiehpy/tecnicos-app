@@ -3267,5 +3267,335 @@
     ]
    }
   }
+ },
+ "failure_parts": {
+  "version": 1,
+  "piezas": {
+   "cf": "Carcasa frontal + Display",
+   "cp": "Carcasa posterior",
+   "tb": "Tapa de bateria",
+   "ti": "Tapa de impresora",
+   "imp": "Impresora",
+   "soporteimp": "Soporte de impresora",
+   "rod": "Rodillo",
+   "placaio": "Placa IO",
+   "fpc": "FPC Key",
+   "lect": "Lector de tarjetas IC",
+   "mag": "Cabezal magnetico",
+   "sim": "SIM socket",
+   "usb": "Ficha USB",
+   "wifi": "Antena WiFi",
+   "lente": "Lente de camara",
+   "cam": "Camara trasera",
+   "malla": "Malla PET",
+   "gomacond": "Goma conductiva",
+   "goma": "Almohadilla de apoyo inferior",
+   "gomasup": "Almohadilla de apoyo superior",
+   "film": "Film protector"
+  },
+  "por_falla": {
+   "Film dañado": [
+    "film"
+   ],
+   "Carcasa frontal rota": [
+    "cf"
+   ],
+   "Carcasa frontal golpeada": [
+    "cf"
+   ],
+   "Carcasa frontal rayada": [
+    "cf"
+   ],
+   "Carcasa frontal desgastada": [
+    "cf"
+   ],
+   "Carcasa posterior rota": [
+    "cp"
+   ],
+   "Carcasa posterior golpeada": [
+    "cp"
+   ],
+   "Carcasa posterior rayada": [
+    "cp"
+   ],
+   "Carcasa posterior desgastada": [
+    "cp"
+   ],
+   "Tapa de bateria rota": [
+    "tb"
+   ],
+   "Tapa de bateria rayada": [
+    "tb"
+   ],
+   "Tapa de bateria golpeada": [
+    "tb"
+   ],
+   "Sin tapa de bateria": [
+    "tb"
+   ],
+   "Tapa de impresora rota": [
+    "ti"
+   ],
+   "Tapa de impresora rayada": [
+    "ti"
+   ],
+   "Tapa de impresora golpeada": [
+    "ti"
+   ],
+   "Tapa de impresora desgastada": [
+    "ti"
+   ],
+   "Sin tapa de impresora": [
+    "ti"
+   ],
+   "Display golpeado": [
+    "cf"
+   ],
+   "Display roto": [
+    "cf"
+   ],
+   "Táctil roto": [
+    "cf"
+   ],
+   "Impresora rota": [
+    "imp",
+    "soporteimp"
+   ],
+   "Sin rodillo": [
+    "rod"
+   ],
+   "Dientes de impresora desgastados": [
+    "cf",
+    "imp"
+   ],
+   "Silicona superior de apoyo desgastada": [
+    "gomasup"
+   ],
+   "Silicona inferior de apoyo desgastada": [
+    "goma"
+   ],
+   "Audio defectuoso": [
+    "placaio"
+   ],
+   "Cámara trasera rota": [
+    "cam"
+   ],
+   "Cámara frontal rota": [
+    "cam"
+   ],
+   "Entrada USB dañada": [
+    "usb"
+   ],
+   "Lector de tarjetas IC dañado": [
+    "lect"
+   ],
+   "Lector de tarjetas IC defectuoso": [
+    "lect"
+   ],
+   "SIM socket dañada": [
+    "sim"
+   ],
+   "Botón de inicio defectuoso": [
+    "fpc"
+   ],
+   "Placa IO defectuosa": [
+    "placaio"
+   ],
+   "Tapa de bateria desgastada": [
+    "tb"
+   ],
+   "Bordes internos sucios": [
+    "cf"
+   ],
+   "Lente trasero de camara defectuoso": [
+    "lente"
+   ],
+   "Lente de cámara roto": [
+    "lente"
+   ],
+   "Impresora defectuosa": [
+    "imp",
+    "soporteimp"
+   ],
+   "Lente de camara roto": [
+    "lente"
+   ],
+   "Rechazado por: Film dañado": [
+    "film"
+   ],
+   "Tapa de impresora rota.": [
+    "ti"
+   ],
+   "Tapa de bateria rota.": [
+    "tb"
+   ],
+   "Carcasa frontal rota.": [
+    "cf"
+   ],
+   "Film dañado.": [
+    "film"
+   ],
+   "Lente de camara roto.": [
+    "lente"
+   ],
+   "Boton de inicio defectuoso": [
+    "fpc"
+   ],
+   "Display rayado": [
+    "cf"
+   ]
+  },
+  "por_repuesto": {
+   "a03Vr00000rHEQP": "cf",
+   "a03Vr00000lGEHI": "cf",
+   "a03Vr00000lGEHK": "cp",
+   "a03Vr00000lGEHL": "tb",
+   "a03Vr00000lGEHJ": "ti",
+   "a03Vr00000rHEQO": "cf",
+   "a03Vr00000lGEHR": "imp",
+   "a03Vr00000lGEHq": "rod",
+   "a03Vr00000lGEHM": "placaio",
+   "a03Vr00000uUpcm": "placaio",
+   "a03Vr00000lGEHS": "lect",
+   "a03Vr00000lGEHQ": "mag",
+   "a03Vr00000lGEHO": "cam",
+   "a03Vr00000lGEHP": "cam",
+   "a03Vr00000lGEHZ": "usb",
+   "a03Vr00000sIqKR": "cf",
+   "a03Vr00000lAFNq": "cf",
+   "a03Vr00000lAFNw": "cp",
+   "a03Vr00000lAFNx": "tb",
+   "a03Vr00000lAFNv": "ti",
+   "a03Vr00000sIqKQ": "cf",
+   "a03Vr00000lAFO5": "imp",
+   "a03Vr00000lAFOD": "rod",
+   "a03Vr00000lAFO0": "placaio",
+   "a03Vr00000lAFNr": "placaio",
+   "a03Vr00000lAFO8": "lect",
+   "a03Vr00000lAFO4": "mag",
+   "a03Vr00000lAFO2": "cam",
+   "a03Vr00000lAFO3": "cam",
+   "a03Vr00000lAFOZ": "usb",
+   "a03Vr00001OhIkv": "malla",
+   "a03Vr00000lGEHb": "cf",
+   "a03Vr00000lGEHk": "cp",
+   "a03Vr00000lGEHl": "tb",
+   "a03Vr00000lGEHj": "ti",
+   "a03Vr000012ROBF": "cf",
+   "a03Vr00000lGEHd": "imp",
+   "a03Vr00000lGEHp": "rod",
+   "a03Vr00000lGEHa": "placaio",
+   "a03Vr00000qSKil": "malla",
+   "a03Vr00000qSKin": "fpc",
+   "a03Vr00000lGEHf": "cam",
+   "a03Vr00000lGEHg": "cam",
+   "a03Vr00000lGEHi": "lect",
+   "a03Vr00000qSKip": "mag",
+   "a03Vr00000qSKiq": "mag",
+   "a03Vr00000lAFOd": "cf",
+   "a03Vr00000lAFP5": "cp",
+   "a03Vr00000lAFP6": "tb",
+   "a03Vr00000lAFP4": "ti",
+   "a03Vr00000lAFOf": "imp",
+   "a03Vr00000lAFPF": "rod",
+   "a03Vr00000lAFOc": "placaio",
+   "a03Vr00000lAFOk": "fpc",
+   "a03Vr00001OgdY8": "malla",
+   "a03Vr00000lAFOi": "cam",
+   "a03Vr00000lAFOj": "cam",
+   "a03Vr00000lAFOr": "lect",
+   "a03Vr00000lAFOg": "mag",
+   "a03Vr00000lAFP2": "mag",
+   "a03Vr00000lAFPA": "lente",
+   "a03Vr00000lAFOw": "gomasup",
+   "a03Vr00000lAFP0": "goma",
+   "a03Vr00000lAFOs": "sim",
+   "a03Vr00000lAFOt": "usb",
+   "a03Vr00000lAFOu": "gomacond",
+   "a03Vr00000lAFOx": "soporteimp",
+   "a03Vr00000lAFOm": "wifi",
+   "a03Vr00000lGEHc": "cf",
+   "a03Vr00000lGEHn": "cp",
+   "a03Vr00000lGEHo": "tb",
+   "a03Vr00000lGEHm": "ti",
+   "a03Vr00000lAFOe": "cf",
+   "a03Vr00000lAFP8": "cp",
+   "a03Vr00000lAFP9": "tb",
+   "a03Vr00000lAFP7": "ti",
+   "111012496U": "cf",
+   "300052005U": "cf",
+   "111016684U": "cp",
+   "111016685U": "tb",
+   "111016682U": "ti",
+   "102050193U": "cf",
+   "102040064U": "imp",
+   "115080285U": "rod",
+   "301823114U": "placaio",
+   "111011983U": "placaio",
+   "108010045U": "lect",
+   "102030103U": "mag",
+   "102020268U": "cam",
+   "102020269U": "cam",
+   "108010143U": "usb",
+   "111012496": "cf",
+   "300052005": "cf",
+   "111016684": "cp",
+   "111016685": "tb",
+   "111016682": "ti",
+   "102050193": "cf",
+   "102040064": "imp",
+   "115080285": "rod",
+   "301823114": "placaio",
+   "111011983": "placaio",
+   "108010045": "lect",
+   "102030103": "mag",
+   "102020268": "cam",
+   "102020269": "cam",
+   "108010143": "usb",
+   "112030084": "malla",
+   "111018011U": "cf",
+   "111018119U": "cp",
+   "111018014U": "tb",
+   "111018010U": "ti",
+   "102050488U": "cf",
+   "102040062U": "imp",
+   "301981004U": "placaio",
+   "112030145U": "malla",
+   "112020225U": "fpc",
+   "102020377U": "cam",
+   "102020263U": "cam",
+   "108010100U": "lect",
+   "102030174U": "mag",
+   "111015638U": "mag",
+   "111018011": "cf",
+   "111018119": "cp",
+   "111018014": "tb",
+   "111018010": "ti",
+   "102040062": "imp",
+   "301981004": "placaio",
+   "112020225": "fpc",
+   "112030145": "malla",
+   "102020377": "cam",
+   "102020263": "cam",
+   "108010100": "lect",
+   "102030174": "mag",
+   "111015638": "mag",
+   "111018023": "lente",
+   "111040820": "gomasup",
+   "111040821": "goma",
+   "108010240": "sim",
+   "108010283": "usb",
+   "111040631": "gomacond",
+   "111016249": "soporteimp",
+   "105040346": "wifi",
+   "111017208U": "cf",
+   "111017890U": "cp",
+   "111017042U": "tb",
+   "111017052U": "ti",
+   "111017208": "cf",
+   "111017890": "cp",
+   "111017042": "tb",
+   "111017052": "ti"
+  }
  }
 }

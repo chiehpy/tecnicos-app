@@ -30,7 +30,8 @@ class DemoInterceptor(private val catalogsJson: () -> String) : Interceptor {
     private val gson = Gson()
     private val json = MediaType.parse("application/json; charset=utf-8")
 
-    private data class Estado(var status: String, var substatus: String?, var tecnico: String?)
+    /** fallas = FailureObservations__c simulado (null = el de ejemplo del modelo). */
+    private data class Estado(var status: String, var substatus: String?, var tecnico: String?, var fallas: String? = null)
 
     private val estados = ConcurrentHashMap<String, Estado>()
 
@@ -94,7 +95,7 @@ class DemoInterceptor(private val catalogsJson: () -> String) : Interceptor {
         val cs = mutableMapOf<String, Any?>(
             "id" to "500DEMO0000000${serial.takeLast(3).padStart(3, '0')}",
             "accountName" to "Mercado Libre SA",
-            "failureObservations" to fallas,
+            "failureObservations" to (est.fallas ?: fallas),
             "status" to est.status,
             "substatus" to est.substatus,
             "qaRejectCount" to 0,
@@ -127,7 +128,17 @@ class DemoInterceptor(private val catalogsJson: () -> String) : Interceptor {
         when (r.action.uppercase()) {
             "ASSIGN" -> est.tecnico = r.technicianName
             "RELEASE" -> est.tecnico = null
-            "COMPLETE" -> SIGUIENTE[rol]?.let { est.status = it; est.substatus = null }
+            "COMPLETE" -> {
+                SIGUIENTE[rol]?.let { est.status = it; est.substatus = null }
+                // Igual que el MDW: las fallas de Pre-test descartadas en Reparación salen del caso.
+                val fuera = r.discardedFailures.orEmpty().map { FallasSinRepuesto.normalizar(it).lowercase() }.toSet()
+                if (fuera.isNotEmpty()) {
+                    val n950 = serial.startsWith("NCC") || serial.startsWith("NCD") || serial.startsWith("NCB")
+                    val quedan = (est.fallas ?: if (n950) FALLAS_N950 else FALLAS_N910).split(",")
+                        .map { it.trim() }.filter { it.isNotEmpty() && FallasSinRepuesto.normalizar(it).lowercase() !in fuera }
+                    est.fallas = quedan.joinToString(", ").ifEmpty { "Sin falla" }
+                }
+            }
             "MODIFY" -> r.targetStatus?.takeIf { it.isNotBlank() }?.let {
                 est.status = it
                 est.substatus = r.targetSubstatus
@@ -136,7 +147,8 @@ class DemoInterceptor(private val catalogsJson: () -> String) : Interceptor {
         }
         return mapOf(
             "ok" to true,
-            "message" to "Demo: ${r.action} OK" + if (rol.isNotEmpty()) " ($rol)" else "",
+            "message" to "Demo: ${r.action} OK" + (if (rol.isNotEmpty()) " ($rol)" else "") +
+                (r.discardedFailures?.takeIf { it.isNotEmpty() }?.let { ". Descartadas: ${it.joinToString(", ")}" } ?: ""),
             "salesforce_id" to "500DEMO000000000AAA",
             "previous_technician" to null,
             "verified" to true,
