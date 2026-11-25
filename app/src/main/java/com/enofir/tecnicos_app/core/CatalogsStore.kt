@@ -146,7 +146,7 @@ object CatalogsStore {
                 RecoveredPartItem("111016682",  "Tapa impresora",              sfId = "a03Vr00000lAFNvIAO"),
                 RecoveredPartItem("102050193",  "Display",                     sfId = "a03Vr00000sIqKQIA0"),
                 RecoveredPartItem("102040064",  "Impresora",                   sfId = "a03Vr00000lAFO5IAO"),
-                RecoveredPartItem("115080285",  "Rodillo",                     sfId = "a03Vr00000lAFODIA4"),
+                RecoveredPartItem("115080285",  "Rodillo",                     sfId = "a03Vr00000lAFPFIA4"),
                 RecoveredPartItem("301823114",  "Placa IO",                    sfId = "a03Vr00000lAFO0IAO"),
                 RecoveredPartItem("111011983",  "Bracket placa IO",            sfId = "a03Vr00000lAFNrIAO"),
                 RecoveredPartItem("108010045",  "Lectora chip IC",             sfId = "a03Vr00000lAFO8IAO"),
@@ -285,7 +285,18 @@ object CatalogsStore {
     }
     val statuses: List<String> get() = _cached?.statuses ?: defaults.statuses
     val substatusReparacion: List<String> get() = _cached?.substatusReparacion ?: defaults.substatusReparacion
+    // Repuestos que el MDW devolvió para cada terminal (serial -> fichas). Sólo en memoria: depende
+    // del dueño de la terminal en ese momento, no se persiste. Sin entrada = catálogo por modelo.
+    private val repuestosPorSerial = java.util.concurrent.ConcurrentHashMap<String, List<RecoveredPartItem>>()
+
+    /** Guarda el catálogo por serial. Vacío o sin fichas válidas: se descarta y rige el respaldo. */
+    fun saveRepuestosPorSerial(serial: String, items: List<RecoveredPartItem>?) {
+        val k = serial.trim().uppercase()
+        if (items.isNullOrEmpty()) repuestosPorSerial.remove(k) else repuestosPorSerial[k] = items
+    }
+
     fun getRepairedParts(serial: String): List<RecoveredPartItem> {
+        repuestosPorSerial[serial.trim().uppercase()]?.let { return it }
         val key = when {
             serial.startsWith("NCC", ignoreCase = true) -> "N950_amarilla"
             serial.startsWith("NCD", ignoreCase = true) -> "N950_amarilla"

@@ -68,8 +68,6 @@ class TerminalDetailsActivity : BaseActivity() {
         const val EXTRA_PREVIOUS_TECH = "extra_previous_tech"
         private const val ROLE_REVISION_INICIAL = "Revisión inicial"
         private const val ROLE_QA = "QA"
-        // Account.Name de BBVA en SF (Id 001Vr00000lIi17IAC)
-        private const val BBVA_ACCOUNT_NAME = "Banco BBVA Argentina S.A"
         private const val ROLE_RECOVERY = "Recovery"
         private const val ROLE_VERIFICAR_APPS = "Verificar Apps"
         private const val ROLE_PROGRAMADOR = "Programador (carga de firmwares)"
@@ -100,7 +98,14 @@ class TerminalDetailsActivity : BaseActivity() {
 
     // Catálogo de repuestos utilizados (Reparación) — separado del de Recovery
     private val repairedPartsOptions get() = CatalogsStore.getRepairedParts(serial)
-    private val repairedPartsSelected: BooleanArray by lazy { BooleanArray(repairedPartsOptions.size) { false } }
+    // El catálogo puede cambiar de tamaño cuando llega el del MDW por serial: se reajusta al vuelo.
+    private var repairedPartsSelectedArr = BooleanArray(0)
+    private val repairedPartsSelected: BooleanArray
+        get() {
+            val n = repairedPartsOptions.size
+            if (repairedPartsSelectedArr.size != n) repairedPartsSelectedArr = BooleanArray(n)
+            return repairedPartsSelectedArr
+        }
     private var repairedPartsNoneSelected = false
 
     // Mochila del técnico (saldo por repuesto, clave = Id de Repuesto__c de 15 caracteres).
@@ -150,10 +155,21 @@ class TerminalDetailsActivity : BaseActivity() {
     private var csId: String? = null
     private var currentAccountName: String? = null
 
-    // BBVA: 0 repuestos (decisión de negocio). Se identifica por Account.Name que manda el lookup;
-    // el MDW y el Apex (Enofir_CaseSparepartsAPI) también rechazan repuestos para esta cuenta.
-    private fun isBbvaAccount(): Boolean =
-        currentAccountName?.trim().equals(BBVA_ACCOUNT_NAME, ignoreCase = true)
+    /** Pide al MDW los repuestos que corresponden a esta terminal (por dueño). Silencioso: si falla queda el catálogo por modelo. */
+    private fun refreshRepuestosPorSerial() {
+        val s = serial
+        if (s.isBlank()) return
+        ApiClient.fetchRepuestosCatalogo(s).enqueue(object : Callback<com.enofir.tecnicos_app.model.RepuestosCatalogoResponse> {
+            override fun onResponse(
+                call: Call<com.enofir.tecnicos_app.model.RepuestosCatalogoResponse>,
+                response: Response<com.enofir.tecnicos_app.model.RepuestosCatalogoResponse>
+            ) {
+                if (!response.isSuccessful) return
+                CatalogsStore.saveRepuestosPorSerial(s, response.body()?.repuestos?.mapNotNull { it.toPart() })
+            }
+            override fun onFailure(call: Call<com.enofir.tecnicos_app.model.RepuestosCatalogoResponse>, t: Throwable) { /* catálogo por modelo */ }
+        })
+    }
 
     // Repuestos ya declarados en el caso (cs.declaredParts del lookup). Vacío = igual que antes.
     private var declaredParts: List<RepuestosDeclarados.Declarado> = emptyList()
@@ -1346,12 +1362,6 @@ class TerminalDetailsActivity : BaseActivity() {
         firmwareBelow230: Boolean? = null,
         discardedFailures: List<String>? = null
     ) {
-        if (isBbvaAccount() && !spareParts.isNullOrEmpty()) {
-            // Defensa: nunca mandar repuestos para BBVA aunque algún flujo los arme
-            StatusChip.apply(chip, ChipState.ERROR, "ERROR")
-            tvResult.text = "BBVA: no se registran repuestos."
-            return
-        }
         btnComplete.isEnabled = false
         StatusChip.apply(chip, ChipState.PROCESSING, "PROCESANDO")
         tvResult.text = "Enviando COMPLETE..."
@@ -1502,6 +1512,7 @@ class TerminalDetailsActivity : BaseActivity() {
         val tvFailureObs = findViewById<TextView>(R.id.tvFailureObs)
 
         serial = intent.getStringExtra(EXTRA_SERIAL)?.trim().orEmpty()
+        refreshRepuestosPorSerial()
         val role = intent.getStringExtra(EXTRA_ROLE)?.trim().orEmpty()
         previousTechnicianValue = intent.getStringExtra(EXTRA_PREVIOUS_TECH)
         val isRevisionInicial = role == ROLE_REVISION_INICIAL
@@ -1685,14 +1696,6 @@ class TerminalDetailsActivity : BaseActivity() {
             btnFaltaRepuesto.visibility = View.VISIBLE
 
             btnFaltaRepuesto.setOnClickListener {
-                if (isBbvaAccount()) {
-                    AlertDialog.Builder(this)
-                        .setTitle("Sin repuestos")
-                        .setMessage("Las terminales de BBVA se reparan sin repuestos.")
-                        .setPositiveButton("OK", null)
-                        .show()
-                    return@setOnClickListener
-                }
                 // Catálogo de repuestos según modelo (mismo que Reparación)
                 val parts = repairedPartsOptions
                 val sortedIndices = parts.indices.sortedByDescending { i ->
@@ -2195,19 +2198,6 @@ class TerminalDetailsActivity : BaseActivity() {
 
                 // Form 1: fallas encontradas
                 showRepairFallasDialog { nuevasFallas ->
-                    if (isBbvaAccount()) {
-                        // BBVA: 0 repuestos — sin Form 2, COMPLETE sin spareParts
-                        val totalSeconds = ((System.currentTimeMillis() - startTimestamp) / 1000).toInt()
-                        val repairTime = "%02d:%02d:%02d".format(totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60)
-                        executeComplete(
-                            serial, role, chip, tvResult, btnComplete,
-                            spareParts = null,
-                            caseId = csId,
-                            repairTime = repairTime,
-                            initialDiagnosis = nuevasFallas.ifEmpty { null }
-                        )
-                        return@showRepairFallasDialog
-                    }
                     // Form 2: repuestos utilizados -> confirmar fallas sin su repuesto -> COMPLETE.
                     // Las decisiones de «Descartar falla» se conservan si el técnico vuelve a los repuestos,
                     // salvo que ahora haya elegido la pieza: entonces la falla vuelve a ser válida.

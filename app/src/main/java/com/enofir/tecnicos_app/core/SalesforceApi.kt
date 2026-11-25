@@ -66,6 +66,10 @@ interface SalesforceApi {
     @GET("app/catalogs")
     fun getCatalogs(): Call<CatalogsResponse>
 
+    /** Repuestos que corresponden a la terminal (por dueño). Endpoint a confirmar con el MDW. */
+    @GET(ApiClient.REPUESTOS_CATALOGO_PATH)
+    fun getRepuestosCatalogo(@retrofit2.http.Query("serial") serial: String): Call<com.enofir.tecnicos_app.model.RepuestosCatalogoResponse>
+
     /** Mochila del técnico del token (saldo por repuesto). Solo Argentina; el control real lo hace Salesforce. */
     @GET(ApiClient.MOCHILA_PATH)
     fun getMochila(): Call<MochilaResponse>

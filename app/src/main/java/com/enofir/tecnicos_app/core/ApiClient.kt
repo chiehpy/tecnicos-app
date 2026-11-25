@@ -392,6 +392,16 @@ object ApiClient {
 
     fun fetchFotoRepuesto(sfId: String): Call<okhttp3.ResponseBody> = api().getFotoRepuesto(sfId)
 
+    /**
+     * UNICO lugar con el contrato del catálogo de repuestos por terminal. Si el MDW cambia la
+     * ruta o los parámetros, se ajusta acá (y en SalesforceApi.getRepuestosCatalogo).
+     * GET app/repuestos/catalogo?serial=<serial> -> { "repuestos": [ {id, nombre, pn, cuenta, usado} ] }
+     */
+    const val REPUESTOS_CATALOGO_PATH = "app/repuestos/catalogo"
+
+    fun fetchRepuestosCatalogo(serial: String): Call<com.enofir.tecnicos_app.model.RepuestosCatalogoResponse> =
+        api().getRepuestosCatalogo(serial.trim())
+
     fun fetchCatalogs(): Call<CatalogsResponse> {
         return api().getCatalogs()
     }
