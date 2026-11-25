@@ -1,7 +1,7 @@
 package com.enofir.tecnicos_app.model
 
 /**
- * Respuesta de `GET app/repuestos/catalogo?serial=<serial>` (repuestos por dueño, 24-11-2026).
+ * Respuesta de `GET app/repuestos/catalogo?serial=<serial>` (repuestos por dueno, 24-11-2026).
  * El MDW decide qué fichas corresponden a la terminal: comunes de Enofir Systems + plásticos/usados
  * del cliente dueño. Todo nullable: un MDW viejo (o la demo) manda otra cosa y la app usa su catálogo.
  */
@@ -15,12 +15,14 @@ data class RepuestoCatalogoItem(
     val pn: String? = null,
     val cuenta: String? = null,
     val usado: Boolean? = null,
+    val stock: Int? = null,
+    @com.google.gson.annotations.SerializedName("usage_count") val usageCount: Int? = null,
 ) {
     /** null si la ficha no trae Id o nombre: no se puede registrar. */
     fun toPart(): RecoveredPartItem? {
         val n = nombre?.trim().orEmpty()
         val i = id?.trim().orEmpty()
         if (n.isEmpty() || i.isEmpty()) return null
-        return RecoveredPartItem(pn = pn?.trim().orEmpty(), name = n, sfId = i)
+        return RecoveredPartItem(pn = pn?.trim().orEmpty(), name = n, sfId = i, stock = stock, usageCount = usageCount)
     }
 }
