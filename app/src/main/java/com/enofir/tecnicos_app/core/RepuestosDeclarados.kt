@@ -16,7 +16,8 @@ import com.google.gson.JsonElement
 object RepuestosDeclarados {
 
     /** Un elemento crudo de `declaredParts`. */
-    data class Declarado(val sfId: String, val qty: Int, val tecnico: String?)
+    /** [nombre]: Name de la ficha en Salesforce (lo manda el MDW desde el 26-11-2026; puede faltar). */
+    data class Declarado(val sfId: String, val qty: Int, val tecnico: String?, val nombre: String? = null)
 
     /** Un renglón de la sección «Ya en la terminal»: un repuesto (Id de Repuesto__c) con su cantidad total. */
     data class Fila(
@@ -25,8 +26,10 @@ object RepuestosDeclarados {
         val tecnico: String?,
         /** Parte del catálogo de la app con el mismo Id, o null si la app no lo conoce. */
         val parte: RecoveredPartItem?,
+        /** Name de Salesforce, para lo que no está en el catálogo de la app (ej. el film). */
+        val nombreSf: String? = null,
     ) {
-        val nombre: String get() = parte?.name ?: "Repuesto $sfId"
+        val nombre: String get() = parte?.name ?: nombreSf ?: "Repuesto $sfId"
 
         /** Id que se manda en `spareParts`: el mismo que la app manda hoy para esa parte. */
         val idEnvio: String get() = parte?.let { it.sfId ?: it.pn } ?: sfId
@@ -62,7 +65,9 @@ object RepuestosDeclarados {
                 ?.let { runCatching { it.asDouble.toInt() }.getOrNull() } ?: 1
             val tecnico = o.get("tecnico")?.takeIf { it.isJsonPrimitive }?.asString?.trim()
                 ?.takeIf { it.isNotEmpty() }
-            Declarado(sfId, qty.coerceAtLeast(1), tecnico)
+            val nombre = o.get("name")?.takeIf { it.isJsonPrimitive }?.asString?.trim()
+                ?.takeIf { it.isNotEmpty() }
+            Declarado(sfId, qty.coerceAtLeast(1), tecnico, nombre)
         }
     }.getOrDefault(emptyList())
 
@@ -83,6 +88,7 @@ object RepuestosDeclarados {
                 qty = ds.sumOf { it.qty.coerceAtLeast(1) },
                 tecnico = tecnicos.takeIf { it.isNotEmpty() }?.joinToString(", "),
                 parte = catalogo.firstOrNull { clave(it.sfId) == k },
+                nombreSf = ds.firstNotNullOfOrNull { it.nombre },
             )
         }
     }

@@ -37,6 +37,17 @@ class RepuestosDeclaradosTest {
         assertTrue(RepuestosDeclarados.parse(JsonParser.parseString("[]")).isEmpty())
     }
 
+    @Test fun fuera_del_catalogo_muestra_el_nombre_de_salesforce_no_el_id() {
+        // 26-11-2026: el film (fuera del catálogo de Reparación) salía como «Repuesto a03...».
+        val json = """[{"sfId":"$DESCONOCIDO","qty":1,"tecnico":"Bruno Hoquigaray","name":"Film pantalla"},
+                       {"sfId":"$DISPLAY","qty":1,"tecnico":"Pablo Scarone","name":"Nombre largo SF"}]"""
+        val f = RepuestosDeclarados.agrupar(RepuestosDeclarados.parse(JsonParser.parseString(json)), catalogo)
+        assertEquals("Film pantalla", f[0].nombre)
+        assertEquals("Display", f[1].nombre)   // si está en el catálogo, manda el nombre de la app
+        // MDW viejo, sin name: sigue el Id como antes
+        assertEquals("Repuesto $DESCONOCIDO", filas(Declarado(DESCONOCIDO, 1, null))[0].nombre)
+    }
+
     @Test fun parse_tolerante_por_elemento() {
         val json = """[
             {"sfId":"$DISPLAY","qty":1,"tecnico":"Pablo Scarone"},
